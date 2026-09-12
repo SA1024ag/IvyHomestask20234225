@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { apiClient } from '../api/client';
+import { useCompare } from '../context/CompareContext';
 
 const LOCALITIES = [
   'All Localities',
@@ -55,6 +56,8 @@ const PRICE_PRESETS = [
 ];
 
 export default function ListingsPage() {
+  const { count: compareCount } = useCompare();
+
   // Filter States
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
   const [selectedBhk, setSelectedBhk] = useState('');
@@ -202,7 +205,7 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="main-content">
+    <div className="main-content" style={{ paddingBottom: compareCount > 0 ? '7.5rem' : '2rem' }}>
       {/* Top Header */}
       <div className="page-header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>

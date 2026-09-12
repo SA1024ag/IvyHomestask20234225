@@ -74,7 +74,7 @@ export default function ComparePage() {
   const maxArea = areas.length > 1 ? Math.max(...areas) : null;
 
   return (
-    <div className="main-content">
+    <div className="main-content" style={{ paddingBottom: '6rem' }}>
       {/* Top Header & Breadcrumb */}
       <div style={{ marginBottom: '2rem' }}>
         <button
