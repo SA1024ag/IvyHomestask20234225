@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const BASE_URL = 'https://solve.ivy.homes';
 const API_KEY = process.env.IVY_API_KEY || 'IVY26-A3B2763F67F9';
@@ -76,7 +80,7 @@ async function fetchEndpointData(endpoint, authToken) {
     const data = await res.json();
     const pageResults = Array.isArray(data) ? data : (data.results || []);
 
-    console.log(`Got ${pageResults.length} records. (Total accumulated: ${results.length + pageResults.length}/${data.total || '?'})`);
+    console.log(`Got ${pageResults.length} records. (Total accumulated: ${results.length + pageResults.length}, server reported total: ${data.total || '?'})`);
 
     if (pageResults.length === 0) {
       console.log(`[${endpoint.name}] Results array is empty. Completed.`);
@@ -87,13 +91,9 @@ async function fetchEndpointData(endpoint, authToken) {
     offset += pageResults.length;
     page++;
 
-    // Stop if server indicates no more records exist or reached reported total
+    // Stop ONLY when the server explicitly reports has_more === false
     if (data.has_more === false) {
-      console.log(`[${endpoint.name}] Server reported has_more: false. Completed.`);
-      break;
-    }
-    if (typeof data.total === 'number' && results.length >= data.total) {
-      console.log(`[${endpoint.name}] Reached total count of ${data.total}. Completed.`);
+      console.log(`[${endpoint.name}] Server reported has_more: false. All records retrieved.`);
       break;
     }
   }
