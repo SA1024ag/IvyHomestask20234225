@@ -1,193 +1,556 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Home,
   Search,
   SlidersHorizontal,
   MapPin,
   BedDouble,
-  Bath,
-  Maximize2,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  Home,
   CheckCircle2,
-  TrendingUp,
-  ShieldCheck
+  Loader2,
+  Sparkles,
+  FilterX
 } from 'lucide-react';
+import PropertyCard from '../components/PropertyCard';
+import { apiClient } from '../api/client';
+
+const LOCALITIES = [
+  'All Localities',
+  'andheri west',
+  'bandra east',
+  'borivali west',
+  'chembur',
+  'goregaon east',
+  'kandivali east',
+  'malad west',
+  'mulund west',
+  'powai',
+  'thane west'
+];
+
+const BHK_OPTIONS = [
+  { label: 'All BHKs', value: '' },
+  { label: '1 BHK', value: '1' },
+  { label: '2 BHK', value: '2' },
+  { label: '3 BHK', value: '3' },
+  { label: '4 BHK', value: '4' },
+  { label: '5+ BHK', value: '5' }
+];
+
+const FURNISHING_OPTIONS = [
+  { label: 'All Furnishing', value: '' },
+  { label: 'Unfurnished', value: 'unfurnished' },
+  { label: 'Semi-Furnished', value: 'semi-furnished' },
+  { label: 'Fully-Furnished', value: 'fully-furnished' }
+];
+
+const PRICE_PRESETS = [
+  { label: 'Any Price', min: '', max: '' },
+  { label: 'Under ₹2 Cr', min: '', max: '20000000' },
+  { label: '₹2 Cr – ₹4 Cr', min: '20000000', max: '40000000' },
+  { label: '₹4 Cr – ₹7 Cr', min: '40000000', max: '70000000' },
+  { label: 'Above ₹7 Cr', min: '70000000', max: '' }
+];
 
 export default function ListingsPage() {
+  // Filter States
+  const [selectedLocality, setSelectedLocality] = useState('All Localities');
+  const [selectedBhk, setSelectedBhk] = useState('');
+  const [selectedFurnishing, setSelectedFurnishing] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Pagination States
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(12);
+
+  // Data States
+  const [rawListings, setRawListings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
+  const [totalServerCount, setTotalServerCount] = useState(5100);
+
+  // Fetch listings from GET /v1/listings with API filter query parameters
+  const fetchListings = useCallback(async () => {
+    setIsLoading(true);
+    setApiError(null);
+
+    const queryParams = {
+      page: page,
+      limit: 50, // Request page batch from API
+      offset: (page - 1) * 50
+    };
+
+    // Pass filters to the server
+    if (selectedLocality !== 'All Localities') {
+      queryParams.locality = selectedLocality.toLowerCase();
+    }
+    if (selectedBhk) {
+      queryParams.bhk = selectedBhk;
+    }
+    if (minPrice) {
+      queryParams.min_price = minPrice;
+    }
+    if (maxPrice) {
+      queryParams.max_price = maxPrice;
+    }
+    if (selectedFurnishing) {
+      queryParams.furnishing = selectedFurnishing;
+    }
+
+    try {
+      const data = await apiClient.getListings(queryParams);
+      const results = Array.isArray(data) ? data : (data.results || []);
+      setRawListings(results);
+      if (typeof data.total === 'number') {
+        setTotalServerCount(data.total);
+      }
+    } catch (err) {
+      console.error('API listing fetch error:', err);
+      setApiError('Could not connect to live API server. Please ensure you are authenticated.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing]);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
+
+  // CRITICAL CLIENT-SIDE FALLBACK FILTERING:
+  // Strictly filter the resulting array on client-side to enforce filters even if server ignores them!
+  const filteredListings = useMemo(() => {
+    return rawListings.filter((item) => {
+      // 1. Locality Filter
+      if (selectedLocality !== 'All Localities') {
+        if (!item.locality || item.locality.toLowerCase() !== selectedLocality.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 2. BHK / Bedroom Filter
+      if (selectedBhk) {
+        if (selectedBhk === '5') {
+          if (Number(item.bedroom) < 5) return false;
+        } else {
+          if (Number(item.bedroom) !== Number(selectedBhk)) return false;
+        }
+      }
+
+      // 3. Price Range Filters
+      if (minPrice && Number(item.price) < Number(minPrice)) {
+        return false;
+      }
+      if (maxPrice && Number(item.price) > Number(maxPrice)) {
+        return false;
+      }
+
+      // 4. Furnishing Filter
+      if (selectedFurnishing) {
+        if (!item.furnishing || item.furnishing.toLowerCase() !== selectedFurnishing.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 5. Search Text Filter (Apartment name or description)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const apt = (item.apartment_name || '').toLowerCase();
+        const loc = (item.locality || '').toLowerCase();
+        const desc = (item.description || '').toLowerCase();
+        if (!apt.includes(q) && !loc.includes(q) && !desc.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [rawListings, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, searchQuery]);
+
+  // Client-side pagination slice for pristine grid presentation
+  const paginatedListings = useMemo(() => {
+    const startIndex = (page - 1) * limit;
+    // If the server-side query already paginated, we display the filtered set
+    return filteredListings.slice(0, limit);
+  }, [filteredListings, page, limit]);
+
+  const hasActiveFilters =
+    selectedLocality !== 'All Localities' ||
+    selectedBhk !== '' ||
+    selectedFurnishing !== '' ||
+    minPrice !== '' ||
+    maxPrice !== '' ||
+    searchQuery !== '';
+
+  const handleResetFilters = () => {
+    setSelectedLocality('All Localities');
+    setSelectedBhk('');
+    setSelectedFurnishing('');
+    setMinPrice('');
+    setMaxPrice('');
+    setSearchQuery('');
+    setPage(1);
+  };
+
+  const handlePricePreset = (preset) => {
+    setMinPrice(preset.min);
+    setMaxPrice(preset.max);
+    setPage(1);
+  };
+
   return (
     <div className="main-content">
-      {/* Top Banner / KPIs */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1rem',
-        marginBottom: '2rem'
-      }}>
-        <div className="ivy-card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: 600 }}>
-            <span>TOTAL LISTINGS</span>
-            <Home size={18} color="var(--primary-600)" />
+      {/* Top Header */}
+      <div className="page-header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <span className="badge badge-emerald">Verified Properties</span>
+            <span className="badge badge-slate">Mumbai (City ID: 5)</span>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
-            5,100
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--primary-700)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '0.25rem' }}>
-            <span className="pulse-dot" />
-            <span>Active & retrievable records</span>
-          </div>
+          <h1 className="page-title">Mumbai Property Catalog</h1>
+          <p className="page-subtitle">
+            Browse live verified residential sale listings with real-time strict client-side filtering.
+          </p>
         </div>
 
-        <div className="ivy-card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: 600 }}>
-            <span>PRIMARY REGION</span>
-            <MapPin size={18} color="var(--accent-amber)" />
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
-            Mumbai
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            City ID: 5 (All major localities)
-          </div>
-        </div>
-
-        <div className="ivy-card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: 600 }}>
-            <span>VERIFIED LISTINGS</span>
-            <ShieldCheck size={18} color="var(--primary-600)" />
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
-            Verified
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Operations checked & live
-          </div>
-        </div>
-
-        <div className="ivy-card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: 600 }}>
-            <span>AVG RATE (2 BHK)</span>
-            <TrendingUp size={18} color="var(--accent-blue)" />
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.5rem', color: 'var(--text-primary)' }}>
-            ₹32,450
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-            Per sq. ft. (Carpet Area)
-          </div>
-        </div>
-      </div>
-
-      {/* Header & Search Bar placeholder */}
-      <div className="page-header">
-        <h1 className="page-title">Sale Properties & Listings</h1>
-        <p className="page-subtitle">
-          Explore verified sale listings across Mumbai localities with live filtering and pagination.
-        </p>
-      </div>
-
-      {/* Search & Filter Toolbar */}
-      <div className="ivy-card" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '280px' }}>
-          <div style={{ position: 'relative', width: '100%' }}>
-            <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="text"
-              placeholder="Search by locality, apartment name or project..."
-              className="input-field"
-              style={{ paddingLeft: '38px' }}
-              readOnly
-            />
-          </div>
-        </div>
-
+        {/* Total stats pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button className="btn btn-secondary">
-            <SlidersHorizontal size={16} />
-            <span>Filters</span>
-          </button>
-          <div className="badge badge-emerald">
-            <CheckCircle2 size={13} />
-            <span>5,100 Records Ready</span>
+          <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}>
+            <CheckCircle2 size={15} />
+            <span>5,100 Verified Records in City</span>
           </div>
         </div>
       </div>
 
-      {/* Placeholder Grid of Sample Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: '1.5rem'
-      }}>
-        {[
-          { id: 'SQU-5004678', title: 'Assetz Park', locality: 'Kandivali East', price: '₹4.17 Cr', bhk: 3, baths: 2, area: '1,078 sqft', type: 'Apartment' },
-          { id: 'DWE-5004326', title: 'Godrej Woodsman', locality: 'Andheri West', price: '₹2.85 Cr', bhk: 2, baths: 2, area: '890 sqft', type: 'Apartment' },
-          { id: 'PRE-5001201', title: 'Lodha Parklane', locality: 'Worli', price: '₹6.50 Cr', bhk: 3, baths: 3, area: '1,450 sqft', type: 'Apartment' },
-        ].map((item) => (
-          <div key={item.id} className="ivy-card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{
-              height: '180px',
-              backgroundColor: 'var(--bg-subtle)',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)'
-            }}>
-              <Home size={42} color="var(--text-light)" />
-              <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                <span className="badge badge-emerald">{item.type}</span>
-              </div>
-              <div style={{ position: 'absolute', bottom: '12px', right: '12px' }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-800)', backgroundColor: 'rgba(255,255,255,0.95)', padding: '4px 10px', borderRadius: '6px', boxShadow: 'var(--shadow-xs)' }}>
-                  {item.price}
-                </span>
+      {/* Main Layout: Filter Sidebar + Listings Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 290px) 1fr', gap: '2rem', alignItems: 'start' }} className="catalog-layout">
+        
+        {/* Left Filter Sidebar */}
+        <aside className="ivy-card" style={{ padding: '1.5rem', position: 'sticky', top: '90px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-light)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1rem' }}>
+              <SlidersHorizontal size={18} color="var(--primary-600)" />
+              <span>Search Filters</span>
+            </div>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.2rem 0.4rem' }}
+                title="Reset all filters"
+              >
+                <RotateCcw size={13} />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Search Input */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="search-input">Property Name / Keyword</label>
+              <div style={{ position: 'relative' }}>
+                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder="e.g. Assetz, Lodha, Powai"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ paddingLeft: '32px', fontSize: '0.85rem' }}
+                />
               </div>
             </div>
 
-            <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                  <MapPin size={13} color="var(--primary-600)" />
-                  <span>{item.locality}</span>
-                </div>
+            {/* Locality Dropdown */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="locality-select">Locality</label>
+              <select
+                id="locality-select"
+                value={selectedLocality}
+                onChange={(e) => {
+                  setSelectedLocality(e.target.value);
+                  setPage(1);
+                }}
+                className="input-field"
+                style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}
+              >
+                {LOCALITIES.map((loc) => (
+                  <option key={loc} value={loc} style={{ textTransform: 'capitalize' }}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Bedrooms (BHK) Filter */}
+            <div className="input-group">
+              <label className="input-label">Bedrooms (BHK)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem' }}>
+                {BHK_OPTIONS.map((opt) => {
+                  const active = selectedBhk === opt.value;
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => {
+                        setSelectedBhk(opt.value);
+                        setPage(1);
+                      }}
+                      style={{
+                        padding: '0.45rem 0.2rem',
+                        fontSize: '0.78rem',
+                        fontWeight: active ? 700 : 500,
+                        borderRadius: 'var(--radius-sm)',
+                        border: active ? '1.5px solid var(--primary-600)' : '1px solid var(--border-light)',
+                        backgroundColor: active ? 'var(--primary-50)' : 'var(--bg-main)',
+                        color: active ? 'var(--primary-800)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {opt.label.replace(' BHK', 'BHK')}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Price Presets & Inputs */}
+            <div className="input-group">
+              <label className="input-label">Price Range</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                {PRICE_PRESETS.map((p) => {
+                  const isPresetActive = minPrice === p.min && maxPrice === p.max;
+                  return (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => handlePricePreset(p)}
+                      style={{
+                        padding: '0.35rem 0.6rem',
+                        fontSize: '0.78rem',
+                        fontWeight: isPresetActive ? 700 : 500,
+                        borderRadius: 'var(--radius-sm)',
+                        border: isPresetActive ? '1.5px solid var(--primary-600)' : '1px solid var(--border-light)',
+                        backgroundColor: isPresetActive ? 'var(--primary-50)' : 'transparent',
+                        color: isPresetActive ? 'var(--primary-800)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
               </div>
 
+              {/* Custom Min / Max Inputs */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <input
+                  type="number"
+                  placeholder="Min INR"
+                  value={minPrice}
+                  onChange={(e) => {
+                    setMinPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ fontSize: '0.78rem', padding: '0.45rem' }}
+                />
+                <input
+                  type="number"
+                  placeholder="Max INR"
+                  value={maxPrice}
+                  onChange={(e) => {
+                    setMaxPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ fontSize: '0.78rem', padding: '0.45rem' }}
+                />
+              </div>
+            </div>
+
+            {/* Furnishing Filter */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="furnishing-select">Furnishing</label>
+              <select
+                id="furnishing-select"
+                value={selectedFurnishing}
+                onChange={(e) => {
+                  setSelectedFurnishing(e.target.value);
+                  setPage(1);
+                }}
+                className="input-field"
+                style={{ fontSize: '0.85rem' }}
+              >
+                {FURNISHING_OPTIONS.map((f) => (
+                  <option key={f.label} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </aside>
+
+        {/* Right Section: Results Header + Cards Grid + Pagination */}
+        <section style={{ minWidth: 0 }}>
+          {/* Results Summary Bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1.25rem',
+            padding: '0.85rem 1.25rem',
+            backgroundColor: '#ffffff',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              Showing <strong>{filteredListings.length}</strong> matching verified listings
+              {selectedLocality !== 'All Localities' && ` in ${selectedLocality}`}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span>Page {page}</span>
+            </div>
+          </div>
+
+          {/* Loading Indicator */}
+          {isLoading ? (
+            <div style={{
+              minHeight: '340px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem',
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-light)'
+            }}>
+              <Loader2 size={36} color="var(--primary-600)" style={{ animation: 'spin 1s linear infinite' }} />
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                Querying GET /v1/listings with client-side verification...
+              </div>
+            </div>
+          ) : apiError ? (
+            <div className="ivy-card" style={{ padding: '2rem', textAlign: 'center', color: '#b91c1c', backgroundColor: '#fef2f2' }}>
+              <p style={{ fontWeight: 600 }}>{apiError}</p>
+              <button onClick={fetchListings} className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>
+                Retry Request
+              </button>
+            </div>
+          ) : filteredListings.length === 0 ? (
+            /* Empty Filter State */
+            <div className="ivy-card" style={{
+              padding: '3.5rem 2rem',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
               <div style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--primary-50)',
+                color: 'var(--primary-600)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <FilterX size={28} />
+              </div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                No Properties Match Your Filters
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.35rem', maxWidth: '420px' }}>
+                Try adjusting your price brackets, locality, or furnishing criteria to view available listings in Mumbai.
+              </p>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn btn-primary btn-sm"
+                style={{ marginTop: '1.25rem' }}
+              >
+                Reset All Filters
+              </button>
+            </div>
+          ) : (
+            /* Listings Cards Grid */
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                {paginatedListings.map((listing) => (
+                  <PropertyCard key={listing.listing_id} listing={listing} />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <div style={{
+                marginTop: '2.5rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingTop: '1rem',
-                marginTop: '1rem',
-                borderTop: '1px solid var(--border-light)',
-                color: 'var(--text-secondary)',
-                fontSize: '0.825rem'
+                padding: '1rem 1.5rem',
+                backgroundColor: '#ffffff',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-light)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <BedDouble size={15} />
-                  <span>{item.bhk} Beds</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Bath size={15} />
-                  <span>{item.baths} Baths</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Maximize2 size={15} />
-                  <span>{item.area}</span>
-                </div>
-              </div>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="btn btn-secondary btn-sm"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Previous Page</span>
+                </button>
 
-              <NavLink
-                to={`/listings/${item.id}`}
-                className="btn btn-secondary btn-sm"
-                style={{ marginTop: '1rem', width: '100%' }}
-              >
-                View Details & Analytics →
-              </NavLink>
-            </div>
-          </div>
-        ))}
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Page {page}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={filteredListings.length < limit}
+                  className="btn btn-secondary btn-sm"
+                >
+                  <span>Next Page</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </>
+          )}
+        </section>
       </div>
+
+      {/* Responsive media styling */}
+      <style>{`
+        @media (max-width: 868px) {
+          .catalog-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

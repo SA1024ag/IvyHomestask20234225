@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useFavourites } from '../context/FavouritesContext';
 import {
   Building2,
   Home,
@@ -18,6 +19,7 @@ import {
 
 export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { count: savedCount } = useFavourites();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +33,7 @@ export default function Navbar() {
     { label: 'Listings', path: '/listings', icon: Home },
     { label: 'Rentals', path: '/rentals', icon: KeyRound },
     { label: 'Projects', path: '/projects', icon: FolderKanban },
-    { label: 'Saved', path: '/saved', icon: Bookmark },
+    { label: 'Saved', path: '/saved', icon: Bookmark, badge: savedCount },
     { label: 'Insights', path: '/insights', icon: BarChart3 },
   ];
 
@@ -128,6 +130,19 @@ export default function Navbar() {
               >
                 <Icon size={17} strokeWidth={isActive ? 2.3 : 1.8} color={isActive ? 'var(--primary-600)' : 'currentColor'} />
                 <span>{item.label}</span>
+                {Boolean(item.badge) && (
+                  <span style={{
+                    marginLeft: '2px',
+                    padding: '1px 6px',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    borderRadius: '9999px',
+                    backgroundColor: 'var(--primary-600)',
+                    color: '#ffffff'
+                  }}>
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -232,6 +247,19 @@ export default function Navbar() {
               >
                 <Icon size={18} color={isActive ? 'var(--primary-600)' : 'var(--text-muted)'} />
                 <span>{item.label}</span>
+                {Boolean(item.badge) && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    padding: '1px 8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    borderRadius: '9999px',
+                    backgroundColor: 'var(--primary-600)',
+                    color: '#ffffff'
+                  }}>
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             );
           })}

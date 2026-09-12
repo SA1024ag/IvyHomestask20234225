@@ -60,7 +60,6 @@ export async function refreshAuthToken() {
   });
 
   if (!res.ok) {
-    // Clear credentials if refresh token expired or invalid
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
@@ -122,7 +121,6 @@ export async function request(endpoint, options = {}) {
         }
       }
 
-      // Wait for the ongoing refresh
       return new Promise((resolve, reject) => {
         subscribeTokenRefresh(async (newToken) => {
           try {
@@ -165,7 +163,7 @@ export const apiClient = {
     request(endpoint, { method: 'POST', body: JSON.stringify(body), params }),
   delete: (endpoint, params = {}) => request(endpoint, { method: 'DELETE', params }),
 
-  // Authentication Endpoints
+  // Authentication
   login: async (email, password) => {
     const url = buildUrl('/auth/login');
     const res = await fetch(url, {
@@ -209,7 +207,7 @@ export const apiClient = {
           },
         });
       } catch (err) {
-        console.warn('Server logout error (proceeding with local cleanup):', err);
+        console.warn('Server logout error:', err);
       }
     }
 
@@ -217,6 +215,90 @@ export const apiClient = {
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
   },
+
+  // Listings API
+  getListings: async (params = {}) => {
+    return request('/v1/listings', { method: 'GET', params });
+  },
+
+  getListingDetail: async (id) => {
+    // Try plural /v1/listings/{id} first (working endpoint), fallback to singular
+    try {
+      return await request(`/v1/listings/${id}`);
+    } catch {
+      return await request(`/v1/listing/${id}`);
+    }
+  },
+
+  getSimilarListings: async (id, currentListing = null) => {
+    try {
+      // Try documented endpoint first
+      const data = await request(`/v1/listings/${id}/similar`);
+      return Array.isArray(data) ? data : (data.results || []);
+    } catch {
+      // Intelligent fallback matching API docs logic:
+      // "Up to ten comparable listings — same locality, same bedroom count, price within 15%"
+      if (currentListing) {
+        try {
+          const res = await request('/v1/listings', {
+            params: {
+              locality: currentListing.locality,
+              bhk: currentListing.bedroom,
+              limit: 50,
+            }
+          });
+          const list = Array.isArray(res) ? res : (res.results || []);
+          const minP = currentListing.price * 0.85;
+          const maxP = currentListing.price * 1.15;
+          return list
+            .filter((item) => item.listing_id !== id && item.price >= minP && item.price <= maxP)
+            .slice(0, 4);
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+  },
+
+  // Favourites / Saved Listings API
+  // Note: Server serves this at /v1/saved; we support both /v1/saved and /v1/favourites
+  getFavourites: async () => {
+    try {
+      const data = await request('/v1/saved');
+      return Array.isArray(data) ? data : (data.results || []);
+    } catch {
+      try {
+        const data = await request('/v1/favourites');
+        return Array.isArray(data) ? data : (data.results || []);
+      } catch {
+        return [];
+      }
+    }
+  },
+
+  addFavourite: async (listingId) => {
+    const payload = { listing_id: listingId, id: listingId };
+    try {
+      return await request('/v1/saved', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      return await request('/v1/favourites', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    }
+  },
+
+  removeFavourite: async (listingId) => {
+    try {
+      return await request(`/v1/saved/${listingId}`, { method: 'DELETE' });
+    } catch {
+      return await request(`/v1/favourites/${listingId}`, { method: 'DELETE' });
+    }
+  }
 };
 
 export default apiClient;
