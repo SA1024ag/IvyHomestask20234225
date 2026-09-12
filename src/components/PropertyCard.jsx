@@ -8,9 +8,11 @@ import {
   Maximize2,
   ShieldCheck,
   Building2,
-  Sparkles
+  Sparkles,
+  ArrowLeftRight
 } from 'lucide-react';
 import { useFavourites } from '../context/FavouritesContext';
+import { useCompare } from '../context/CompareContext';
 
 export function formatINR(price) {
   if (!price && price !== 0) return '₹--';
@@ -26,12 +28,20 @@ export function formatINR(price) {
 
 export default function PropertyCard({ listing }) {
   const { isFavourite, toggleFavourite } = useFavourites();
+  const { isCompared, toggleCompare } = useCompare();
+
   const saved = isFavourite(listing.listing_id);
+  const compared = isCompared(listing.listing_id);
 
   const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     toggleFavourite(listing);
+  };
+
+  const handleCompareClick = (e) => {
+    e.stopPropagation();
+    toggleCompare(listing);
   };
 
   const ratePerSqft = listing.carpet_area && listing.price
@@ -40,14 +50,16 @@ export default function PropertyCard({ listing }) {
 
   return (
     <div
-      className="ivy-card property-card"
+      className={`ivy-card property-card ${compared ? 'card-compared' : ''}`}
       style={{
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        backgroundColor: '#ffffff'
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+        backgroundColor: '#ffffff',
+        border: compared ? '2px solid var(--primary-600)' : '1px solid var(--border-light)',
+        boxShadow: compared ? 'var(--shadow-md)' : 'var(--shadow-sm)'
       }}
     >
       {/* Top Banner / Image Area */}
@@ -55,16 +67,22 @@ export default function PropertyCard({ listing }) {
         style={{
           height: '190px',
           position: 'relative',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          background: compared
+            ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)'
+            : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
       >
-        <Building2 size={48} color="#cbd5e1" strokeWidth={1.5} />
+        <Building2
+          size={48}
+          color={compared ? 'var(--primary-400)' : '#cbd5e1'}
+          strokeWidth={1.5}
+        />
 
         {/* Top Badges */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
+        <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
             {listing.property_type || 'Apartment'}
           </span>
@@ -72,6 +90,12 @@ export default function PropertyCard({ listing }) {
             <span className="badge badge-blue" title="Operations verified">
               <ShieldCheck size={11} />
               <span>Verified</span>
+            </span>
+          )}
+          {compared && (
+            <span className="badge badge-emerald" style={{ backgroundColor: 'var(--primary-700)', color: '#ffffff' }}>
+              <ArrowLeftRight size={10} />
+              <span>Comparing</span>
             </span>
           )}
         </div>
@@ -97,7 +121,8 @@ export default function PropertyCard({ listing }) {
             cursor: 'pointer',
             transition: 'all 0.15s ease',
             color: saved ? '#ef4444' : '#64748b',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            zIndex: 2
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.1)';
@@ -189,23 +214,62 @@ export default function PropertyCard({ listing }) {
           </div>
         </div>
 
-        {/* Action Button & Rate */}
+        {/* Action Row with Compare Checkbox and Details Button */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           marginTop: '1rem',
-          paddingTop: '0.5rem'
+          paddingTop: '0.75rem',
+          borderTop: '1px solid var(--border-light)',
+          gap: '0.5rem'
         }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            {ratePerSqft ? `₹${ratePerSqft.toLocaleString('en-IN')}/sqft` : ''}
-          </span>
-          <NavLink
-            to={`/listings/${listing.listing_id}`}
-            className="btn btn-secondary btn-sm"
+          {/* Compare Checkbox */}
+          <label
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              fontSize: '0.825rem',
+              fontWeight: 600,
+              color: compared ? 'var(--primary-700)' : 'var(--text-secondary)',
+              userSelect: 'none',
+              padding: '4px 6px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: compared ? 'var(--primary-50)' : 'transparent',
+              transition: 'all 0.15s ease'
+            }}
           >
-            Details →
-          </NavLink>
+            <input
+              type="checkbox"
+              checked={compared}
+              onChange={handleCompareClick}
+              style={{
+                width: '16px',
+                height: '16px',
+                accentColor: 'var(--primary-600)',
+                cursor: 'pointer'
+              }}
+            />
+            <span>Compare</span>
+          </label>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {ratePerSqft && (
+              <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                ₹{ratePerSqft.toLocaleString('en-IN')}/sqft
+              </span>
+            )}
+            <NavLink
+              to={`/listings/${listing.listing_id}`}
+              className="btn btn-secondary btn-sm"
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
+            >
+              Details →
+            </NavLink>
+          </div>
         </div>
       </div>
     </div>

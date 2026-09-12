@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useFavourites } from '../context/FavouritesContext';
+import { useCompare } from '../context/CompareContext';
 import {
   Building2,
   Home,
@@ -14,12 +15,14 @@ import {
   Menu,
   X,
   ShieldCheck,
-  MapPin
+  MapPin,
+  ArrowLeftRight
 } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
   const { count: savedCount } = useFavourites();
+  const { count: compareCount } = useCompare();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,6 +34,7 @@ export default function Navbar() {
 
   const navItems = [
     { label: 'Listings', path: '/listings', icon: Home },
+    { label: 'Compare', path: '/compare', icon: ArrowLeftRight, badge: compareCount > 0 ? compareCount : null },
     { label: 'Rentals', path: '/rentals', icon: KeyRound },
     { label: 'Projects', path: '/projects', icon: FolderKanban },
     { label: 'Saved', path: '/saved', icon: Bookmark, badge: savedCount },
