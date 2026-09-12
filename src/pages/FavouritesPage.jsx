@@ -56,11 +56,11 @@ export default function FavouritesPage() {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '0.75rem',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-surface)',
           borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-light)'
+          border: '1px solid var(--border-subtle)'
         }}>
-          <Loader2 size={36} color="var(--primary-600)" style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
             Syncing saved properties from GET /v1/saved...
           </p>
@@ -81,17 +81,17 @@ export default function FavouritesPage() {
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            backgroundColor: 'var(--primary-50)',
+            backgroundColor: 'var(--accent-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--primary-600)',
+            color: 'var(--accent-primary)',
             marginBottom: '1.25rem'
           }}>
             <Bookmark size={30} strokeWidth={1.8} />
           </div>
 
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-heading)' }}>
             No Saved Properties Yet
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem', lineHeight: 1.6 }}>

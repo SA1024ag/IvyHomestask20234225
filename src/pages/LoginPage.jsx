@@ -106,7 +106,7 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '2.5rem 1.5rem',
-      background: 'radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(248, 250, 252, 1) 70%)'
+      background: 'radial-gradient(ellipse at 50% 0%, var(--accent-subtle) 0%, var(--bg-canvas) 70%)'
     }}>
       <div style={{ width: '100%', maxWidth: '480px' }}>
         
@@ -116,16 +116,16 @@ export default function LoginPage() {
             marginBottom: '1.5rem',
             padding: '0.85rem 1rem',
             borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--primary-50)',
-            border: '1px solid var(--primary-200)',
+            backgroundColor: 'var(--accent-subtle)',
+            border: '1px solid var(--accent-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '0.75rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <UserCheck size={18} color="var(--primary-700)" />
-              <div style={{ fontSize: '0.825rem', color: 'var(--primary-900)' }}>
+              <UserCheck size={18} color="var(--accent-primary)" />
+              <div style={{ fontSize: '0.825rem', color: 'var(--accent-text)' }}>
                 Active session: <strong>{user.email}</strong>
               </div>
             </div>
@@ -146,12 +146,12 @@ export default function LoginPage() {
             height: '56px',
             margin: '0 auto 1.25rem',
             borderRadius: '16px',
-            backgroundColor: 'var(--primary-600)',
+            backgroundColor: 'var(--accent-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(5, 150, 105, 0.4)',
+            boxShadow: '0 10px 25px -5px rgba(67, 56, 202, 0.4)',
             transform: 'rotate(-2deg)'
           }}>
             <Building2 size={32} strokeWidth={2.2} />
@@ -160,11 +160,11 @@ export default function LoginPage() {
           <h1 style={{
             fontSize: '1.875rem',
             fontWeight: 800,
-            color: 'var(--text-primary)',
+            color: 'var(--text-heading)',
             letterSpacing: '-0.03em',
             lineHeight: 1.2
           }}>
-            Ivy<span style={{ color: 'var(--primary-600)' }}>Homes</span> Portal
+            Ivy<span style={{ color: 'var(--accent-primary)' }}>Homes</span> Portal
           </h1>
           <p style={{
             color: 'var(--text-muted)',
@@ -176,13 +176,9 @@ export default function LoginPage() {
         </div>
 
         {/* Quick Demo Fill Grid */}
-        <div style={{
+        <div className="ivy-card" style={{
           marginBottom: '1.5rem',
-          backgroundColor: '#ffffff',
-          borderRadius: 'var(--radius-lg)',
-          padding: '1.25rem',
-          border: '1px solid var(--border-light)',
-          boxShadow: 'var(--shadow-sm)'
+          padding: '1.25rem'
         }}>
           <div style={{
             display: 'flex',
@@ -190,8 +186,8 @@ export default function LoginPage() {
             justifyContent: 'space-between',
             marginBottom: '0.75rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              <Zap size={16} color="var(--primary-600)" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+              <Zap size={16} color="var(--accent-primary)" />
               <span>Demo Accounts</span>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -212,8 +208,8 @@ export default function LoginPage() {
                     justifyContent: 'space-between',
                     padding: '0.65rem',
                     borderRadius: 'var(--radius-md)',
-                    border: isSelected ? '1.5px solid var(--primary-600)' : '1px solid var(--border-light)',
-                    backgroundColor: isSelected ? 'var(--primary-50)' : 'var(--bg-main)',
+                    border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    backgroundColor: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.15s ease'
@@ -224,17 +220,17 @@ export default function LoginPage() {
                     <div style={{
                       fontSize: '0.78rem',
                       fontWeight: 700,
-                      color: isSelected ? 'var(--primary-800)' : 'var(--text-primary)',
+                      color: isSelected ? 'var(--accent-text)' : 'var(--text-heading)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between'
                     }}>
                       <span>{acc.name}</span>
-                      {isSelected && <CheckCircle2 size={12} color="var(--primary-600)" />}
+                      {isSelected && <CheckCircle2 size={12} color="var(--accent-primary)" />}
                     </div>
                     <div style={{
                       fontSize: '0.68rem',
-                      color: isSelected ? 'var(--primary-700)' : 'var(--text-muted)',
+                      color: isSelected ? 'var(--accent-text)' : 'var(--text-muted)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -258,8 +254,8 @@ export default function LoginPage() {
                       fontWeight: 700,
                       borderRadius: '4px',
                       border: 'none',
-                      backgroundColor: isSelected ? 'var(--primary-600)' : '#e2e8f0',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                      backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-hover)',
+                      color: isSelected ? '#ffffff' : 'var(--text-body)',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -280,20 +276,20 @@ export default function LoginPage() {
             <div style={{
               marginTop: '0.65rem',
               fontSize: '0.75rem',
-              color: 'var(--primary-700)',
+              color: 'var(--accent-text)',
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
               fontWeight: 500
             }}>
-              <CheckCircle2 size={13} color="var(--primary-600)" />
+              <CheckCircle2 size={13} color="var(--accent-primary)" />
               <span>{fillFeedback}</span>
             </div>
           )}
         </div>
 
         {/* Main Card Form */}
-        <div className="ivy-card" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
+        <div className="ivy-card" style={{ padding: '2rem' }}>
           {errorMessage && (
             <div style={{
               display: 'flex',
@@ -301,9 +297,9 @@ export default function LoginPage() {
               gap: '0.625rem',
               padding: '0.85rem 1rem',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#b91c1c',
+              backgroundColor: 'var(--status-amber-bg)',
+              border: '1px solid var(--status-amber-border)',
+              color: 'var(--status-amber-text)',
               fontSize: '0.875rem',
               marginBottom: '1.25rem'
             }}>
@@ -413,16 +409,16 @@ export default function LoginPage() {
           marginTop: '1.5rem',
           padding: '0.9rem 1.1rem',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--border-light)',
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem'
         }}>
-          <ShieldCheck size={20} color="var(--primary-600)" style={{ flexShrink: 0 }} />
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Automatic 30+ Min Session Renewal: </span>
-            Tokens are safely persisted in localStorage and proactively refreshed via <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--primary-700)' }}>/auth/refresh</code>.
+          <ShieldCheck size={20} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-body)', lineHeight: 1.4 }}>
+            <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Automatic 30+ Min Session Renewal: </span>
+            Tokens are safely persisted in localStorage and proactively refreshed via <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-text)' }}>/auth/refresh</code>.
           </div>
         </div>
       </div>

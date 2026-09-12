@@ -2,15 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Search,
   SlidersHorizontal,
-  MapPin,
-  BedDouble,
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  Home,
   CheckCircle2,
   Loader2,
-  Sparkles,
   FilterX
 } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
@@ -68,13 +64,14 @@ export default function ListingsPage() {
 
   // Pagination States
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
+  const [limit] = useState(12);
+  const [hasMore, setHasMore] = useState(true);
 
   // Data States
   const [rawListings, setRawListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
-  const [totalServerCount, setTotalServerCount] = useState(5100);
+  const [totalServerCount, setTotalServerCount] = useState(4917);
 
   // Fetch listings from GET /v1/listings with API filter query parameters
   const fetchListings = useCallback(async () => {
@@ -83,8 +80,8 @@ export default function ListingsPage() {
 
     const queryParams = {
       page: page,
-      limit: 50, // Request page batch from API
-      offset: (page - 1) * 50
+      limit: limit,
+      offset: (page - 1) * limit
     };
 
     // Pass filters to the server
@@ -111,13 +108,18 @@ export default function ListingsPage() {
       if (typeof data.total === 'number') {
         setTotalServerCount(data.total);
       }
+      if (typeof data.has_more === 'boolean') {
+        setHasMore(data.has_more);
+      } else {
+        setHasMore(results.length >= limit);
+      }
     } catch (err) {
       console.error('API listing fetch error:', err);
       setApiError('Could not connect to live API server. Please ensure you are authenticated.');
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing]);
+  }, [page, limit, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing]);
 
   useEffect(() => {
     fetchListings();
@@ -173,12 +175,12 @@ export default function ListingsPage() {
     });
   }, [rawListings, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, searchQuery]);
 
-  // Client-side pagination slice for pristine grid presentation
+  // Current batch listings for grid display
   const paginatedListings = useMemo(() => {
-    const startIndex = (page - 1) * limit;
-    // If the server-side query already paginated, we display the filtered set
-    return filteredListings.slice(0, limit);
-  }, [filteredListings, page, limit]);
+    return filteredListings;
+  }, [filteredListings]);
+
+  const totalPages = Math.ceil(totalServerCount / limit) || 1;
 
   const hasActiveFilters =
     selectedLocality !== 'All Localities' ||
@@ -210,20 +212,20 @@ export default function ListingsPage() {
       <div className="page-header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <span className="badge badge-emerald">Verified Properties</span>
+            <span className="badge badge-accent">Verified Residences</span>
             <span className="badge badge-slate">Mumbai (City ID: 5)</span>
           </div>
           <h1 className="page-title">Mumbai Property Catalog</h1>
           <p className="page-subtitle">
-            Browse live verified residential sale listings with real-time strict client-side filtering.
+            Curated residential listings with verified carpet areas, pricing benchmarks, and live filter queries.
           </p>
         </div>
 
         {/* Total stats pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}>
-            <CheckCircle2 size={15} />
-            <span>5,100 Verified Records in City</span>
+          <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
+            <CheckCircle2 size={14} />
+            <span>{totalServerCount.toLocaleString('en-IN')} Verified Records</span>
           </div>
         </div>
       </div>
@@ -232,10 +234,37 @@ export default function ListingsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 290px) 1fr', gap: '2rem', alignItems: 'start' }} className="catalog-layout">
         
         {/* Left Filter Sidebar */}
-        <aside className="ivy-card" style={{ padding: '1.5rem', position: 'sticky', top: '90px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-light)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1rem' }}>
-              <SlidersHorizontal size={18} color="var(--primary-600)" />
+        <aside
+          className="ivy-card filter-sidebar"
+          style={{
+            padding: '1.5rem',
+            position: 'sticky',
+            top: '84px',
+            maxHeight: 'calc(100vh - 104px)',
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'var(--border-subtle) transparent'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.25rem',
+              paddingBottom: '0.75rem',
+              borderBottom: '1px solid var(--border-subtle)',
+              position: 'sticky',
+              top: '-1.5rem',
+              marginTop: '-1.5rem',
+              paddingTop: '1.5rem',
+              backgroundColor: 'var(--bg-surface)',
+              zIndex: 5
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
+              <SlidersHorizontal size={17} color="var(--accent-primary)" />
               <span>Search Filters</span>
             </div>
             {hasActiveFilters && (
@@ -255,9 +284,9 @@ export default function ListingsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {/* Search Input */}
             <div className="input-group">
-              <label className="input-label" htmlFor="search-input">Property Name / Keyword</label>
+              <label className="input-label" htmlFor="search-input">Property / Keyword</label>
               <div style={{ position: 'relative' }}>
-                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   id="search-input"
                   type="text"
@@ -268,7 +297,7 @@ export default function ListingsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '32px', fontSize: '0.85rem' }}
+                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
                 />
               </div>
             </div>
@@ -313,9 +342,9 @@ export default function ListingsPage() {
                         fontSize: '0.78rem',
                         fontWeight: active ? 700 : 500,
                         borderRadius: 'var(--radius-sm)',
-                        border: active ? '1.5px solid var(--primary-600)' : '1px solid var(--border-light)',
-                        backgroundColor: active ? 'var(--primary-50)' : 'var(--bg-main)',
-                        color: active ? 'var(--primary-800)' : 'var(--text-secondary)',
+                        border: active ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                        backgroundColor: active ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
+                        color: active ? 'var(--accent-text)' : 'var(--text-body)',
                         cursor: 'pointer',
                         textAlign: 'center',
                         transition: 'all 0.15s ease'
@@ -344,11 +373,12 @@ export default function ListingsPage() {
                         fontSize: '0.78rem',
                         fontWeight: isPresetActive ? 700 : 500,
                         borderRadius: 'var(--radius-sm)',
-                        border: isPresetActive ? '1.5px solid var(--primary-600)' : '1px solid var(--border-light)',
-                        backgroundColor: isPresetActive ? 'var(--primary-50)' : 'transparent',
-                        color: isPresetActive ? 'var(--primary-800)' : 'var(--text-secondary)',
+                        border: isPresetActive ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                        backgroundColor: isPresetActive ? 'var(--accent-subtle)' : 'transparent',
+                        color: isPresetActive ? 'var(--accent-text)' : 'var(--text-body)',
                         cursor: 'pointer',
-                        textAlign: 'left'
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease'
                       }}
                     >
                       {p.label}
@@ -416,13 +446,15 @@ export default function ListingsPage() {
             justifyContent: 'space-between',
             marginBottom: '1.25rem',
             padding: '0.85rem 1.25rem',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--bg-surface)',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)'
+            border: '1px solid var(--border-subtle)'
           }}>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Showing <strong>{filteredListings.length}</strong> matching verified listings
-              {selectedLocality !== 'All Localities' && ` in ${selectedLocality}`}
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              Showing <strong style={{ color: 'var(--text-heading)' }}>{filteredListings.length}</strong> matching verified listings
+              {selectedLocality !== 'All Localities' && (
+                <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -430,7 +462,7 @@ export default function ListingsPage() {
             </div>
           </div>
 
-          {/* Loading Indicator */}
+          {/* Loading State */}
           {isLoading ? (
             <div style={{
               minHeight: '340px',
@@ -439,17 +471,17 @@ export default function ListingsPage() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.75rem',
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--bg-surface)',
               borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--border-subtle)'
             }}>
-              <Loader2 size={36} color="var(--primary-600)" style={{ animation: 'spin 1s linear infinite' }} />
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                Querying GET /v1/listings with client-side verification...
+              <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                Querying verified residential catalog...
               </div>
             </div>
           ) : apiError ? (
-            <div className="ivy-card" style={{ padding: '2rem', textAlign: 'center', color: '#b91c1c', backgroundColor: '#fef2f2' }}>
+            <div className="ivy-card" style={{ padding: '2rem', textAlign: 'center', color: '#ef4444', backgroundColor: 'var(--bg-surface)' }}>
               <p style={{ fontWeight: 600 }}>{apiError}</p>
               <button onClick={fetchListings} className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>
                 Retry Request
@@ -466,19 +498,19 @@ export default function ListingsPage() {
               justifyContent: 'center'
             }}>
               <div style={{
-                width: '54px',
-                height: '54px',
+                width: '52px',
+                height: '52px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--primary-50)',
-                color: 'var(--primary-600)',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                color: 'var(--text-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: '1rem'
               }}>
-                <FilterX size={28} />
+                <FilterX size={26} />
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-heading)' }}>
                 No Properties Match Your Filters
               </h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.35rem', maxWidth: '420px' }}>
@@ -498,7 +530,7 @@ export default function ListingsPage() {
             <>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                 gap: '1.5rem'
               }}>
                 {paginatedListings.map((listing) => (
@@ -512,45 +544,87 @@ export default function ListingsPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '1rem 1.5rem',
-                backgroundColor: '#ffffff',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-light)'
+                padding: '1.25rem 1.5rem',
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
+                gap: '1rem'
               }}>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="btn btn-secondary btn-sm"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Previous Page</span>
-                </button>
-
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  Page {page}
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                  Page <strong style={{ color: 'var(--text-heading)' }}>{page}</strong> of{' '}
+                  <strong style={{ color: 'var(--text-heading)' }}>{totalPages}</strong>
+                  <span style={{ marginLeft: '0.75rem', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
+                    ({limit} properties per page • {totalServerCount.toLocaleString('en-IN')} total)
+                  </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={filteredListings.length < limit}
-                  className="btn btn-secondary btn-sm"
-                >
-                  <span>Next Page</span>
-                  <ChevronRight size={16} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={page === 1}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Previous</span>
+                  </button>
+
+                  <span style={{
+                    padding: '0.35rem 0.75rem',
+                    backgroundColor: 'var(--accent-subtle)',
+                    color: 'var(--accent-text)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 700,
+                    fontSize: '0.85rem'
+                  }}>
+                    {page}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage((p) => p + 1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={!hasMore || page >= totalPages}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    <span>Next</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
               </div>
             </>
           )}
         </section>
       </div>
 
-      {/* Responsive media styling */}
       <style>{`
+        .filter-sidebar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .filter-sidebar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .filter-sidebar::-webkit-scrollbar-thumb {
+          background: var(--border-subtle);
+          border-radius: 4px;
+        }
+        .filter-sidebar::-webkit-scrollbar-thumb:hover {
+          background: var(--text-muted);
+        }
         @media (max-width: 868px) {
           .catalog-layout {
             grid-template-columns: 1fr !important;
+          }
+          .filter-sidebar {
+            position: static !important;
+            max-height: none !important;
+            overflow-y: visible !important;
           }
         }
       `}</style>

@@ -130,7 +130,7 @@ export default function CompareFloatingBanner() {
                   width: '28px',
                   height: '28px',
                   borderRadius: '6px',
-                  backgroundColor: 'var(--primary-600)',
+                  backgroundColor: 'var(--accent-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -148,7 +148,7 @@ export default function CompareFloatingBanner() {
                   to={`/compare?tab=${tabParam}`}
                   className="btn btn-primary btn-sm"
                   style={{
-                    backgroundColor: 'var(--primary-500)',
+                    backgroundColor: 'var(--accent-primary)',
                     color: '#ffffff',
                     padding: '0.35rem 0.75rem',
                     fontSize: '0.8rem',
@@ -185,7 +185,7 @@ export default function CompareFloatingBanner() {
                     width: '32px',
                     height: '32px',
                     borderRadius: '8px',
-                    backgroundColor: 'var(--primary-600)',
+                    backgroundColor: 'var(--accent-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -278,7 +278,7 @@ export default function CompareFloatingBanner() {
                   to={`/compare?tab=${tabParam}`}
                   className="btn btn-primary btn-sm"
                   style={{
-                    backgroundColor: 'var(--primary-500)',
+                    backgroundColor: 'var(--accent-primary)',
                     color: '#ffffff',
                     fontWeight: 700,
                     fontSize: '0.85rem',
@@ -286,8 +286,7 @@ export default function CompareFloatingBanner() {
                     borderRadius: 'var(--radius-full)',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)'
+                    gap: '6px'
                   }}
                 >
                   <span>Compare {categoryLabel} ({count})</span>

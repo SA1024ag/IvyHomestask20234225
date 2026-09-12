@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { FavouritesProvider } from './context/FavouritesContext';
 import { CompareProvider } from './context/CompareContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import CompareFloatingBanner from './components/CompareFloatingBanner';
@@ -19,10 +20,11 @@ import ComparePage from './pages/ComparePage';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <FavouritesProvider>
-          <CompareProvider>
-            <div className="app-container">
+      <ThemeProvider>
+        <AuthProvider>
+          <FavouritesProvider>
+            <CompareProvider>
+              <div className="app-container">
               <Navbar />
               <Routes>
                 {/* Public Auth Route */}
@@ -97,6 +99,7 @@ export default function App() {
           </CompareProvider>
         </FavouritesProvider>
       </AuthProvider>
-    </BrowserRouter>
-  );
+    </ThemeProvider>
+  </BrowserRouter>
+);
 }

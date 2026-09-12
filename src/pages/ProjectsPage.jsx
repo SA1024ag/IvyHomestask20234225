@@ -1,27 +1,19 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   FolderKanban,
-  Building,
   MapPin,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  Clock,
-  Sparkles,
   Search,
-  Filter,
+  SlidersHorizontal,
   RotateCcw,
   ChevronLeft,
   ChevronRight,
   Loader2,
-  ShieldCheck,
-  TrendingUp,
-  Tag,
-  Eye,
-  ArrowLeftRight
+  FilterX,
+  Building2
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
+import ProjectCard, { formatProjectPrice, formatDate } from '../components/ProjectCard';
 
 const LOCALITIES = [
   'All Localities',
@@ -44,41 +36,8 @@ const STATUS_OPTIONS = [
   { label: 'New Launch', value: 'new launch' }
 ];
 
-// Helper: Format project price range using price_min and price_max
-function formatProjectPrice(val) {
-  if (val === null || val === undefined || isNaN(val)) return 'Price on Request';
-  const num = Number(val);
-  if (num >= 10000000) {
-    return `₹${(num / 10000000).toFixed(2)} Cr`;
-  } else if (num >= 100000) {
-    return `₹${(num / 100000).toFixed(2)} L`;
-  } else if (num > 0) {
-    // Values under 100 in the API are already expressed in Crores (e.g. 4.03 -> ₹4.03 Cr)
-    return `₹${num.toFixed(2)} Cr`;
-  }
-  return 'Price on Request';
-}
-
-// Helper: Format date cleanly as YYYY-MM-DD (e.g., 2023-11-27)
-function formatDate(dateStr) {
-  if (!dateStr) return 'TBA';
-  try {
-    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-      return dateStr.slice(0, 10);
-    }
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  } catch {
-    return dateStr;
-  }
-}
-
 export default function ProjectsPage() {
-  const { isCompared, toggleCompare, projectsCount } = useCompare();
+  const { projectsCount } = useCompare();
 
   // Filter States
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
@@ -87,8 +46,8 @@ export default function ProjectsPage() {
 
   // Pagination States
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
-  const [totalCount, setTotalCount] = useState(590);
+  const [limit] = useState(12);
+  const [totalCount, setTotalCount] = useState(569);
   const [hasMore, setHasMore] = useState(true);
 
   // Data States
@@ -186,533 +145,358 @@ export default function ProjectsPage() {
   return (
     <div className="main-content" style={{ paddingBottom: projectsCount > 0 ? '7.5rem' : '2rem' }}>
       {/* Page Header */}
-      <div className="page-header" style={{ marginBottom: '1.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-          <span className="badge badge-amber" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <FolderKanban size={12} /> Developer Projects
-          </span>
-          <span className="badge badge-slate">590 RERA Registered</span>
-          <span className="badge badge-emerald">Direct Builder Inventories</span>
-        </div>
-        <h1 className="page-title">Builder Projects in Mumbai</h1>
-        <p className="page-subtitle">
-          Track upcoming and under-construction builder developments, launch timelines, unit inventories, and RERA registrations.
-        </p>
-      </div>
-
-      {/* Filter Control Bar */}
-      <div className="ivy-card" style={{ padding: '1.25rem', marginBottom: '2rem' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1rem',
-          alignItems: 'flex-end'
-        }}>
-          {/* Search */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Search Projects / Developers
-            </label>
-            <div style={{ position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                className="input-field"
-                placeholder="Developer, project name, RERA..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: '2.25rem', fontSize: '0.875rem' }}
-              />
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Project Status
-            </label>
-            <select
-              className="input-field"
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setPage(1);
-              }}
-              style={{ fontSize: '0.875rem' }}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Locality Filter */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Locality
-            </label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <select
-                className="input-field"
-                value={selectedLocality}
-                onChange={(e) => {
-                  setSelectedLocality(e.target.value);
-                  setPage(1);
-                }}
-                style={{ paddingLeft: '2.25rem', fontSize: '0.875rem', textTransform: 'capitalize' }}
-              >
-                {LOCALITIES.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc === 'All Localities' ? 'All Localities' : loc.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Reset Action */}
-          <div>
-            <button
-              onClick={handleResetFilters}
-              className="btn btn-secondary"
-              style={{ width: '100%', height: '42px', fontSize: '0.85rem' }}
-              disabled={activeFilterCount === 0}
-            >
-              <RotateCcw size={15} />
-              Reset {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
-            </button>
-          </div>
-        </div>
-
-        {/* Counter Bar */}
-        <div style={{
-          marginTop: '1rem',
-          paddingTop: '0.75rem',
-          borderTop: '1px solid var(--border-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '0.8rem',
-          color: 'var(--text-muted)',
-          flexWrap: 'wrap',
-          gap: '0.5rem'
-        }}>
-          <div>
-            Showing <strong style={{ color: 'var(--text-primary)' }}>{filteredProjects.length}</strong> of{' '}
-            <strong>{rawProjects.length}</strong> projects loaded for this page
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--accent-amber)'
-            }} />
-            <span style={{ fontSize: '0.75rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
-              Live RERA registered developments
+      <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            <span className="badge badge-amber" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <FolderKanban size={12} /> Developer Projects
             </span>
+            <span className="badge badge-slate">Mumbai Region</span>
+            <span className="badge badge-emerald">Direct Builder Inventories</span>
+          </div>
+          <h1 className="page-title">Builder Projects in Mumbai</h1>
+          <p className="page-subtitle">
+            Track upcoming and under-construction builder developments, launch timelines, unit inventories, and RERA registrations.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="badge badge-amber" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
+            <span>{totalCount.toLocaleString('en-IN')} RERA Registered</span>
           </div>
         </div>
       </div>
 
-      {/* Error State */}
-      {apiError && (
-        <div style={{
-          padding: '1rem',
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: 'var(--radius-md)',
-          color: '#991b1b',
-          marginBottom: '1.5rem',
-          fontSize: '0.875rem'
-        }}>
-          {apiError}
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading ? (
-        <div style={{
-          padding: '5rem 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem'
-        }}>
-          <Loader2 size={36} color="var(--accent-amber)" style={{ animation: 'spin 1s linear infinite' }} />
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
-            Fetching developer project registry...
-          </p>
-        </div>
-      ) : filteredProjects.length === 0 ? (
-        <div className="ivy-card" style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-            No developer projects match your filter criteria
-          </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '420px', marginBottom: '1.5rem' }}>
-            Try resetting status or locality filters to explore all available developer projects in Mumbai.
-          </p>
-          <button onClick={handleResetFilters} className="btn btn-primary">
-            <RotateCcw size={16} /> Reset All Filters
-          </button>
-        </div>
-      ) : (
-        /* Projects Grid */
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-          gap: '1.5rem'
-        }}>
-          {filteredProjects.map((proj) => {
-            const statusClean = proj.project_status || 'Under Construction';
-            const statusLower = statusClean.toLowerCase();
-            const statusBadgeClass =
-              statusLower.includes('ready')
-                ? 'badge-emerald'
-                : statusLower.includes('launch')
-                ? 'badge-blue'
-                : 'badge-amber';
-
-            const compared = isCompared(proj.project_id, 'projects');
-
-            return (
-              <div
-                key={proj.project_id}
-                className="ivy-card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  padding: '1.5rem',
-                  border: compared ? '2px solid var(--accent-amber)' : '1px solid var(--border-light)',
-                  boxShadow: compared ? 'var(--shadow-md)' : 'var(--shadow-sm)',
-                  transition: 'all 0.2s ease',
-                  backgroundColor: '#ffffff'
-                }}
+      {/* Main Layout: Left Filter Sidebar + Projects Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 290px) 1fr', gap: '2rem', alignItems: 'start' }} className="catalog-layout">
+        {/* Left Filter Sidebar */}
+        <aside
+          className="ivy-card filter-sidebar"
+          style={{
+            padding: '1.5rem',
+            position: 'sticky',
+            top: '84px',
+            maxHeight: 'calc(100vh - 104px)',
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'var(--border-subtle) transparent'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.25rem',
+              paddingBottom: '0.75rem',
+              borderBottom: '1px solid var(--border-subtle)',
+              position: 'sticky',
+              top: '-1.5rem',
+              marginTop: '-1.5rem',
+              paddingTop: '1.5rem',
+              backgroundColor: 'var(--bg-surface)',
+              zIndex: 5
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
+              <SlidersHorizontal size={17} color="var(--accent-primary)" />
+              <span>Project Filters</span>
+            </div>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.2rem 0.4rem' }}
+                title="Reset all filters"
               >
-                {/* Top Section */}
-                <div>
-                  {/* Clean Top Bar: Status Badge on Left, RERA Code on Right */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.75rem',
-                    minHeight: '24px',
-                    gap: '0.5rem'
-                  }}>
-                    <span className={`badge ${statusBadgeClass}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem', flexShrink: 0 }}>
-                      {statusClean}
-                    </span>
-                    <span
-                      title={proj.rera_number || proj.project_id}
-                      style={{
-                        fontSize: '0.72rem',
-                        color: 'var(--text-light)',
-                        fontFamily: 'var(--font-mono)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '190px'
+                <RotateCcw size={13} />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Search Input */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="project-search">Search Projects / Developers</label>
+              <div style={{ position: 'relative' }}>
+                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  id="project-search"
+                  type="text"
+                  placeholder="Developer, project, RERA..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
+
+            {/* Locality Dropdown */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="project-locality">Locality</label>
+              <div style={{ position: 'relative' }}>
+                <MapPin size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+                <select
+                  id="project-locality"
+                  value={selectedLocality}
+                  onChange={(e) => {
+                    setSelectedLocality(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ paddingLeft: '34px', fontSize: '0.85rem', textTransform: 'capitalize' }}
+                >
+                  {LOCALITIES.map((loc) => (
+                    <option key={loc} value={loc} style={{ textTransform: 'capitalize' }}>
+                      {loc === 'All Localities' ? 'All Localities' : loc.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Project Status Dropdown */}
+            <div className="input-group">
+              <label className="input-label" htmlFor="project-status">Project Status</label>
+              <div style={{ position: 'relative' }}>
+                <Building2 size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+                <select
+                  id="project-status"
+                  value={selectedStatus}
+                  onChange={(e) => {
+                    setSelectedStatus(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Status Quick Selection Buttons */}
+            <div className="input-group">
+              <label className="input-label">Quick Status</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {STATUS_OPTIONS.map((opt) => {
+                  const active = selectedStatus === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setSelectedStatus(opt.value);
+                        setPage(1);
                       }}
-                    >
-                      {proj.rera_number || proj.project_id}
-                    </span>
-                  </div>
-
-                  {/* Developer Name (1-line clamped) */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.825rem',
-                    fontWeight: 700,
-                    color: 'var(--primary-700)',
-                    marginBottom: '0.25rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    <Building size={13} style={{ flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {proj.developer_name || 'Grade A Developer'}
-                    </span>
-                  </div>
-
-                  {/* Project Name (Strictly 2 lines reserved for pixel-perfect card alignment) */}
-                  <h3 style={{
-                    fontSize: '1.2rem',
-                    fontWeight: 800,
-                    color: 'var(--text-primary)',
-                    lineHeight: 1.3,
-                    marginBottom: '0.25rem',
-                    minHeight: '3.15rem',
-                    maxHeight: '3.15rem',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {proj.apartment_name}
-                  </h3>
-
-                  {/* Locality (1 line clamped) */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.825rem',
-                    marginBottom: '1rem',
-                    textTransform: 'capitalize',
-                    minHeight: '1.25rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    <MapPin size={13} color="var(--primary-600)" style={{ flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {proj.locality || 'Mumbai'}
-                    </span>
-                    {proj.total_units && (
-                      <>
-                        <span style={{ color: 'var(--text-light)', flexShrink: 0 }}>•</span>
-                        <span style={{ flexShrink: 0 }}>{proj.total_units.toLocaleString('en-IN')} units</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Bottom Section: Price Box, Specs, Amenities & Actions */}
-                <div>
-                  {/* Price Range Box */}
-                  <div style={{
-                    backgroundColor: 'var(--bg-subtle)',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.75rem 1rem',
-                    marginBottom: '0.85rem'
-                  }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Estimated Price Range
-                    </div>
-                    <div style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 800,
-                      color: 'var(--text-primary)',
-                      marginTop: '2px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {formatProjectPrice(proj.price_min)} – {formatProjectPrice(proj.price_max)}
-                    </div>
-                  </div>
-
-                  {/* Detailed Specs Grid */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '0.5rem',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid var(--border-light)',
-                    marginBottom: '0.75rem',
-                    fontSize: '0.78rem'
-                  }}>
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Listings
-                      </div>
-                      <div style={{ fontWeight: 700, color: 'var(--primary-700)', marginTop: '2px' }}>
-                        {proj.total_listings ?? 0} Units
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Launch
-                      </div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-                        {formatDate(proj.launch_date)}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Possession
-                      </div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-                        {formatDate(proj.possession_date)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Amenities Chips (Strict single-line 28px height prevents card jitter) */}
-                  <div style={{
-                    minHeight: '28px',
-                    maxHeight: '28px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    marginBottom: '0.85rem',
-                    overflow: 'hidden'
-                  }}>
-                    {Array.isArray(proj.amenities) && proj.amenities.length > 0 ? (
-                      <>
-                        {proj.amenities.slice(0, 3).map((amenity, idx) => (
-                          <span
-                            key={idx}
-                            style={{
-                              fontSize: '0.72rem',
-                              padding: '2px 7px',
-                              backgroundColor: 'var(--bg-main)',
-                              border: '1px solid var(--border-light)',
-                              borderRadius: '4px',
-                              color: 'var(--text-secondary)',
-                              textTransform: 'capitalize',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                        {proj.amenities.length > 3 && (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '2px 4px', whiteSpace: 'nowrap' }}>
-                            +{proj.amenities.length - 3} more
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', whiteSpace: 'nowrap' }}>
-                        Clubhouse, pool & landscaped garden
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Action Row: Compare Checkbox + Plan Details Button */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.625rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid var(--border-light)'
-                  }}>
-                    <label
-                      onClick={(e) => e.stopPropagation()}
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        color: compared ? '#b45309' : 'var(--text-secondary)',
-                        backgroundColor: compared ? '#fef3c7' : 'var(--bg-subtle)',
-                        padding: '6px 10px',
+                        padding: '0.45rem 0.6rem',
+                        fontSize: '0.78rem',
+                        fontWeight: active ? 700 : 500,
                         borderRadius: 'var(--radius-sm)',
-                        border: '1px solid ' + (compared ? '#f59e0b' : 'var(--border-light)'),
-                        userSelect: 'none',
-                        flexShrink: 0,
+                        border: active ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                        backgroundColor: active ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
+                        color: active ? 'var(--accent-text)' : 'var(--text-body)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={compared}
-                        onChange={() => toggleCompare(proj, 'projects')}
-                        style={{ width: '15px', height: '15px', accentColor: '#d97706', cursor: 'pointer' }}
-                      />
-                      <span>{compared ? 'Comparing' : 'Compare'}</span>
-                    </label>
-
-                    <button
-                      onClick={() => setSelectedProjectModal(proj)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
-                    >
-                      <Eye size={14} /> View Plan
+                      <span>{opt.label}</span>
+                      {active && (
+                        <span style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--accent-primary)'
+                        }} />
+                      )}
                     </button>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          </div>
+        </aside>
 
-      {/* Pagination Controls */}
-      {!isLoading && filteredProjects.length > 0 && (
-        <div style={{
-          marginTop: '2.5rem',
-          padding: '1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: 'var(--bg-card)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-light)',
-          boxShadow: 'var(--shadow-xs)',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            Page <strong style={{ color: 'var(--text-primary)' }}>{page}</strong> of{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>{totalPages}</strong>
-            <span style={{ marginLeft: '0.75rem', color: 'var(--text-light)' }}>
-              ({limit} projects per page)
-            </span>
+        {/* Right Section: Results Header + 2-in-a-row Cards Grid + Pagination */}
+        <section style={{ minWidth: 0 }}>
+          {/* Summary Bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1.25rem',
+            padding: '0.85rem 1.25rem',
+            backgroundColor: 'var(--bg-surface)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              Showing <strong style={{ color: 'var(--text-heading)' }}>{filteredProjects.length}</strong> matching builder developments
+              {selectedLocality !== 'All Localities' && (
+                <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span>Page {page}</span>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <button
-              onClick={() => {
-                setPage((prev) => Math.max(1, prev - 1));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={page === 1}
-              className="btn btn-secondary btn-sm"
-            >
-              <ChevronLeft size={16} /> Previous
-            </button>
-
-            <span style={{
-              padding: '0.35rem 0.75rem',
-              backgroundColor: 'var(--accent-amber-light)',
-              color: 'var(--accent-amber)',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 700,
-              fontSize: '0.85rem'
+          {/* Error State */}
+          {apiError && (
+            <div style={{
+              padding: '1rem',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: 'var(--radius-md)',
+              color: '#991b1b',
+              marginBottom: '1.5rem',
+              fontSize: '0.875rem'
             }}>
-              {page}
-            </span>
+              {apiError}
+            </div>
+          )}
 
-            <button
-              onClick={() => {
-                setPage((prev) => prev + 1);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+          {/* Loading State */}
+          {isLoading ? (
+            <div style={{
+              padding: '5rem 0',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem'
+            }}>
+              <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+                Fetching developer project registry...
+              </p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="ivy-card" style={{
+              padding: '4rem 2rem',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                marginBottom: '1rem'
+              }}>
+                <FilterX size={26} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-heading)' }}>
+                No developer projects match your criteria
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '420px', marginBottom: '1.5rem' }}>
+                Try resetting status or locality filters to explore all available developer projects in Mumbai.
+              </p>
+              <button onClick={handleResetFilters} className="btn btn-primary">
+                <RotateCcw size={16} /> Reset All Filters
+              </button>
+            </div>
+          ) : (
+            /* Projects Grid (2 in a row as requested) */
+            <div
+              className="catalog-two-col-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '1.75rem'
               }}
-              disabled={!hasMore || page >= totalPages}
-              className="btn btn-secondary btn-sm"
             >
-              Next <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      )}
+              {filteredProjects.map((proj) => (
+                <ProjectCard
+                  key={proj.project_id}
+                  proj={proj}
+                  onViewPlan={(project) => setSelectedProjectModal(project)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!isLoading && filteredProjects.length > 0 && (
+            <div style={{
+              marginTop: '2.5rem',
+              padding: '1.25rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'var(--bg-surface)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-subtle)',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Page <strong style={{ color: 'var(--text-heading)' }}>{page}</strong> of{' '}
+                <strong style={{ color: 'var(--text-heading)' }}>{totalPages}</strong>
+                <span style={{ marginLeft: '0.75rem', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
+                  ({limit} projects per batch • {totalCount.toLocaleString('en-IN')} total)
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  onClick={() => {
+                    setPage((prev) => Math.max(1, prev - 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={page === 1}
+                  className="btn btn-secondary btn-sm"
+                >
+                  <ChevronLeft size={16} /> Previous
+                </button>
+
+                <span style={{
+                  padding: '0.35rem 0.75rem',
+                  backgroundColor: 'var(--accent-subtle)',
+                  color: 'var(--accent-text)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontWeight: 700,
+                  fontSize: '0.85rem'
+                }}>
+                  {page}
+                </span>
+
+                <button
+                  onClick={() => {
+                    setPage((prev) => prev + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={!hasMore || page >= totalPages}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Next <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* Modal: Project Development Details */}
       {selectedProjectModal && (
@@ -722,8 +506,9 @@ export default function ProjectsPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'var(--bg-modal)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -737,14 +522,14 @@ export default function ProjectsPage() {
             overflowY: 'auto',
             padding: '2rem',
             position: 'relative',
-            boxShadow: 'var(--shadow-xl)'
+            boxShadow: 'var(--shadow-float)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
                 <span className="badge badge-amber" style={{ textTransform: 'capitalize', marginBottom: '0.5rem' }}>
                   {selectedProjectModal.project_status}
                 </span>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{selectedProjectModal.apartment_name}</h2>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-heading)' }}>{selectedProjectModal.apartment_name}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                   Developed by {selectedProjectModal.developer_name}
                 </p>
@@ -759,14 +544,14 @@ export default function ProjectsPage() {
             </div>
 
             <div style={{
-              backgroundColor: 'var(--bg-subtle)',
+              backgroundColor: 'var(--bg-surface-subtle)',
               padding: '1rem',
               borderRadius: 'var(--radius-md)',
               marginBottom: '1.25rem',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--border-subtle)'
             }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>PRICE BRACKET</div>
-              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary-700)', marginTop: '2px' }}>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--accent-text)', marginTop: '2px' }}>
                 {formatProjectPrice(selectedProjectModal.price_min)} – {formatProjectPrice(selectedProjectModal.price_max)}
               </div>
             </div>
@@ -774,26 +559,26 @@ export default function ProjectsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
               <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>RERA REGISTRATION</div>
-                <div style={{ fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+                <div style={{ fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-heading)' }}>
                   {selectedProjectModal.rera_number || 'N/A'}
                 </div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>TOTAL LISTINGS</div>
-                <div style={{ fontWeight: 700 }}>{selectedProjectModal.total_listings} active listings</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{selectedProjectModal.total_listings} active listings</div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>LAUNCH DATE</div>
-                <div style={{ fontWeight: 700 }}>{formatDate(selectedProjectModal.launch_date)}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{formatDate(selectedProjectModal.launch_date)}</div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>POSSESSION DATE</div>
-                <div style={{ fontWeight: 700 }}>{formatDate(selectedProjectModal.possession_date)}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{formatDate(selectedProjectModal.possession_date)}</div>
               </div>
               {selectedProjectModal.total_towers && (
                 <div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>TOWERS & FLOORS</div>
-                  <div style={{ fontWeight: 700 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                     {selectedProjectModal.total_towers} Towers • {selectedProjectModal.total_floors || 'Multiple'} Floors
                   </div>
                 </div>
@@ -801,7 +586,7 @@ export default function ProjectsPage() {
               {selectedProjectModal.min_area_sqft && (
                 <div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>UNIT AREA SPAN</div>
-                  <div style={{ fontWeight: 700 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                     {selectedProjectModal.min_area_sqft} – {selectedProjectModal.max_area_sqft} sqft
                   </div>
                 </div>
@@ -819,12 +604,13 @@ export default function ProjectsPage() {
                       key={i}
                       style={{
                         padding: '4px 10px',
-                        backgroundColor: 'var(--bg-main)',
+                        backgroundColor: 'var(--bg-surface-subtle)',
                         borderRadius: 'var(--radius-full)',
-                        border: '1px solid var(--border-light)',
+                        border: '1px solid var(--border-subtle)',
                         fontSize: '0.78rem',
                         textTransform: 'capitalize',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        color: 'var(--text-body)'
                       }}
                     >
                       {amenity}
@@ -844,6 +630,36 @@ export default function ProjectsPage() {
           </div>
         </div>
       )}
+
+      {/* Responsive & scrollbar styles */}
+      <style>{`
+        .filter-sidebar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .filter-sidebar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .filter-sidebar::-webkit-scrollbar-thumb {
+          background: var(--border-subtle);
+          border-radius: 4px;
+        }
+        .filter-sidebar::-webkit-scrollbar-thumb:hover {
+          background: var(--text-muted);
+        }
+        @media (max-width: 900px) {
+          .catalog-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .filter-sidebar {
+            position: static !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+          }
+          .catalog-two-col-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

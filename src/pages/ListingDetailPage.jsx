@@ -151,9 +151,9 @@ export default function ListingDetailPage() {
             onClick={() => toggleFavourite(listing)}
             className="btn btn-secondary btn-sm"
             style={{
-              color: saved ? '#ef4444' : 'var(--text-primary)',
-              borderColor: saved ? '#fca5a5' : 'var(--border-light)',
-              backgroundColor: saved ? '#fef2f2' : '#ffffff'
+              color: saved ? '#ef4444' : 'var(--text-heading)',
+              borderColor: saved ? 'rgba(239, 68, 68, 0.4)' : 'var(--border-subtle)',
+              backgroundColor: saved ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-surface)'
             }}
           >
             <Heart size={16} fill={saved ? '#ef4444' : 'none'} stroke={saved ? '#ef4444' : 'currentColor'} />
@@ -163,7 +163,7 @@ export default function ListingDetailPage() {
       </div>
 
       {/* Main Property Card */}
-      <div className="ivy-card" style={{ padding: '2rem', marginBottom: '2.5rem', backgroundColor: '#ffffff' }}>
+      <div className="ivy-card" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
         {/* Header Ribbon */}
         <div style={{
           display: 'flex',
@@ -172,7 +172,7 @@ export default function ListingDetailPage() {
           alignItems: 'flex-start',
           gap: '1.5rem',
           paddingBottom: '1.5rem',
-          borderBottom: '1px solid var(--border-light)'
+          borderBottom: '1px solid var(--border-subtle)'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
@@ -193,7 +193,7 @@ export default function ListingDetailPage() {
             <h1 style={{
               fontSize: '2.1rem',
               fontWeight: 800,
-              color: 'var(--text-primary)',
+              color: 'var(--text-heading)',
               letterSpacing: '-0.025em',
               textTransform: 'capitalize'
             }}>
@@ -209,7 +209,7 @@ export default function ListingDetailPage() {
               marginTop: '0.35rem',
               textTransform: 'capitalize'
             }}>
-              <MapPin size={16} color="var(--primary-600)" />
+              <MapPin size={16} color="var(--accent-primary)" />
               <span>{listing.locality}, Mumbai (City ID: {listing.city_id || 5})</span>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function ListingDetailPage() {
             <div style={{
               fontSize: '2.4rem',
               fontWeight: 800,
-              color: 'var(--primary-700)',
+              color: 'var(--accent-text)',
               letterSpacing: '-0.02em',
               lineHeight: 1
             }}>
@@ -230,7 +230,7 @@ export default function ListingDetailPage() {
                 ₹{ratePerSqft.toLocaleString('en-IN')} per sqft (Carpet)
               </div>
             )}
-            <div style={{ fontSize: '0.78rem', color: 'var(--primary-600)', marginTop: '0.2rem', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--accent-primary)', marginTop: '0.2rem', fontWeight: 600 }}>
               Direct Verified Price · No Broker Commission
             </div>
           </div>
@@ -242,67 +242,67 @@ export default function ListingDetailPage() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
           gap: '1.25rem',
           padding: '1.75rem 0',
-          borderBottom: '1px solid var(--border-light)'
+          borderBottom: '1px solid var(--border-subtle)'
         }}>
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>BEDROOMS</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <BedDouble size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <BedDouble size={18} color="var(--accent-primary)" />
               <span>{listing.bedroom || '--'} BHK</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>BATHROOMS</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Bath size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <Bath size={18} color="var(--accent-primary)" />
               <span>{listing.bathroom || '--'} Baths</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>CARPET AREA</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Maximize2 size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <Maximize2 size={18} color="var(--accent-primary)" />
               <span>{listing.carpet_area ? `${listing.carpet_area} sqft` : '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>SUPER BUILT-UP AREA</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Layers size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <Layers size={18} color="var(--accent-primary)" />
               <span>{listing.super_built_up_area ? `${listing.super_built_up_area} sqft` : '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FURNISHING</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', textTransform: 'capitalize' }}>
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', textTransform: 'capitalize', color: 'var(--text-heading)' }}>
               {listing.furnishing || 'Unfurnished'}
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FACING DIRECTION</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'capitalize' }}>
-              <Compass size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'capitalize', color: 'var(--text-heading)' }}>
+              <Compass size={18} color="var(--accent-primary)" />
               <span>{listing.facing_direction || 'East'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FLOOR ELEVATION</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Building size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <Building size={18} color="var(--accent-primary)" />
               <span>{listing.floor || '1'} of {listing.total_floors || '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>PARKING SPACES</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Car size={18} color="var(--primary-600)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
+              <Car size={18} color="var(--accent-primary)" />
               <span>{listing.covered_parking ? `${listing.covered_parking} Covered` : 'Available'}</span>
             </div>
           </div>
@@ -318,18 +318,18 @@ export default function ListingDetailPage() {
           
           {/* Left Column: Description & Metadata */}
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.75rem' }}>
               Property Description
             </h2>
             <div style={{
               fontSize: '0.95rem',
-              color: 'var(--text-secondary)',
+              color: 'var(--text-body)',
               lineHeight: 1.75,
               whiteSpace: 'pre-wrap',
-              backgroundColor: 'var(--bg-main)',
+              backgroundColor: 'var(--bg-surface-subtle)',
               padding: '1.25rem',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--border-subtle)'
             }}>
               {listing.description || 'No custom description provided by seller for this property.'}
             </div>
@@ -339,7 +339,7 @@ export default function ListingDetailPage() {
               {listing.project_id && (
                 <div>
                   <strong>Builder Project ID: </strong>
-                  <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary-700)' }}>{listing.project_id}</code>
+                  <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-text)' }}>{listing.project_id}</code>
                 </div>
               )}
               {listing.posted_at && (
@@ -361,16 +361,16 @@ export default function ListingDetailPage() {
           <div>
             <div style={{
               padding: '1.5rem',
-              backgroundColor: 'var(--primary-50)',
+              backgroundColor: 'var(--accent-subtle)',
               borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--primary-200)'
+              border: '1px solid var(--accent-border)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-800)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                <ShieldCheck size={18} color="var(--primary-600)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-text)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                <ShieldCheck size={18} color="var(--accent-primary)" />
                 <span>Verified Seller Contact</span>
               </div>
 
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.5rem' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.5rem' }}>
                 {listing.posted_by_name || 'Listing Agent'}
               </div>
               <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>
@@ -410,11 +410,11 @@ export default function ListingDetailPage() {
         <section style={{ marginTop: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-600)', fontSize: '0.85rem', fontWeight: 700 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
                 <Sparkles size={16} />
                 <span>Comparable Properties</span>
               </div>
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.25rem' }}>
                 You May Also Like
               </h2>
             </div>
