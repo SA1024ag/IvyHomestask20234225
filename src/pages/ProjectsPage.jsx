@@ -397,147 +397,144 @@ export default function ProjectsPage() {
                   padding: '1.5rem',
                   border: compared ? '2px solid var(--accent-amber)' : '1px solid var(--border-light)',
                   boxShadow: compared ? 'var(--shadow-md)' : 'var(--shadow-sm)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  backgroundColor: '#ffffff'
                 }}
               >
-                {/* Header: Developer Name & Status */}
+                {/* Top Section */}
                 <div>
+                  {/* Clean Top Bar: Status Badge on Left, RERA Code on Right */}
                   <div style={{
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
                     marginBottom: '0.75rem',
-                    gap: '0.5rem',
-                    flexWrap: 'wrap'
+                    minHeight: '24px',
+                    gap: '0.5rem'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className={`badge ${statusBadgeClass}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem' }}>
-                        {statusClean}
-                      </span>
-                      {compared && (
-                        <span className="badge badge-amber" style={{ backgroundColor: 'var(--accent-amber)', color: '#ffffff', fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          <ArrowLeftRight size={10} /> Comparing
-                        </span>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <label
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          cursor: 'pointer',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          color: compared ? 'var(--accent-amber)' : 'var(--text-secondary)',
-                          backgroundColor: compared ? 'var(--accent-amber-light)' : 'var(--bg-subtle)',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid ' + (compared ? 'var(--accent-amber)' : 'var(--border-light)'),
-                          userSelect: 'none',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={compared}
-                          onChange={() => toggleCompare(proj, 'projects')}
-                          style={{ width: '14px', height: '14px', accentColor: '#d97706', cursor: 'pointer' }}
-                        />
-                        <span>Compare</span>
-                      </label>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
-                        {proj.rera_number || proj.project_id}
-                      </span>
-                    </div>
+                    <span className={`badge ${statusBadgeClass}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem', flexShrink: 0 }}>
+                      {statusClean}
+                    </span>
+                    <span
+                      title={proj.rera_number || proj.project_id}
+                      style={{
+                        fontSize: '0.72rem',
+                        color: 'var(--text-light)',
+                        fontFamily: 'var(--font-mono)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '190px'
+                      }}
+                    >
+                      {proj.rera_number || proj.project_id}
+                    </span>
                   </div>
 
-                  {/* Developer Name */}
+                  {/* Developer Name (1-line clamped) */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    fontSize: '0.85rem',
+                    fontSize: '0.825rem',
                     fontWeight: 700,
                     color: 'var(--primary-700)',
                     marginBottom: '0.25rem',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.04em'
+                    letterSpacing: '0.04em',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
                   }}>
-                    <Building size={14} />
-                    <span>{proj.developer_name || 'Grade A Developer'}</span>
+                    <Building size={13} style={{ flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {proj.developer_name || 'Grade A Developer'}
+                    </span>
                   </div>
 
-                  {/* Project Name */}
+                  {/* Project Name (Strictly 2 lines reserved for pixel-perfect card alignment) */}
                   <h3 style={{
-                    fontSize: '1.25rem',
+                    fontSize: '1.2rem',
                     fontWeight: 800,
                     color: 'var(--text-primary)',
                     lineHeight: 1.3,
-                    marginBottom: '0.35rem'
+                    marginBottom: '0.25rem',
+                    minHeight: '3.15rem',
+                    maxHeight: '3.15rem',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
                   }}>
                     {proj.apartment_name}
                   </h3>
 
-                  {/* Locality */}
+                  {/* Locality (1 line clamped) */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
                     color: 'var(--text-muted)',
-                    fontSize: '0.85rem',
-                    marginBottom: '1.25rem',
-                    textTransform: 'capitalize'
+                    fontSize: '0.825rem',
+                    marginBottom: '1rem',
+                    textTransform: 'capitalize',
+                    minHeight: '1.25rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
                   }}>
-                    <MapPin size={14} color="var(--primary-600)" />
-                    <span>{proj.locality || 'Mumbai'}</span>
+                    <MapPin size={13} color="var(--primary-600)" style={{ flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {proj.locality || 'Mumbai'}
+                    </span>
                     {proj.total_units && (
                       <>
-                        <span style={{ color: 'var(--text-light)' }}>•</span>
-                        <span>{proj.total_units.toLocaleString('en-IN')} units</span>
+                        <span style={{ color: 'var(--text-light)', flexShrink: 0 }}>•</span>
+                        <span style={{ flexShrink: 0 }}>{proj.total_units.toLocaleString('en-IN')} units</span>
                       </>
                     )}
                   </div>
                 </div>
 
-                {/* Body: Price Range & Project Specs */}
+                {/* Bottom Section: Price Box, Specs, Amenities & Actions */}
                 <div>
-                  {/* Price Range (Prominent Requirement) */}
+                  {/* Price Range Box */}
                   <div style={{
                     backgroundColor: 'var(--bg-subtle)',
                     border: '1px solid var(--border-light)',
                     borderRadius: 'var(--radius-md)',
-                    padding: '0.85rem 1rem',
-                    marginBottom: '1rem'
+                    padding: '0.75rem 1rem',
+                    marginBottom: '0.85rem'
                   }}>
-                    <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Estimated Price Range
                     </div>
                     <div style={{
-                      fontSize: '1.25rem',
+                      fontSize: '1.15rem',
                       fontWeight: 800,
                       color: 'var(--text-primary)',
-                      marginTop: '2px'
+                      marginTop: '2px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}>
                       {formatProjectPrice(proj.price_min)} – {formatProjectPrice(proj.price_max)}
                     </div>
                   </div>
 
-                  {/* Detailed Specs Grid (total_listings, launch_date, possession_date) */}
+                  {/* Detailed Specs Grid */}
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '0.75rem',
-                    paddingBottom: '1rem',
+                    gap: '0.5rem',
+                    paddingBottom: '0.75rem',
                     borderBottom: '1px solid var(--border-light)',
-                    marginBottom: '1rem',
-                    fontSize: '0.8rem'
+                    marginBottom: '0.75rem',
+                    fontSize: '0.78rem'
                   }}>
                     <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Total Listings
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        Listings
                       </div>
                       <div style={{ fontWeight: 700, color: 'var(--primary-700)', marginTop: '2px' }}>
                         {proj.total_listings ?? 0} Units
@@ -545,8 +542,8 @@ export default function ProjectsPage() {
                     </div>
 
                     <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        Launch Date
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        Launch
                       </div>
                       <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
                         {formatDate(proj.launch_date)}
@@ -554,7 +551,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase' }}>
                         Possession
                       </div>
                       <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -563,46 +560,93 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  {/* Amenities Chips (if present) */}
-                  {Array.isArray(proj.amenities) && proj.amenities.length > 0 && (
-                    <div style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '4px',
-                      marginBottom: '1rem'
-                    }}>
-                      {proj.amenities.slice(0, 3).map((amenity, idx) => (
-                        <span
-                          key={idx}
-                          style={{
-                            fontSize: '0.72rem',
-                            padding: '2px 8px',
-                            backgroundColor: 'var(--bg-main)',
-                            border: '1px solid var(--border-light)',
-                            borderRadius: '4px',
-                            color: 'var(--text-secondary)',
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                      {proj.amenities.length > 3 && (
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '2px 4px' }}>
-                          +{proj.amenities.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {/* Amenities Chips (Strict single-line 28px height prevents card jitter) */}
+                  <div style={{
+                    minHeight: '28px',
+                    maxHeight: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    marginBottom: '0.85rem',
+                    overflow: 'hidden'
+                  }}>
+                    {Array.isArray(proj.amenities) && proj.amenities.length > 0 ? (
+                      <>
+                        {proj.amenities.slice(0, 3).map((amenity, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 7px',
+                              backgroundColor: 'var(--bg-main)',
+                              border: '1px solid var(--border-light)',
+                              borderRadius: '4px',
+                              color: 'var(--text-secondary)',
+                              textTransform: 'capitalize',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {amenity}
+                          </span>
+                        ))}
+                        {proj.amenities.length > 3 && (
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '2px 4px', whiteSpace: 'nowrap' }}>
+                            +{proj.amenities.length - 3} more
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', whiteSpace: 'nowrap' }}>
+                        Clubhouse, pool & landscaped garden
+                      </span>
+                    )}
+                  </div>
 
-                  {/* Action Button */}
-                  <button
-                    onClick={() => setSelectedProjectModal(proj)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ width: '100%' }}
-                  >
-                    <Eye size={14} /> View Development Plan
-                  </button>
+                  {/* Action Row: Compare Checkbox + Plan Details Button */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.625rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid var(--border-light)'
+                  }}>
+                    <label
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: compared ? '#b45309' : 'var(--text-secondary)',
+                        backgroundColor: compared ? '#fef3c7' : 'var(--bg-subtle)',
+                        padding: '6px 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid ' + (compared ? '#f59e0b' : 'var(--border-light)'),
+                        userSelect: 'none',
+                        flexShrink: 0,
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={compared}
+                        onChange={() => toggleCompare(proj, 'projects')}
+                        style={{ width: '15px', height: '15px', accentColor: '#d97706', cursor: 'pointer' }}
+                      />
+                      <span>{compared ? 'Comparing' : 'Compare'}</span>
+                    </label>
+
+                    <button
+                      onClick={() => setSelectedProjectModal(proj)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    >
+                      <Eye size={14} /> View Plan
+                    </button>
+                  </div>
                 </div>
               </div>
             );
