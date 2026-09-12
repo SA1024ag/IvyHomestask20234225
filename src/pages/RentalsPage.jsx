@@ -18,9 +18,11 @@ import {
   Loader2,
   FilterX,
   Sparkles,
-  Info
+  Info,
+  ArrowLeftRight
 } from 'lucide-react';
 import { apiClient } from '../api/client';
+import { useCompare } from '../context/CompareContext';
 
 const LOCALITIES = [
   'All Localities',
@@ -59,6 +61,8 @@ function formatINR(val) {
 }
 
 export default function RentalsPage() {
+  const { isCompared, toggleCompare, rentalsCount } = useCompare();
+
   // Filter States
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
   const [selectedBhk, setSelectedBhk] = useState('');
@@ -176,7 +180,7 @@ export default function RentalsPage() {
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return (
-    <div className="main-content">
+    <div className="main-content" style={{ paddingBottom: rentalsCount > 0 ? '7.5rem' : '2rem' }}>
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
@@ -412,6 +416,8 @@ export default function RentalsPage() {
               ? rental.furnishing.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
               : 'Semi Furnished';
 
+            const compared = isCompared(rental.listing_id, 'rentals');
+
             return (
               <div
                 key={rental.listing_id}
@@ -421,8 +427,10 @@ export default function RentalsPage() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   padding: '1.5rem',
-                  border: '1px solid var(--border-light)',
-                  position: 'relative'
+                  border: compared ? '2px solid var(--primary-600)' : '1px solid var(--border-light)',
+                  boxShadow: compared ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+                  position: 'relative',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {/* Header Section */}
@@ -432,20 +440,57 @@ export default function RentalsPage() {
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
                     marginBottom: '0.75rem',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    flexWrap: 'wrap'
                   }}>
-                    <span className={`badge ${
-                      rental.furnishing?.includes('fully')
-                        ? 'badge-emerald'
-                        : rental.furnishing?.includes('semi')
-                        ? 'badge-blue'
-                        : 'badge-slate'
-                    }`} style={{ fontSize: '0.725rem' }}>
-                      {furnishingClean}
-                    </span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
-                      #{rental.listing_id}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className={`badge ${
+                        rental.furnishing?.includes('fully')
+                          ? 'badge-emerald'
+                          : rental.furnishing?.includes('semi')
+                          ? 'badge-blue'
+                          : 'badge-slate'
+                      }`} style={{ fontSize: '0.725rem' }}>
+                        {furnishingClean}
+                      </span>
+                      {compared && (
+                        <span className="badge badge-emerald" style={{ backgroundColor: 'var(--primary-700)', color: '#ffffff', fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <ArrowLeftRight size={10} /> Comparing
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          color: compared ? 'var(--primary-700)' : 'var(--text-secondary)',
+                          backgroundColor: compared ? 'var(--primary-50)' : 'var(--bg-subtle)',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid ' + (compared ? 'var(--primary-300)' : 'var(--border-light)'),
+                          userSelect: 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={compared}
+                          onChange={() => toggleCompare(rental, 'rentals')}
+                          style={{ width: '14px', height: '14px', accentColor: 'var(--primary-600)', cursor: 'pointer' }}
+                        />
+                        <span>Compare</span>
+                      </label>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
+                        #{rental.listing_id}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Monthly Rent (Prominent) */}

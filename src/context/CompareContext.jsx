@@ -2,31 +2,50 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CompareContext = createContext(null);
 
-const STORAGE_KEY = 'ivy_compare_listings';
+const STORAGE_KEYS = {
+  sale: 'ivy_compare_sale',
+  rentals: 'ivy_compare_rentals',
+  projects: 'ivy_compare_projects'
+};
+
 const MAX_COMPARE_LIMIT = 3;
 
+function getStored(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.slice(0, MAX_COMPARE_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CompareProvider({ children }) {
-  const [compareListings, setCompareListings] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return [];
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed.slice(0, MAX_COMPARE_LIMIT) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [compareSales, setCompareSales] = useState(() => getStored(STORAGE_KEYS.sale));
+  const [compareRentals, setCompareRentals] = useState(() => getStored(STORAGE_KEYS.rentals));
+  const [compareProjects, setCompareProjects] = useState(() => getStored(STORAGE_KEYS.projects));
 
   const [warningMessage, setWarningMessage] = useState(null);
 
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(compareListings));
-    } catch (e) {
-      console.warn('Failed to save compare listings to localStorage:', e);
-    }
-  }, [compareListings]);
+      localStorage.setItem(STORAGE_KEYS.sale, JSON.stringify(compareSales));
+    } catch {}
+  }, [compareSales]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.rentals, JSON.stringify(compareRentals));
+    } catch {}
+  }, [compareRentals]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(compareProjects));
+    } catch {}
+  }, [compareProjects]);
 
   // Auto-dismiss warning after 3.5 seconds
   useEffect(() => {
@@ -37,48 +56,109 @@ export function CompareProvider({ children }) {
     return () => clearTimeout(timer);
   }, [warningMessage]);
 
-  const isCompared = (listingId) => {
-    if (!listingId) return false;
-    return compareListings.some((item) => item.listing_id === listingId);
+  const getItemId = (item, category) => {
+    if (!item) return null;
+    if (category === 'projects') return item.project_id || item.id;
+    return item.listing_id || item.id;
   };
 
-  const toggleCompare = (listing) => {
-    if (!listing || !listing.listing_id) return;
-    const id = listing.listing_id;
+  const getCategoryList = (category) => {
+    if (category === 'rentals') return compareRentals;
+    if (category === 'projects') return compareProjects;
+    return compareSales;
+  };
 
-    if (isCompared(id)) {
-      setCompareListings((prev) => prev.filter((item) => item.listing_id !== id));
+  const isCompared = (id, category = 'sale') => {
+    if (!id) return false;
+    const list = getCategoryList(category);
+    return list.some((item) => getItemId(item, category) === id);
+  };
+
+  const toggleCompare = (item, category = 'sale') => {
+    if (!item) return false;
+    const id = getItemId(item, category);
+    if (!id) return false;
+
+    const list = getCategoryList(category);
+    const alreadyCompared = list.some((it) => getItemId(it, category) === id);
+
+    if (alreadyCompared) {
+      if (category === 'rentals') {
+        setCompareRentals((prev) => prev.filter((it) => getItemId(it, category) !== id));
+      } else if (category === 'projects') {
+        setCompareProjects((prev) => prev.filter((it) => getItemId(it, category) !== id));
+      } else {
+        setCompareSales((prev) => prev.filter((it) => getItemId(it, category) !== id));
+      }
       setWarningMessage(null);
+      return true;
     } else {
-      if (compareListings.length >= MAX_COMPARE_LIMIT) {
-        setWarningMessage(`Maximum ${MAX_COMPARE_LIMIT} properties can be compared at once. Remove one to add this.`);
+      if (list.length >= MAX_COMPARE_LIMIT) {
+        const catName = category === 'rentals' ? 'rentals' : category === 'projects' ? 'projects' : 'properties';
+        setWarningMessage(`Maximum ${MAX_COMPARE_LIMIT} ${catName} can be compared at once. Remove one to add this.`);
         return false;
       }
-      setCompareListings((prev) => [...prev, listing]);
+
+      if (category === 'rentals') {
+        setCompareRentals((prev) => [...prev, item]);
+      } else if (category === 'projects') {
+        setCompareProjects((prev) => [...prev, item]);
+      } else {
+        setCompareSales((prev) => [...prev, item]);
+      }
       setWarningMessage(null);
       return true;
     }
   };
 
-  const removeFromCompare = (listingId) => {
-    setCompareListings((prev) => prev.filter((item) => item.listing_id !== listingId));
+  const removeFromCompare = (id, category = 'sale') => {
+    if (category === 'rentals') {
+      setCompareRentals((prev) => prev.filter((it) => getItemId(it, category) !== id));
+    } else if (category === 'projects') {
+      setCompareProjects((prev) => prev.filter((it) => getItemId(it, category) !== id));
+    } else {
+      setCompareSales((prev) => prev.filter((it) => getItemId(it, category) !== id));
+    }
   };
 
-  const clearCompare = () => {
-    setCompareListings([]);
+  const clearCompare = (category = 'all') => {
+    if (category === 'rentals' || category === 'all') {
+      setCompareRentals([]);
+      try { localStorage.removeItem(STORAGE_KEYS.rentals); } catch {}
+    }
+    if (category === 'projects' || category === 'all') {
+      setCompareProjects([]);
+      try { localStorage.removeItem(STORAGE_KEYS.projects); } catch {}
+    }
+    if (category === 'sale' || category === 'all') {
+      setCompareSales([]);
+      try { localStorage.removeItem(STORAGE_KEYS.sale); } catch {}
+    }
     setWarningMessage(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
   };
+
+  const totalCount = compareSales.length + compareRentals.length + compareProjects.length;
 
   const value = {
-    compareListings,
+    // Category lists
+    compareSales,
+    compareRentals,
+    compareProjects,
+    compareListings: compareSales, // alias for backwards compatibility
+
+    // Methods
     isCompared,
     toggleCompare,
     removeFromCompare,
     clearCompare,
-    count: compareListings.length,
+
+    // Counts
+    count: compareSales.length, // default alias for sales
+    salesCount: compareSales.length,
+    rentalsCount: compareRentals.length,
+    projectsCount: compareProjects.length,
+    totalCount,
+
     maxLimit: MAX_COMPARE_LIMIT,
     warningMessage,
     dismissWarning: () => setWarningMessage(null)

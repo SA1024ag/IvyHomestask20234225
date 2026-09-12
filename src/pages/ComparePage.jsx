@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -8,32 +8,209 @@ import {
   Building2,
   ShieldCheck,
   Heart,
-  Check,
   Plus,
   ExternalLink,
   MapPin,
-  Sparkles,
   BedDouble,
-  Maximize2
+  Maximize2,
+  Building,
+  Calendar,
+  Layers,
+  Wallet,
+  Coins,
+  KeyRound,
+  FolderKanban,
+  CheckCircle2,
+  Phone,
+  Tag
 } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
 import { useFavourites } from '../context/FavouritesContext';
 import { formatINR } from '../components/PropertyCard';
 
+// Helper: Format project price range using price_min and price_max
+function formatProjectPrice(val) {
+  if (val === null || val === undefined || isNaN(val)) return 'Price on Request';
+  const num = Number(val);
+  if (num >= 10000000) {
+    return `₹${(num / 10000000).toFixed(2)} Cr`;
+  } else if (num >= 100000) {
+    return `₹${(num / 100000).toFixed(2)} L`;
+  } else if (num > 0) {
+    return `₹${num.toFixed(2)} Cr`;
+  }
+  return 'Price on Request';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return 'TBA';
+  try {
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      return dateStr.slice(0, 10);
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { compareListings, removeFromCompare, clearCompare, maxLimit } = useCompare();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const {
+    compareSales,
+    compareRentals,
+    compareProjects,
+    removeFromCompare,
+    clearCompare,
+    salesCount,
+    rentalsCount,
+    projectsCount,
+    maxLimit
+  } = useCompare();
+
   const { isFavourite, toggleFavourite } = useFavourites();
 
-  const count = compareListings.length;
+  // Determine active tab from URL query param or smart default based on counts
+  const paramTab = searchParams.get('tab');
+  let activeTab = 'sale';
+  if (paramTab === 'rentals' || paramTab === 'projects' || paramTab === 'sale') {
+    activeTab = paramTab;
+  } else if (rentalsCount > 0 && salesCount === 0) {
+    activeTab = 'rentals';
+  } else if (projectsCount > 0 && salesCount === 0 && rentalsCount === 0) {
+    activeTab = 'projects';
+  }
 
-  if (count === 0) {
-    return (
-      <div className="main-content" style={{ minHeight: '65vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  const handleTabChange = (tab) => {
+    setSearchParams({ tab });
+  };
+
+  const tabs = [
+    { key: 'sale', label: 'Properties for Sale', icon: Building2, count: salesCount, browseUrl: '/listings' },
+    { key: 'rentals', label: 'Rental Homes', icon: KeyRound, count: rentalsCount, browseUrl: '/rentals' },
+    { key: 'projects', label: 'Builder Projects', icon: FolderKanban, count: projectsCount, browseUrl: '/projects' },
+  ];
+
+  const currentTabObj = tabs.find((t) => t.key === activeTab) || tabs[0];
+  const currentList =
+    activeTab === 'rentals'
+      ? compareRentals
+      : activeTab === 'projects'
+      ? compareProjects
+      : compareSales;
+
+  const currentCount = currentList.length;
+
+  return (
+    <div className="main-content" style={{ paddingBottom: '6rem' }}>
+      {/* Top Header & Breadcrumb */}
+      <div style={{ marginBottom: '1.75rem' }}>
+        <button
+          onClick={() => navigate(currentTabObj.browseUrl)}
+          className="btn btn-ghost btn-sm"
+          style={{ marginBottom: '0.75rem', paddingLeft: 0, color: 'var(--text-muted)' }}
+        >
+          <ArrowLeft size={16} /> Back to {currentTabObj.label}
+        </button>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <ArrowLeftRight size={12} /> Side-by-Side Analysis
+              </span>
+              <span className="badge badge-slate">{currentCount} of {maxLimit} Slots Used</span>
+            </div>
+            <h1 className="page-title">Compare Homes & Developments</h1>
+            <p className="page-subtitle">
+              Comprehensive side-by-side technical and financial breakdown across Mumbai properties, rentals, and builder projects.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {currentCount < maxLimit && (
+              <NavLink to={currentTabObj.browseUrl} className="btn btn-secondary btn-sm">
+                <Plus size={15} /> Add Another ({maxLimit - currentCount} remaining)
+              </NavLink>
+            )}
+            {currentCount > 0 && (
+              <button onClick={() => clearCompare(activeTab)} className="btn btn-ghost btn-sm" style={{ color: '#ef4444' }}>
+                <Trash2 size={15} /> Clear {currentTabObj.label}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Category Segmented Tabs Switcher (3 Options) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        marginBottom: '2rem',
+        backgroundColor: 'var(--bg-subtle)',
+        padding: '0.4rem',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-light)',
+        width: 'fit-content',
+        maxWidth: '100%',
+        overflowX: 'auto'
+      }}>
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => handleTabChange(tab.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '0.6rem 1.25rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                border: 'none',
+                transition: 'all 0.2s ease',
+                backgroundColor: isActive ? '#ffffff' : 'transparent',
+                color: isActive ? 'var(--primary-700)' : 'var(--text-muted)',
+                boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Icon size={16} color={isActive ? 'var(--primary-600)' : 'currentColor'} />
+              <span>{tab.label}</span>
+              <span style={{
+                fontSize: '0.72rem',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: isActive ? 'var(--primary-50)' : 'rgba(0,0,0,0.06)',
+                color: isActive ? 'var(--primary-700)' : 'var(--text-muted)',
+                fontWeight: 800
+              }}>
+                {tab.count}/{maxLimit}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Empty State for Selected Tab */}
+      {currentCount === 0 ? (
         <div className="ivy-card" style={{
           padding: '4rem 2rem',
-          maxWidth: '520px',
-          width: '100%',
+          maxWidth: '540px',
+          margin: '0 auto',
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
@@ -50,184 +227,92 @@ export default function ComparePage() {
             justifyContent: 'center',
             marginBottom: '1.25rem'
           }}>
-            <ArrowLeftRight size={28} />
+            <currentTabObj.icon size={28} />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-            No Properties Selected
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            No {currentTabObj.label} Selected
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '1.75rem' }}>
-            You haven't selected any properties to compare yet. Return to the property catalog and check the <strong>Compare</strong> box on up to 3 listings.
+            Select up to {maxLimit} items from the {currentTabObj.label.toLowerCase()} catalog using the <strong>Compare</strong> checkbox to see their specs side-by-side.
           </p>
-          <NavLink to="/listings" className="btn btn-primary" style={{ padding: '0.65rem 1.5rem' }}>
-            Browse Listings to Compare →
+          <NavLink to={currentTabObj.browseUrl} className="btn btn-primary" style={{ padding: '0.65rem 1.5rem' }}>
+            Browse {currentTabObj.label} →
           </NavLink>
         </div>
-      </div>
-    );
-  }
+      ) : activeTab === 'sale' ? (
+        /* ================= TAB 1: SALE PROPERTIES ================= */
+        <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              minWidth: currentCount === 1 ? '500px' : currentCount === 2 ? '700px' : '900px',
+              fontSize: '0.9rem'
+            }}>
+              <colgroup>
+                <col style={{ width: '220px', minWidth: '180px' }} />
+                {compareSales.map((l) => (
+                  <col key={l.listing_id} style={{ width: `${(100 - 20) / currentCount}%` }} />
+                ))}
+              </colgroup>
 
-  // Find lowest price and largest area for subtle highlights
-  const prices = compareListings.map((l) => Number(l.price) || 0).filter((p) => p > 0);
-  const minPrice = prices.length > 1 ? Math.min(...prices) : null;
-
-  const areas = compareListings.map((l) => Number(l.carpet_area) || 0).filter((a) => a > 0);
-  const maxArea = areas.length > 1 ? Math.max(...areas) : null;
-
-  return (
-    <div className="main-content" style={{ paddingBottom: '6rem' }}>
-      {/* Top Header & Breadcrumb */}
-      <div style={{ marginBottom: '2rem' }}>
-        <button
-          onClick={() => navigate('/listings')}
-          className="btn btn-ghost btn-sm"
-          style={{ marginBottom: '1rem', paddingLeft: 0, color: 'var(--text-muted)' }}
-        >
-          <ArrowLeft size={16} /> Back to Listings
-        </button>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <ArrowLeftRight size={12} /> Side-by-Side Analysis
-              </span>
-              <span className="badge badge-slate">{count} of {maxLimit} Slots Used</span>
-            </div>
-            <h1 className="page-title">Compare Properties</h1>
-            <p className="page-subtitle">
-              Detailed technical and financial side-by-side comparison across your chosen homes.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {count < maxLimit && (
-              <NavLink to="/listings" className="btn btn-secondary btn-sm">
-                <Plus size={15} /> Add Another Property ({maxLimit - count} slot remaining)
-              </NavLink>
-            )}
-            <button onClick={clearCompare} className="btn btn-ghost btn-sm" style={{ color: '#ef4444' }}>
-              <Trash2 size={15} /> Clear All
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Comparison Table Container */}
-      <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-light)' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            minWidth: count === 1 ? '500px' : count === 2 ? '700px' : '900px',
-            fontSize: '0.9rem'
-          }}>
-            {/* Column Widths */}
-            <colgroup>
-              <col style={{ width: '220px', minWidth: '180px' }} />
-              {compareListings.map((l) => (
-                <col key={l.listing_id} style={{ width: `${(100 - 20) / count}%` }} />
-              ))}
-            </colgroup>
-
-            {/* Header Row: Property Cards & Remove Button */}
-            <thead>
-              <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-light)' }}>
-                <th style={{
-                  padding: '1.5rem 1.25rem',
-                  textAlign: 'left',
-                  verticalAlign: 'top',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>
-                  Property Specs
-                </th>
-
-                {compareListings.map((item) => {
-                  const saved = isFavourite(item.listing_id);
-                  return (
-                    <th key={item.listing_id} style={{
-                      padding: '1.25rem',
-                      textAlign: 'left',
-                      verticalAlign: 'top',
-                      borderLeft: '1px solid var(--border-light)',
-                      position: 'relative'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                        <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
-                          {item.property_type || 'Apartment'}
-                        </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <button
-                            type="button"
-                            onClick={() => toggleFavourite(item)}
-                            title={saved ? 'Remove from saved' : 'Save to favourites'}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: saved ? '#ef4444' : '#94a3b8',
-                              cursor: 'pointer',
-                              padding: '4px'
-                            }}
-                          >
-                            <Heart size={16} fill={saved ? '#ef4444' : 'none'} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeFromCompare(item.listing_id)}
-                            title="Remove from comparison"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#94a3b8',
-                              cursor: 'pointer',
-                              padding: '4px'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
-                          >
-                            <X size={17} />
-                          </button>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-light)' }}>
+                  <th style={{ padding: '1.5rem 1.25rem', textAlign: 'left', verticalAlign: 'top', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                    Sale Property Specs
+                  </th>
+                  {compareSales.map((item) => {
+                    const saved = isFavourite(item.listing_id);
+                    return (
+                      <th key={item.listing_id} style={{ padding: '1.25rem', textAlign: 'left', verticalAlign: 'top', borderLeft: '1px solid var(--border-light)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                          <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
+                            {item.property_type || 'Apartment'}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <button
+                              type="button"
+                              onClick={() => toggleFavourite(item)}
+                              title={saved ? 'Remove from saved' : 'Save to favourites'}
+                              style={{ background: 'none', border: 'none', color: saved ? '#ef4444' : '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                            >
+                              <Heart size={16} fill={saved ? '#ef4444' : 'none'} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeFromCompare(item.listing_id, 'sale')}
+                              title="Remove from comparison"
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                            >
+                              <X size={17} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem', lineHeight: 1.3 }}>
-                        {item.apartment_name || `${item.bedroom} BHK in ${item.locality}`}
-                      </h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem', lineHeight: 1.3 }}>
+                          {item.apartment_name || `${item.bedroom} BHK in ${item.locality}`}
+                        </h3>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'capitalize', marginBottom: '1rem' }}>
-                        <MapPin size={13} color="var(--primary-600)" />
-                        <span>{item.locality}, Mumbai</span>
-                      </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'capitalize', marginBottom: '1rem' }}>
+                          <MapPin size={13} color="var(--primary-600)" />
+                          <span>{item.locality}, Mumbai</span>
+                        </div>
 
-                      <NavLink
-                        to={`/listings/${item.listing_id}`}
-                        className="btn btn-secondary btn-sm"
-                        style={{ width: '100%', fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
-                      >
-                        <ExternalLink size={13} /> View Full Listing
-                      </NavLink>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
+                        <NavLink to={`/listings/${item.listing_id}`} className="btn btn-secondary btn-sm" style={{ width: '100%', fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}>
+                          <ExternalLink size={13} /> View Full Listing
+                        </NavLink>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
 
-            <tbody>
-              {/* Row 1: PRICE (Mandatory requirement) */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Price
-                </td>
-                {compareListings.map((item) => {
-                  const isLowest = minPrice && Number(item.price) === minPrice;
-                  return (
-                    <td key={item.listing_id} style={{
-                      padding: '1rem 1.25rem',
-                      borderLeft: '1px solid var(--border-light)',
-                      backgroundColor: isLowest ? 'rgba(236, 253, 245, 0.4)' : 'transparent'
-                    }}>
+              <tbody>
+                {/* Price */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Price</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
                       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-700)' }}>
                         {formatINR(item.price)}
                       </div>
@@ -236,188 +321,474 @@ export default function ComparePage() {
                           ₹{Math.round(item.price / item.carpet_area).toLocaleString('en-IN')} / sqft
                         </div>
                       )}
-                      {isLowest && (
-                        <span className="badge badge-emerald" style={{ fontSize: '0.68rem', marginTop: '4px', display: 'inline-block' }}>
-                          Lowest Price
-                        </span>
-                      )}
                     </td>
-                  );
-                })}
-              </tr>
+                  ))}
+                </tr>
 
-              {/* Row 2: BEDROOMS (BHK) (Mandatory requirement) */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Bedrooms (BHK)
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <BedDouble size={16} color="var(--primary-600)" />
-                      <span>{item.bedroom ? `${item.bedroom} BHK` : 'N/A'}</span>
-                    </div>
-                  </td>
-                ))}
-              </tr>
+                {/* BHK */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Bedrooms (BHK)</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <BedDouble size={16} color="var(--primary-600)" />
+                        <span>{item.bedroom ? `${item.bedroom} BHK` : 'N/A'}</span>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
 
-              {/* Row 3: CARPET AREA (Mandatory requirement) */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Carpet Area
-                </td>
-                {compareListings.map((item) => {
-                  const isLargest = maxArea && Number(item.carpet_area) === maxArea;
-                  return (
-                    <td key={item.listing_id} style={{
-                      padding: '1rem 1.25rem',
-                      borderLeft: '1px solid var(--border-light)',
-                      fontWeight: 700,
-                      backgroundColor: isLargest ? 'rgba(236, 253, 245, 0.4)' : 'transparent'
-                    }}>
+                {/* Carpet Area */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Carpet Area</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Maximize2 size={16} color="var(--accent-blue)" />
                         <span>{item.carpet_area ? `${Number(item.carpet_area).toLocaleString('en-IN')} sqft` : 'N/A'}</span>
                       </div>
-                      {item.super_built_up_area && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 400 }}>
-                          Super: {Number(item.super_built_up_area).toLocaleString('en-IN')} sqft
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Furnishing */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Furnishing</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
+                        {item.furnishing ? item.furnishing.replace('-', ' ') : 'Unspecified'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Locality */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Locality</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize', fontWeight: 600 }}>
+                      {item.locality ? `${item.locality}, Mumbai` : 'Mumbai'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Bathrooms */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Bathrooms</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {item.bathroom ? `${item.bathroom} Baths` : '2 Baths'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Floor */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Floor Elevation</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {item.floor ? `Floor ${item.floor}${item.total_floors ? ` of ${item.total_floors}` : ''}` : 'Mid-level Floor'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Facing */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Facing Direction</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize' }}>
+                      {item.facing_direction ? item.facing_direction.replace('-', ' ') : 'Vastu compliant'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Audit Status */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Verification</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {item.is_verified ? (
+                        <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <ShieldCheck size={12} /> Verified by Operations
+                        </span>
+                      ) : (
+                        <span className="badge badge-slate">Standard Listing</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Action */}
+                <tr>
+                  <td style={{ padding: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Actions</td>
+                  {compareSales.map((item) => (
+                    <td key={item.listing_id} style={{ padding: '1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <NavLink to={`/listings/${item.listing_id}`} className="btn btn-primary btn-sm" style={{ width: '100%', fontSize: '0.85rem' }}>
+                        View Full Specs →
+                      </NavLink>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'rentals' ? (
+        /* ================= TAB 2: RENTALS ================= */
+        <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              minWidth: currentCount === 1 ? '500px' : currentCount === 2 ? '700px' : '900px',
+              fontSize: '0.9rem'
+            }}>
+              <colgroup>
+                <col style={{ width: '220px', minWidth: '180px' }} />
+                {compareRentals.map((r) => (
+                  <col key={r.listing_id} style={{ width: `${(100 - 20) / currentCount}%` }} />
+                ))}
+              </colgroup>
+
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-light)' }}>
+                  <th style={{ padding: '1.5rem 1.25rem', textAlign: 'left', verticalAlign: 'top', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                    Rental Home Specs
+                  </th>
+                  {compareRentals.map((rental) => (
+                    <th key={rental.listing_id} style={{ padding: '1.25rem', textAlign: 'left', verticalAlign: 'top', borderLeft: '1px solid var(--border-light)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
+                          {rental.furnishing ? rental.furnishing.replace('-', ' ') : 'Rental'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCompare(rental.listing_id, 'rentals')}
+                          title="Remove from comparison"
+                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                        >
+                          <X size={17} />
+                        </button>
+                      </div>
+
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem', lineHeight: 1.3 }}>
+                        {rental.apartment_name || rental.title}
+                      </h3>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'capitalize', marginBottom: '1rem' }}>
+                        <MapPin size={13} color="var(--primary-600)" />
+                        <span>{rental.locality || 'Mumbai'}</span>
+                      </div>
+
+                      <div style={{
+                        padding: '0.5rem',
+                        backgroundColor: 'var(--bg-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.78rem',
+                        color: 'var(--text-secondary)'
+                      }}>
+                        <strong>Lister:</strong> {rental.posted_by_name || rental.posted_by || 'Owner'} ({rental.posted_by_contact || 'Verified Contact'})
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {/* Monthly Rent */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Monthly Rent</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary-700)' }}>
+                        ₹{Number(r.price).toLocaleString('en-IN')} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ mo</span>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Deposit */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Security Deposit</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
+                      ₹{Number(r.deposit || 0).toLocaleString('en-IN')}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Maintenance */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Maintenance</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 600 }}>
+                      {r.maintenance ? `₹${Number(r.maintenance).toLocaleString('en-IN')} / mo` : 'Included in rent'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Carpet Area */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Carpet Area</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Maximize2 size={16} color="var(--accent-blue)" />
+                        <span>{r.carpet_area ? `${r.carpet_area} sqft` : 'N/A'}</span>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* BHK */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Bedrooms (BHK)</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <BedDouble size={16} color="var(--primary-600)" />
+                        <span>{r.bedroom ? `${r.bedroom} BHK` : 'N/A'}</span>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Furnishing */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Furnishing</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <span className="badge badge-emerald" style={{ textTransform: 'capitalize' }}>
+                        {r.furnishing ? r.furnishing.replace('-', ' ') : 'Semi Furnished'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Locality */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Locality</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize', fontWeight: 600 }}>
+                      {r.locality ? `${r.locality}, Mumbai` : 'Mumbai'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Floor */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Floor</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {r.floor ? `Floor ${r.floor}${r.total_floors ? ` of ${r.total_floors}` : ''}` : 'Floor TBA'}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Contact Action */}
+                <tr>
+                  <td style={{ padding: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Contact Lister</td>
+                  {compareRentals.map((r) => (
+                    <td key={r.listing_id} style={{ padding: '1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <a
+                        href={`tel:${r.posted_by_contact || '+919820012345'}`}
+                        className="btn btn-primary btn-sm"
+                        style={{ width: '100%', fontSize: '0.85rem' }}
+                      >
+                        <Phone size={14} /> Call {r.posted_by_contact || 'Lister'}
+                      </a>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        /* ================= TAB 3: BUILDER PROJECTS ================= */
+        <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              minWidth: currentCount === 1 ? '500px' : currentCount === 2 ? '700px' : '900px',
+              fontSize: '0.9rem'
+            }}>
+              <colgroup>
+                <col style={{ width: '220px', minWidth: '180px' }} />
+                {compareProjects.map((p) => (
+                  <col key={p.project_id} style={{ width: `${(100 - 20) / currentCount}%` }} />
+                ))}
+              </colgroup>
+
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-light)' }}>
+                  <th style={{ padding: '1.5rem 1.25rem', textAlign: 'left', verticalAlign: 'top', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                    Builder Project Specs
+                  </th>
+                  {compareProjects.map((proj) => (
+                    <th key={proj.project_id} style={{ padding: '1.25rem', textAlign: 'left', verticalAlign: 'top', borderLeft: '1px solid var(--border-light)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <span className="badge badge-amber" style={{ textTransform: 'capitalize' }}>
+                          {proj.project_status || 'Under Construction'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCompare(proj.project_id, 'projects')}
+                          title="Remove from comparison"
+                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                        >
+                          <X size={17} />
+                        </button>
+                      </div>
+
+                      <div style={{ fontSize: '0.8rem', color: 'var(--primary-700)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>
+                        {proj.developer_name}
+                      </div>
+
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.25rem', lineHeight: 1.3 }}>
+                        {proj.apartment_name}
+                      </h3>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'capitalize', marginBottom: '1rem' }}>
+                        <MapPin size={13} color="var(--primary-600)" />
+                        <span>{proj.locality || 'Mumbai'}</span>
+                      </div>
+
+                      <span className="badge badge-slate" style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
+                        {proj.rera_number || proj.project_id}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {/* Price Range */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Price Range</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                        {formatProjectPrice(p.price_min)} – {formatProjectPrice(p.price_max)}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Developer */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Developer Name</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Building size={15} color="var(--primary-700)" />
+                        <span>{p.developer_name}</span>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Project Status */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Development Status</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize' }}>
+                      <span className="badge badge-amber">{p.project_status}</span>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Total Units / Active Listings */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Inventory Status</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 600 }}>
+                      <div>{p.total_listings ?? 0} active listings</div>
+                      {p.total_units && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          {p.total_units.toLocaleString('en-IN')} total units planned
                         </div>
                       )}
-                      {isLargest && (
-                        <span className="badge badge-blue" style={{ fontSize: '0.68rem', marginTop: '4px', display: 'inline-block' }}>
-                          Largest Space
-                        </span>
-                      )}
                     </td>
-                  );
-                })}
-              </tr>
+                  ))}
+                </tr>
 
-              {/* Row 4: FURNISHING (Mandatory requirement) */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Furnishing
-                </td>
-                {compareListings.map((item) => {
-                  const furnish = item.furnishing
-                    ? item.furnishing.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
-                    : 'Unspecified';
-                  return (
-                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
-                      <span className={`badge ${
-                        item.furnishing?.includes('fully')
-                          ? 'badge-emerald'
-                          : item.furnishing?.includes('semi')
-                          ? 'badge-blue'
-                          : 'badge-slate'
-                      }`} style={{ textTransform: 'capitalize' }}>
-                        {furnish}
-                      </span>
+                {/* Launch Date */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Launch Date</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 600 }}>
+                      {formatDate(p.launch_date)}
                     </td>
-                  );
-                })}
-              </tr>
+                  ))}
+                </tr>
 
-              {/* Row 5: LOCALITY (Mandatory requirement) */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Locality
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize', fontWeight: 600 }}>
-                    {item.locality ? `${item.locality}, Mumbai` : 'Mumbai'}
-                  </td>
-                ))}
-              </tr>
+                {/* Possession Date */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Possession Date</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 700, color: 'var(--primary-700)' }}>
+                      {formatDate(p.possession_date)}
+                    </td>
+                  ))}
+                </tr>
 
-              {/* Row 6: BATHROOMS */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Bathrooms
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
-                    {item.bathroom ? `${item.bathroom} Baths` : '2 Baths'}
-                  </td>
-                ))}
-              </tr>
+                {/* Area Span */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Unit Area Span</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', fontWeight: 600 }}>
+                      {p.min_area_sqft && p.max_area_sqft ? `${p.min_area_sqft} – ${p.max_area_sqft} sqft` : 'Multiple layouts'}
+                    </td>
+                  ))}
+                </tr>
 
-              {/* Row 7: FLOOR */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Floor Elevation
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
-                    {item.floor ? `Floor ${item.floor}${item.total_floors ? ` of ${item.total_floors}` : ''}` : 'Mid-level Floor'}
-                  </td>
-                ))}
-              </tr>
+                {/* Towers & Floors */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Towers & Floors</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {p.total_towers ? `${p.total_towers} Towers • ${p.total_floors || 'Highrise'} Floors` : 'Master development'}
+                    </td>
+                  ))}
+                </tr>
 
-              {/* Row 8: FACING DIRECTION */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Facing Direction
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize' }}>
-                    {item.facing_direction ? item.facing_direction.replace('-', ' ') : 'Vastu compliant'}
-                  </td>
-                ))}
-              </tr>
+                {/* Amenities */}
+                <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Amenities</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      {Array.isArray(p.amenities) && p.amenities.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {p.amenities.map((am, i) => (
+                            <span key={i} style={{ fontSize: '0.72rem', padding: '2px 6px', backgroundColor: 'var(--bg-main)', border: '1px solid var(--border-light)', borderRadius: '4px', textTransform: 'capitalize' }}>
+                              {am}
+                            </span>
+                          ))}
+                        </div>
+                      ) : 'Clubhouse, gym, park'}
+                    </td>
+                  ))}
+                </tr>
 
-              {/* Row 9: VERIFICATION */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Audit Status
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)' }}>
-                    {item.is_verified ? (
-                      <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <ShieldCheck size={12} /> Verified by Operations
-                      </span>
-                    ) : (
-                      <span className="badge badge-slate">Standard Listing</span>
-                    )}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Row 10: POSTED BY */}
-              <tr style={{ borderBottom: '1px solid var(--border-light)', backgroundColor: 'var(--bg-main)' }}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Posted By
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-light)', textTransform: 'capitalize' }}>
-                    {item.posted_by ? `${item.posted_by}${item.posted_by_name ? ` (${item.posted_by_name})` : ''}` : 'Verified Lister'}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Bottom Row: Actions */}
-              <tr>
-                <td style={{ padding: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Actions
-                </td>
-                {compareListings.map((item) => (
-                  <td key={item.listing_id} style={{ padding: '1.25rem', borderLeft: '1px solid var(--border-light)' }}>
-                    <NavLink
-                      to={`/listings/${item.listing_id}`}
-                      className="btn btn-primary btn-sm"
-                      style={{ width: '100%', fontSize: '0.85rem' }}
-                    >
-                      Inquire / View Specs →
-                    </NavLink>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                {/* Action */}
+                <tr>
+                  <td style={{ padding: '1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Actions</td>
+                  {compareProjects.map((p) => (
+                    <td key={p.project_id} style={{ padding: '1.25rem', borderLeft: '1px solid var(--border-light)' }}>
+                      <NavLink to="/projects" className="btn btn-secondary btn-sm" style={{ width: '100%', fontSize: '0.85rem' }}>
+                        Browse Inventory →
+                      </NavLink>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

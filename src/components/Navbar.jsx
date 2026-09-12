@@ -22,7 +22,7 @@ import {
 export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
   const { count: savedCount } = useFavourites();
-  const { count: compareCount } = useCompare();
+  const { totalCount: compareCount } = useCompare();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

@@ -17,9 +17,11 @@ import {
   ShieldCheck,
   TrendingUp,
   Tag,
-  Eye
+  Eye,
+  ArrowLeftRight
 } from 'lucide-react';
 import { apiClient } from '../api/client';
+import { useCompare } from '../context/CompareContext';
 
 const LOCALITIES = [
   'All Localities',
@@ -76,6 +78,8 @@ function formatDate(dateStr) {
 }
 
 export default function ProjectsPage() {
+  const { isCompared, toggleCompare, projectsCount } = useCompare();
+
   // Filter States
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -180,7 +184,7 @@ export default function ProjectsPage() {
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return (
-    <div className="main-content">
+    <div className="main-content" style={{ paddingBottom: projectsCount > 0 ? '7.5rem' : '2rem' }}>
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
@@ -380,6 +384,8 @@ export default function ProjectsPage() {
                 ? 'badge-blue'
                 : 'badge-amber';
 
+            const compared = isCompared(proj.project_id, 'projects');
+
             return (
               <div
                 key={proj.project_id}
@@ -389,7 +395,9 @@ export default function ProjectsPage() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   padding: '1.5rem',
-                  border: '1px solid var(--border-light)'
+                  border: compared ? '2px solid var(--accent-amber)' : '1px solid var(--border-light)',
+                  boxShadow: compared ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {/* Header: Developer Name & Status */}
@@ -399,14 +407,51 @@ export default function ProjectsPage() {
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
                     marginBottom: '0.75rem',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    flexWrap: 'wrap'
                   }}>
-                    <span className={`badge ${statusBadgeClass}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem' }}>
-                      {statusClean}
-                    </span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
-                      {proj.rera_number || proj.project_id}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className={`badge ${statusBadgeClass}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem' }}>
+                        {statusClean}
+                      </span>
+                      {compared && (
+                        <span className="badge badge-amber" style={{ backgroundColor: 'var(--accent-amber)', color: '#ffffff', fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <ArrowLeftRight size={10} /> Comparing
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          color: compared ? 'var(--accent-amber)' : 'var(--text-secondary)',
+                          backgroundColor: compared ? 'var(--accent-amber-light)' : 'var(--bg-subtle)',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid ' + (compared ? 'var(--accent-amber)' : 'var(--border-light)'),
+                          userSelect: 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={compared}
+                          onChange={() => toggleCompare(proj, 'projects')}
+                          style={{ width: '14px', height: '14px', accentColor: '#d97706', cursor: 'pointer' }}
+                        />
+                        <span>Compare</span>
+                      </label>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
+                        {proj.rera_number || proj.project_id}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Developer Name */}

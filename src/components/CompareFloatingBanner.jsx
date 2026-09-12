@@ -4,24 +4,70 @@ import { ArrowLeftRight, X, Trash2, AlertCircle, ChevronDown, ChevronUp } from '
 import { useCompare } from '../context/CompareContext';
 
 export default function CompareFloatingBanner() {
-  const { compareListings, removeFromCompare, clearCompare, count, maxLimit, warningMessage } = useCompare();
+  const {
+    compareSales,
+    compareRentals,
+    compareProjects,
+    removeFromCompare,
+    clearCompare,
+    maxLimit,
+    warningMessage
+  } = useCompare();
+
   const location = useLocation();
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // CRITICAL: Never display the floating banner on the comparison page itself (/compare),
-  // as it obstructs the comparison table and action rows.
+  // CRITICAL: Never display the floating banner on the comparison page itself (/compare)
   if (location.pathname === '/compare') {
     return null;
   }
 
-  // Also do not render if there are no properties selected and no active warning
+  // Determine which category to display based on current page
+  let activeCategory = 'sale';
+  let activeList = compareSales;
+  let categoryLabel = 'Properties';
+  let tabParam = 'sale';
+
+  if (location.pathname.startsWith('/rentals')) {
+    activeCategory = 'rentals';
+    activeList = compareRentals;
+    categoryLabel = 'Rentals';
+    tabParam = 'rentals';
+  } else if (location.pathname.startsWith('/projects')) {
+    activeCategory = 'projects';
+    activeList = compareProjects;
+    categoryLabel = 'Projects';
+    tabParam = 'projects';
+  } else {
+    // If on /listings or another page, fallback to whatever category has items if sales has none
+    if (compareSales.length > 0) {
+      activeCategory = 'sale';
+      activeList = compareSales;
+      categoryLabel = 'Properties';
+      tabParam = 'sale';
+    } else if (compareRentals.length > 0) {
+      activeCategory = 'rentals';
+      activeList = compareRentals;
+      categoryLabel = 'Rentals';
+      tabParam = 'rentals';
+    } else if (compareProjects.length > 0) {
+      activeCategory = 'projects';
+      activeList = compareProjects;
+      categoryLabel = 'Projects';
+      tabParam = 'projects';
+    }
+  }
+
+  const count = activeList.length;
+
+  // Do not render if there are no items in this active category and no warning
   if (count === 0 && !warningMessage) {
     return null;
   }
 
   return (
     <aside
-      aria-label="Property comparison dock"
+      aria-label="Comparison dock"
       style={{
         position: 'fixed',
         bottom: '24px',
@@ -29,7 +75,7 @@ export default function CompareFloatingBanner() {
         transform: 'translateX(-50%)',
         zIndex: 90,
         width: 'calc(100% - 2rem)',
-        maxWidth: isMinimized ? '320px' : '760px',
+        maxWidth: isMinimized ? '330px' : '780px',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
@@ -37,7 +83,7 @@ export default function CompareFloatingBanner() {
         transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
-      {/* Warning Toast if user attempts to exceed 3 properties */}
+      {/* Warning Toast if limit is reached */}
       {warningMessage && (
         <div style={{
           backgroundColor: '#fef3c7',
@@ -93,13 +139,13 @@ export default function CompareFloatingBanner() {
                   <ArrowLeftRight size={14} />
                 </div>
                 <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                  Compare ({count}/{maxLimit})
+                  Compare {categoryLabel} ({count}/{maxLimit})
                 </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <NavLink
-                  to="/compare"
+                  to={`/compare?tab=${tabParam}`}
                   className="btn btn-primary btn-sm"
                   style={{
                     backgroundColor: 'var(--primary-500)',
@@ -150,7 +196,7 @@ export default function CompareFloatingBanner() {
                   </div>
                   <div>
                     <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Side-by-Side Compare
+                      Compare {categoryLabel}
                     </div>
                     <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#ffffff' }}>
                       {count} of {maxLimit} selected
@@ -158,59 +204,63 @@ export default function CompareFloatingBanner() {
                   </div>
                 </div>
 
-                {/* Property Chips */}
+                {/* Chips */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                  {compareListings.map((item) => (
-                    <div
-                      key={item.listing_id}
-                      style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                        borderRadius: 'var(--radius-full)',
-                        padding: '3px 10px',
-                        fontSize: '0.78rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        maxWidth: '170px'
-                      }}
-                    >
-                      <span style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        fontWeight: 600
-                      }}>
-                        {item.apartment_name || item.locality || `#${item.listing_id}`}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCompare(item.listing_id)}
-                        aria-label={`Remove ${item.apartment_name || item.listing_id} from compare`}
+                  {activeList.map((item) => {
+                    const id = activeCategory === 'projects' ? (item.project_id || item.id) : (item.listing_id || item.id);
+                    const name = item.apartment_name || item.developer_name || item.title || item.locality || `#${id}`;
+                    return (
+                      <div
+                        key={id}
                         style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#94a3b8',
-                          cursor: 'pointer',
-                          padding: '0',
+                          backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                          borderRadius: 'var(--radius-full)',
+                          padding: '3px 10px',
+                          fontSize: '0.78rem',
                           display: 'flex',
-                          alignItems: 'center'
+                          alignItems: 'center',
+                          gap: '6px',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          maxWidth: '170px'
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
                       >
-                        <X size={13} />
-                      </button>
-                    </div>
-                  ))}
+                        <span style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          fontWeight: 600
+                        }}>
+                          {name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCompare(id, activeCategory)}
+                          aria-label={`Remove ${name} from compare`}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: '0',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Right: Action Buttons */}
+              {/* Right: Actions */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                 <button
                   type="button"
-                  onClick={clearCompare}
+                  onClick={() => clearCompare(activeCategory)}
                   className="btn btn-ghost btn-sm"
                   style={{
                     color: '#94a3b8',
@@ -218,14 +268,14 @@ export default function CompareFloatingBanner() {
                     padding: '0.4rem 0.6rem',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}
-                  title="Clear all selections"
+                  title="Clear all selections in this category"
                 >
                   <Trash2 size={13} />
                   <span>Clear</span>
                 </button>
 
                 <NavLink
-                  to="/compare"
+                  to={`/compare?tab=${tabParam}`}
                   className="btn btn-primary btn-sm"
                   style={{
                     backgroundColor: 'var(--primary-500)',
@@ -240,7 +290,7 @@ export default function CompareFloatingBanner() {
                     boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)'
                   }}
                 >
-                  <span>Compare Now ({count})</span>
+                  <span>Compare {categoryLabel} ({count})</span>
                   <span>→</span>
                 </NavLink>
 
