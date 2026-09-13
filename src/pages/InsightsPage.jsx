@@ -378,11 +378,11 @@ export default function InsightsPage() {
                     <span className="badge badge-red" style={{ fontSize: '0.68rem' }}>Forensic Flag</span>
                   </div>
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-heading)', fontWeight: 600, lineHeight: 1.5 }}>
-                    Market Alert: Platform contains properties with physically impossible dimensions and negative prices.
+                    Market Alert: API returns properties with physically impossible dimensions (e.g., floor exceeds total floors) and negative prices.
                   </p>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px solid var(--status-red-border)', paddingTop: '0.5rem' }}>
-                  Audited 33 corrupt records exhibiting negative prices or carpet area exceeding super built-up area.
+                  Audited 33 corrupt records. Market Alert: Platform contains properties with physically impossible dimensions and negative prices.
                 </div>
               </div>
 

@@ -51,7 +51,12 @@ export default function RentalsPage() {
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
   const [selectedBhk, setSelectedBhk] = useState('');
   const [selectedFurnishing, setSelectedFurnishing] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Sorting States (Client-Side Sorting Fallback for order=desc)
+  const [sortOption, setSortOption] = useState('price_asc');
 
   // Pagination States
   const [page, setPage] = useState(1);
@@ -70,10 +75,14 @@ export default function RentalsPage() {
     setIsLoading(true);
     setApiError(null);
 
+    const [field, order] = sortOption.split('_');
+
     const queryParams = {
       page: page,
       limit: limit,
-      offset: (page - 1) * limit
+      offset: (page - 1) * limit,
+      sort_by: field === 'area' ? 'carpet_area' : field === 'newest' ? 'posted_at' : 'price',
+      order: order || 'asc'
     };
 
     if (selectedLocality !== 'All Localities') {
@@ -84,6 +93,12 @@ export default function RentalsPage() {
     }
     if (selectedFurnishing) {
       queryParams.furnishing = selectedFurnishing;
+    }
+    if (minPrice) {
+      queryParams.min_price = minPrice;
+    }
+    if (maxPrice) {
+      queryParams.max_price = maxPrice;
     }
 
     try {
@@ -104,14 +119,14 @@ export default function RentalsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, selectedLocality, selectedBhk, selectedFurnishing]);
+  }, [page, limit, selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, sortOption]);
 
   useEffect(() => {
     fetchRentals();
   }, [fetchRentals]);
 
   // Client-Side Fallback Filtering:
-  // Strictly filters results in case API ignored query parameters
+  // Strictly filters results in case API ignored query parameters (furnishing, min_price, max_price)
   const filteredRentals = useMemo(() => {
     return rawRentals.filter((item) => {
       // Locality fallback
@@ -126,11 +141,18 @@ export default function RentalsPage() {
           return false;
         }
       }
-      // Furnishing fallback
+      // Furnishing fallback (server silently ignores furnishing parameter)
       if (selectedFurnishing) {
-        if (!item.furnishing || item.furnishing.toLowerCase() !== selectedFurnishing.toLowerCase()) {
+        if (!item.furnishing || item.furnishing.trim().toLowerCase() !== selectedFurnishing.trim().toLowerCase()) {
           return false;
         }
+      }
+      // Price range fallback (server silently ignores min_price & max_price)
+      if (minPrice && Number(item.price) < Number(minPrice)) {
+        return false;
+      }
+      if (maxPrice && Number(item.price) > Number(maxPrice)) {
+        return false;
       }
       // Search query fallback
       if (searchQuery.trim()) {
@@ -144,13 +166,43 @@ export default function RentalsPage() {
       }
       return true;
     });
-  }, [rawRentals, selectedLocality, selectedBhk, selectedFurnishing, searchQuery]);
+  }, [rawRentals, selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, searchQuery]);
+
+  // Client-Side Sorting Fallback:
+  // Server ignores order=desc and always returns asc. We sort/reverse locally on client!
+  const sortedRentals = useMemo(() => {
+    const list = [...filteredRentals];
+    const [field, order] = sortOption.split('_');
+
+    list.sort((a, b) => {
+      let valA = 0;
+      let valB = 0;
+      if (field === 'price') {
+        valA = Number(a.price) || 0;
+        valB = Number(b.price) || 0;
+      } else if (field === 'area') {
+        valA = Number(a.carpet_area) || 0;
+        valB = Number(b.carpet_area) || 0;
+      } else if (field === 'newest') {
+        valA = new Date(a.posted_at).getTime() || 0;
+        valB = new Date(b.posted_at).getTime() || 0;
+      }
+      if (order === 'desc') {
+        return valB > valA ? 1 : valB < valA ? -1 : 0;
+      }
+      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    });
+
+    return list;
+  }, [filteredRentals, sortOption]);
 
   // Reset all filters
   const handleResetFilters = () => {
     setSelectedLocality('All Localities');
     setSelectedBhk('');
     setSelectedFurnishing('');
+    setMinPrice('');
+    setMaxPrice('');
     setSearchQuery('');
     setPage(1);
   };
@@ -159,6 +211,8 @@ export default function RentalsPage() {
     (selectedLocality !== 'All Localities' ? 1 : 0) +
     (selectedBhk ? 1 : 0) +
     (selectedFurnishing ? 1 : 0) +
+    (minPrice ? 1 : 0) +
+    (maxPrice ? 1 : 0) +
     (searchQuery.trim() ? 1 : 0);
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
@@ -335,6 +389,35 @@ export default function RentalsPage() {
                 ))}
               </select>
             </div>
+
+            {/* Monthly Rent Range Filter */}
+            <div className="input-group">
+              <label className="input-label">Monthly Rent (₹)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                <input
+                  type="number"
+                  placeholder="Min ₹"
+                  value={minPrice}
+                  onChange={(e) => {
+                    setMinPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ fontSize: '0.8rem', padding: '0.5rem 0.65rem' }}
+                />
+                <input
+                  type="number"
+                  placeholder="Max ₹"
+                  value={maxPrice}
+                  onChange={(e) => {
+                    setMaxPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{ fontSize: '0.8rem', padding: '0.5rem 0.65rem' }}
+                />
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -352,13 +435,41 @@ export default function RentalsPage() {
             border: '1px solid var(--border-subtle)'
           }}>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Showing <strong style={{ color: 'var(--text-heading)' }}>{filteredRentals.length}</strong> matching verified rentals
+              Showing <strong style={{ color: 'var(--text-heading)' }}>{sortedRentals.length}</strong> matching verified rentals
               {selectedLocality !== 'All Localities' && (
                 <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>Page {page}</span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Sort:</span>
+                <select
+                  value={sortOption}
+                  onChange={(e) => {
+                    setSortOption(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.3rem 0.6rem',
+                    borderRadius: 'var(--radius-sm)',
+                    minWidth: '150px'
+                  }}
+                  aria-label="Sort rentals"
+                >
+                  <option value="price_asc">Rent: Low to High</option>
+                  <option value="price_desc">Rent: High to Low</option>
+                  <option value="area_asc">Carpet: Small to Large</option>
+                  <option value="area_desc">Carpet: Large to Small</option>
+                  <option value="newest_desc">Newest Listed</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span>Page {page}</span>
+              </div>
             </div>
           </div>
 
@@ -436,7 +547,7 @@ export default function RentalsPage() {
                   gap: '1.75rem'
                 }}
               >
-                {filteredRentals.map((rental) => (
+                {sortedRentals.map((rental) => (
                   <RentalCard
                     key={rental.listing_id}
                     rental={rental}
