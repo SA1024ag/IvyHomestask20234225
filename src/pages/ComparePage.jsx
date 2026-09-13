@@ -30,10 +30,19 @@ function formatProjectPrice(val) {
     return `₹${(num / 10000000).toFixed(2)} Cr`;
   } else if (num >= 100000) {
     return `₹${(num / 100000).toFixed(2)} L`;
+  } else if (num >= 20) {
+    return `₹${num.toFixed(2)} L`;
   } else if (num > 0) {
     return `₹${num.toFixed(2)} Cr`;
   }
   return 'Price on Request';
+}
+
+// Helper: Normalize carpet area for magichomes (< 300 sqm to sqft)
+function getNormalizedCarpet(item) {
+  if (!item || !item.carpet_area || isNaN(item.carpet_area)) return null;
+  const num = Number(item.carpet_area);
+  return num < 300 ? Math.round(num * 10.7639) : num;
 }
 
 function formatDate(dateStr) {
@@ -310,9 +319,9 @@ export default function ComparePage() {
                       <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-text)' }}>
                         {formatINR(item.price)}
                       </div>
-                      {item.carpet_area && item.price && (
+                      {item.price && getNormalizedCarpet(item) && (
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          ₹{Math.round(item.price / item.carpet_area).toLocaleString('en-IN')} / sqft
+                          ₹{Math.round(item.price / getNormalizedCarpet(item)).toLocaleString('en-IN')} / sqft
                         </div>
                       )}
                     </td>
@@ -335,14 +344,17 @@ export default function ComparePage() {
                 {/* Carpet Area */}
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Carpet Area</td>
-                  {compareSales.map((item) => (
-                    <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-subtle)', fontWeight: 700, color: 'var(--text-heading)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Maximize2 size={16} color="var(--accent-text)" />
-                        <span>{item.carpet_area ? `${Number(item.carpet_area).toLocaleString('en-IN')} sqft` : 'N/A'}</span>
-                      </div>
-                    </td>
-                  ))}
+                  {compareSales.map((item) => {
+                    const normArea = getNormalizedCarpet(item);
+                    return (
+                      <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-subtle)', fontWeight: 700, color: 'var(--text-heading)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Maximize2 size={16} color="var(--accent-text)" />
+                          <span>{normArea ? `${Number(normArea).toLocaleString('en-IN')} sqft` : 'N/A'}</span>
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
 
                 {/* Furnishing */}

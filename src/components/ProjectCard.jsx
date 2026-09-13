@@ -17,8 +17,11 @@ export function formatProjectPrice(val) {
     return `₹${(num / 10000000).toFixed(2)} Cr`;
   } else if (num >= 100000) {
     return `₹${(num / 100000).toFixed(2)} L`;
+  } else if (num >= 20) {
+    // Values >= 20 in raw API are expressed in Lakhs (e.g. 90.8 -> ₹90.8 L)
+    return `₹${num.toFixed(2)} L`;
   } else if (num > 0) {
-    // Values under 100 in the API are already expressed in Crores (e.g. 4.03 -> ₹4.03 Cr)
+    // Values under 20 in raw API are expressed in Crores (e.g. 4.03 -> ₹4.03 Cr)
     return `₹${num.toFixed(2)} Cr`;
   }
   return 'Price on Request';

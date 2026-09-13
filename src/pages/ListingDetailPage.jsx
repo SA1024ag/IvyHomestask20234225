@@ -111,8 +111,13 @@ export default function ListingDetailPage() {
     );
   }
 
-  const ratePerSqft = listing.carpet_area && listing.price
-    ? Math.round(listing.price / listing.carpet_area)
+  // Handle units discrepancy: magichomes reports carpet_area in square meters (< 300)
+  const normalizedCarpet = listing.carpet_area
+    ? (listing.carpet_area < 300 ? Math.round(listing.carpet_area * 10.7639) : listing.carpet_area)
+    : null;
+
+  const ratePerSqft = normalizedCarpet && listing.price
+    ? Math.round(listing.price / normalizedCarpet)
     : null;
 
   return (
@@ -262,7 +267,7 @@ export default function ListingDetailPage() {
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>CARPET AREA</div>
             <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
               <Maximize2 size={18} color="var(--accent-primary)" />
-              <span>{listing.carpet_area ? `${listing.carpet_area} sqft` : '--'}</span>
+              <span>{normalizedCarpet ? `${normalizedCarpet} sqft` : '--'}</span>
             </div>
           </div>
 

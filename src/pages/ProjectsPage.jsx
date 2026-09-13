@@ -82,11 +82,20 @@ export default function ProjectsPage() {
     try {
       const data = await apiClient.getProjects(queryParams);
       const results = Array.isArray(data) ? data : (data.results || []);
-      // Convert project price_min & price_max from floating-point Crores to full Rupees
+      // Convert project price_min & price_max from floating-point Crores/Lakhs to full Rupees
+      // Values >= 20 represent Lakhs (e.g. 90.8 L = 9,080,000), values < 20 represent Crores (e.g. 2.94 Cr = 29,400,000)
+      const normalizeProjectPrice = (val) => {
+        if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
+        const num = Number(val);
+        if (num >= 100000) return num;
+        if (num >= 20) return Math.round(num * 100000);
+        return Math.round(num * 10000000);
+      };
+
       const convertedProjects = results.map((proj) => ({
         ...proj,
-        price_min: proj.price_min != null ? (proj.price_min < 1000 ? Math.round(proj.price_min * 10000000) : proj.price_min) : null,
-        price_max: proj.price_max != null ? (proj.price_max < 1000 ? Math.round(proj.price_max * 10000000) : proj.price_max) : null,
+        price_min: normalizeProjectPrice(proj.price_min),
+        price_max: normalizeProjectPrice(proj.price_max),
       }));
       setRawProjects(convertedProjects);
       if (typeof data.total === 'number') {

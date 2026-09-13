@@ -59,9 +59,14 @@ export default function PropertyCard({ listing }) {
     toggleCompare(listing);
   };
 
+  // Handle units discrepancy: magichomes reports carpet_area in square meters (< 300)
+  const normalizedCarpetArea = listing.carpet_area
+    ? (listing.carpet_area < 300 ? Math.round(listing.carpet_area * 10.7639) : listing.carpet_area)
+    : null;
+
   const ratePerSqft =
-    listing.carpet_area && listing.price
-      ? Math.round(listing.price / listing.carpet_area)
+    normalizedCarpetArea && listing.price
+      ? Math.round(listing.price / normalizedCarpetArea)
       : null;
 
   const photoIndex = Math.abs(
@@ -319,7 +324,7 @@ export default function PropertyCard({ listing }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-body)', overflow: 'hidden' }}>
               <Maximize2 size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
               <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {listing.carpet_area ? `${Number(listing.carpet_area).toLocaleString('en-IN')} sqft` : 'N/A'}
+                {normalizedCarpetArea ? `${Number(normalizedCarpetArea).toLocaleString('en-IN')} sqft` : 'N/A'}
               </span>
             </div>
           </div>

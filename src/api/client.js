@@ -84,6 +84,24 @@ export async function refreshAuthToken() {
 }
 
 /**
+ * Helper to safely extract human-readable error messages from API error payloads.
+ * Handles both documented {"detail": "..."} string bodies and undocumented
+ * FastAPI/Pydantic validation error lists [{"loc": [...], "msg": "..."}].
+ */
+export function formatErrorMessage(data, fallbackStatus = 500) {
+  if (!data) return `Request failed with status ${fallbackStatus}`;
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail
+      .map((d) => d.msg || (d.loc ? `${d.loc.join('.')}: ${d.type}` : JSON.stringify(d)))
+      .join('; ');
+  }
+  if (typeof data.message === 'string') return data.message;
+  if (typeof data.error === 'string') return data.error;
+  return `Request failed with status ${fallbackStatus}`;
+}
+
+/**
  * Core request wrapper with auto-auth, header handling, and 401 retry.
  */
 export async function request(endpoint, options = {}) {
@@ -133,7 +151,7 @@ export async function request(endpoint, options = {}) {
             });
             const data = await retryRes.json().catch(() => ({}));
             if (!retryRes.ok) {
-              return reject(new Error(data.detail || `Request failed with status ${retryRes.status}`));
+              return reject(new Error(formatErrorMessage(data, retryRes.status)));
             }
             resolve(data);
           } catch (e) {
@@ -145,7 +163,7 @@ export async function request(endpoint, options = {}) {
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(data.detail || `Request failed with status ${response.status}`);
+      throw new Error(formatErrorMessage(data, response.status));
     }
 
     return data;
@@ -177,7 +195,7 @@ export const apiClient = {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.detail || 'Login failed. Please verify credentials.');
+      throw new Error(formatErrorMessage(data, res.status));
     }
 
     const token = data.access_token || data.token;

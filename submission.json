@@ -71,58 +71,70 @@
     {
       "endpoint": "*",
       "category": "auth",
-      "documented": "Append it as a query parameter: GET /v1/listings?api_key=IVY26-XXXXXXXXXXXX",
-      "actual": "Query parameter returns 401. Requires X-API-Key header",
-      "how_found": "Live network test against /v1/listings?api_key=...",
-      "impact": "Authentication fails",
+      "documented": "Every request must carry the API key you were issued. Append it as a query parameter: GET /v1/listings?api_key=IVY26-XXXXXXXXXXXX",
+      "actual": "Passing the API key as a query parameter returns 401 Unauthorized with 'send your key in the X-API-Key request header, not as a query parameter'. All requests must supply the key in the X-API-Key HTTP header.",
+      "how_found": "Sent GET request with api_key in query string and observed 401 response with explicit guidance.",
+      "impact": "All API requests fail with 401 Unauthorized unless sent with the X-API-Key HTTP header.",
       "evidence": []
     },
     {
-      "endpoint": "/v1/favourites",
-      "category": "missing_endpoint",
-      "documented": "Saved properties endpoint managed via GET/POST/DELETE /v1/favourites",
-      "actual": "Returns 404, feature actually lives at /v1/saved",
-      "how_found": "Live network test querying /v1/favourites vs /v1/saved",
-      "impact": "Cannot save properties via documented path",
+      "endpoint": "/auth/login",
+      "category": "auth",
+      "documented": "Returns { token, token_type: 'Bearer', expires_in: 86400, user: { email, name } }. Tokens are valid for 24 hours. There is no refresh flow.",
+      "actual": "Returns access_token (not token), expires_in: 900 (15 minutes, not 24 hours / 86400s), user object contains only { email } without name, and provides refresh_token and refresh_url: '/auth/refresh'.",
+      "how_found": "Logged in via POST /auth/login with demo credentials and inspected the response keys, user object, and expiry.",
+      "impact": "Frontend sessions expire after 15 minutes instead of 24 hours unless a refresh loop calling POST /auth/refresh is implemented.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/auth/refresh",
+      "category": "undocumented_endpoint",
+      "documented": "There is no refresh flow.",
+      "actual": "POST /auth/refresh exists and accepts { refresh_token: '...' }, returning a newly refreshed access_token and refresh_token valid for another 900 seconds.",
+      "how_found": "Discovered refresh_url field in the POST /auth/login response and tested refreshing an active token via POST /auth/refresh.",
+      "impact": "Allows client sessions to stay authenticated seamlessly beyond the 15-minute access token lifespan.",
       "evidence": []
     },
     {
       "endpoint": "/v1/listings",
-      "category": "filters",
-      "documented": "Filters for furnishing, min_price, max_price",
-      "actual": "These parameters are silently ignored by the server",
-      "how_found": "Live network test against ?furnishing=fully-furnished",
-      "impact": "Requires client-side filtering fallback",
+      "category": "auth",
+      "documented": "Endpoints are accessible with only an API key scoped to your city.",
+      "actual": "GET /v1/listings, /v1/rentals, and /v1/projects return 401 'missing bearer token - log in at POST /auth/login first' if called without an Authorization: Bearer <token> header.",
+      "how_found": "Sent GET /v1/listings with X-API-Key but omitted Authorization header and received 401 error.",
+      "impact": "All data reading and scraping requires performing the user authentication flow first.",
       "evidence": []
     },
     {
       "endpoint": "/v1/listings",
-      "category": "sorting",
-      "documented": "order parameter accepts desc",
-      "actual": "order=desc is silently ignored, always sorts asc",
-      "how_found": "Live network test querying ?sort_by=price&order=desc",
-      "impact": "Sorting UI will fail without client-side override",
+      "category": "pagination",
+      "documented": "Every collection endpoint takes page and limit. page is 1-indexed, limit default 20, max 200. Response: { total, page, page_size, results }.",
+      "actual": "Collection endpoints completely ignore 'page' and instead use 'offset' and 'limit'. Response envelope contains { limit, offset, count, total, has_more, results } with no 'page' or 'page_size' fields. Server also hard-caps limit to a maximum of 50 records per request.",
+      "how_found": "Requested page=2 and limit=500; observed response returned offset: 0, limit: 50, and exactly 50 records without page/page_size fields.",
+      "impact": "Clients relying on page/page_size parameters fail to paginate or endlessly fetch page 1; ingestion requires 4x more requests than documented.",
       "evidence": []
     },
     {
-      "endpoint": "/v1/projects",
-      "category": "units",
-      "documented": "price_min and price_max are in rupees",
-      "actual": "Values are in floating-point Crores",
-      "how_found": "Inspecting projects.json payload",
-      "impact": "Prices display incorrectly unless multiplied by 10,000,000",
+      "endpoint": "/v1/listings",
+      "category": "completeness",
+      "documented": "total is the exact number of records matching your filters. To fetch every record, read total, divide by your limit, and request that many pages.",
+      "actual": "Response total is severely underreported: listings reports total: 4917 but has 5100 retrievable records; rentals reports 2025 but has 2100; projects reports 569 but has 590.",
+      "how_found": "Iterated with offset until has_more was false, retrieving 5,100 listings, 2,100 rentals, and 590 projects instead of reported totals.",
+      "impact": "Applications terminating pagination based on reported total miss hundreds of valid listings, rentals, and projects.",
       "evidence": [
-        "P50001",
-        "P50002"
+        "MAG-5005096",
+        "MAG-5005097",
+        "MAG-5005098",
+        "MAG-5005099",
+        "MAG-5005100"
       ]
     },
     {
       "endpoint": "/v1/listings",
       "category": "completeness",
-      "documented": "Inactive listings are excluded server side",
-      "actual": "Returns records with is_live: false",
-      "how_found": "Counting records in listings.json",
-      "impact": "Leaked inactive properties shown to users",
+      "documented": "Returns active sale listings in your city. Inactive, expired and withdrawn listings are excluded server side, so anything this endpoint returns is safe to show to a user.",
+      "actual": "Endpoint returns inactive listings as well; 1,083 out of 5,100 listings have is_live: false, which was not documented.",
+      "how_found": "Inspected response objects across all 5,100 listings and discovered the is_live boolean property with 1,083 false values.",
+      "impact": "Frontend must explicitly filter is_live === true to avoid displaying off-market or withdrawn properties to users.",
       "evidence": [
         "ZER-5004068",
         "SQU-5001676",
@@ -133,23 +145,165 @@
     },
     {
       "endpoint": "/v1/listings",
-      "category": "duplicates",
-      "documented": "each listing corresponds to exactly one physical property",
-      "actual": "Identical properties duplicated across broker websites",
-      "how_found": "Matching composite fingerprints of physical traits",
-      "impact": "Bloated search results",
+      "category": "completeness",
+      "documented": "Listing object schema defines 27 fields and promises inactive listings are excluded server-side.",
+      "actual": "Payload returned contains 28 fields; undocumented boolean is_live exists on all 5,100 records.",
+      "how_found": "Programmatic schema comparison between API_REFERENCE.md Listing schema and listings.json payload keys.",
+      "impact": "Strict schema validators reject responses due to unrecognized is_live field.",
       "evidence": [
-        "MAG-5005024",
-        "MAG-5002602"
+        "100-5000001",
+        "DWE-5000001",
+        "MAG-5000001",
+        "SQU-5000001",
+        "ZER-5000001"
+      ]
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "filters",
+      "documented": "Supports min_price (int, inclusive), max_price (int, inclusive), and furnishing query parameters.",
+      "actual": "min_price, max_price, and furnishing query parameters are accepted by the server but silently ignored; response returns all listings regardless of criteria.",
+      "how_found": "Queried /v1/listings?furnishing=fully-furnished&min_price=10000000&max_price=15000000 and observed unfurnished properties and out-of-range prices returned.",
+      "impact": "Price range and furnishing filtering cannot be performed server-side and must be executed in client-side state.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "filters",
+      "documented": "total_listings always agrees with what GET /v1/listings?project_id=... returns.",
+      "actual": "The project_id query parameter is silently ignored on /v1/listings, returning all city listings instead of filtering to the requested project.",
+      "how_found": "Called /v1/listings?project_id=P50001 and received total: 4917 with non-matching and null project IDs.",
+      "impact": "Filtering listings by builder project must be performed client-side.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "sorting",
+      "documented": "order parameter accepts 'asc' or 'desc' for sort ordering.",
+      "actual": "order=desc is silently ignored by the server, always returning records in ascending order.",
+      "how_found": "Queried /v1/listings?sort_by=price&order=desc and compared with sort_by=price&order=asc; both returned identical ascending order.",
+      "impact": "Frontend sorting in descending order fails without client-side override.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listing/{id}",
+      "category": "missing_endpoint",
+      "documented": "GET /v1/listing/{listing_id} - A single listing.",
+      "actual": "Returns 404 Not Found at singular /v1/listing/{id}. The active endpoint is plural: GET /v1/listings/{id}.",
+      "how_found": "Tested GET /v1/listing/MAG-5002240 (404) and GET /v1/listings/MAG-5002240 (200).",
+      "impact": "Detail view requests fail unless routing to the plural /v1/listings/{id}.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings/{id}/similar",
+      "category": "missing_endpoint",
+      "documented": "GET /v1/listings/{listing_id}/similar returns up to ten comparable listings.",
+      "actual": "Returns 404 Not Found on both singular and plural paths; endpoint was never implemented on the server.",
+      "how_found": "Called GET /v1/listings/MAG-5002240/similar and /v1/listing/MAG-5002240/similar with valid authentication.",
+      "impact": "Similar listing recommendations must be computed client-side.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/favourites",
+      "category": "missing_endpoint",
+      "documented": "GET /v1/favourites, POST /v1/favourites with body { id: '...' }, DELETE /v1/favourites/{id}.",
+      "actual": "Returns 404 Not Found. The active endpoints are GET /v1/saved, POST /v1/saved with body { listing_id: '...' }, and DELETE /v1/saved/{id}.",
+      "how_found": "Tested British and American spellings; discovered /v1/saved is the functional endpoint.",
+      "impact": "Favourites functionality fails completely unless using /v1/saved with listing_id payload key.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/saved",
+      "category": "undocumented_endpoint",
+      "documented": "Endpoint is documented under the name /v1/favourites taking { id: '...' }.",
+      "actual": "POST /v1/saved requires JSON body { listing_id: '...' }. Passing { id: '...' } returns HTTP 422 Unprocessable Entity.",
+      "how_found": "Sent POST /v1/saved with { id: ... } and received 422 validation error indicating 'listing_id' is required.",
+      "impact": "Saving listings requires conforming to the undocumented { listing_id } payload schema.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/analytics/summary",
+      "category": "missing_endpoint",
+      "documented": "GET /v1/analytics/summary returns pre-computed aggregates for your city.",
+      "actual": "Returns 404 Not Found on /v1/analytics/summary and /v1/analytics. No city analytics endpoint is implemented on the server.",
+      "how_found": "Queried /v1/analytics/summary and related variations with valid auth; all returned 404.",
+      "impact": "Insights and dashboard screens must calculate market aggregates directly from listings and rental data.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/projects",
+      "category": "units",
+      "documented": "price_min and price_max are in rupees integer (Conventions: 'Money: Indian rupees, integer, everywhere in the API').",
+      "actual": "Project price_min and price_max are floating point values where numbers < 20 represent Crores (e.g. 12.44 Cr = 124,400,000 INR) and numbers >= 20 represent Lakhs (e.g. 90.8 L = 9,080,000 INR), never raw INR.",
+      "how_found": "Inspected project price values (ranging from 0.85 to 90.8) and compared with actual unit listing prices in the same projects (e.g. P50016 max 12.44 vs listings at ~12.4 Cr, P50096 min 90.8 vs listings at ~90 L).",
+      "impact": "Project UI displays incorrect pricing (e.g. Rs 12.44 instead of Rs 12.44 Crore) unless properly converted to INR.",
+      "evidence": [
+        "P50001",
+        "P50002",
+        "P50016",
+        "P50096",
+        "P50100"
+      ]
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "units",
+      "documented": "Conventions: Area: Square feet, integer, everywhere in the API.",
+      "actual": "For portal 'magichomes', 455 listings report carpet_area in square meters (< 300, e.g. 47, 107, 114, 146) rather than square feet.",
+      "how_found": "Analyzed area distribution across all portals; found areas < 300 exclusively on magichomes matching 1 sq m = 10.7639 sq ft.",
+      "impact": "Price per sqft calculations and unit displays are heavily skewed unless square meters are converted to square feet.",
+      "evidence": [
+        "MAG-5000195",
+        "MAG-5002240",
+        "MAG-5002264",
+        "MAG-5004391",
+        "MAG-5005086"
+      ]
+    },
+    {
+      "endpoint": "/health",
+      "category": "timestamps",
+      "documented": "Conventions: Timestamps: ISO 8601, UTC, Z suffix, everywhere in the API.",
+      "actual": "Returns server_time with +05:30 IST offset and Asia/Kolkata timezone instead of UTC Z suffix.",
+      "how_found": "GET request against /health inspecting server_time value with +05:30 offset.",
+      "impact": "Parsers expecting strict UTC Z suffix fail or calculate local time offsets incorrectly.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/projects",
+      "category": "consistency",
+      "documented": "total_listings is the number of listings currently available in the project. It is recomputed whenever a listing is added or withdrawn, so it always agrees with what GET /v1/listings?project_id=... returns.",
+      "actual": "total_listings disagrees with the actual number of active listings for 446 out of 590 projects.",
+      "how_found": "Counted active listings grouped by project_id and compared against project total_listings across all 590 projects.",
+      "impact": "Users see conflicting inventory numbers on project details versus listing search results.",
+      "evidence": [
+        "P50001",
+        "P50004",
+        "P50008",
+        "P50011",
+        "P50014"
+      ]
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "consistency",
+      "documented": "Bad parameter returns HTTP 400; Error bodies are {\"detail\": \"...\"} (single string message).",
+      "actual": "Server returns HTTP 422 Unprocessable Entity with detail as an Array of validation error objects (e.g. [{loc, msg, type, input}]).",
+      "how_found": "Live network probe querying GET /v1/listings?limit=abc and POST /v1/saved with invalid payload.",
+      "impact": "Client error handlers assuming detail is a string display [object Object] or crash upon error parsing.",
+      "evidence": [
+        "GET /v1/listings?limit=abc -> HTTP 422",
+        "GET /v1/listings?limit=-5 -> HTTP 422",
+        "POST /v1/saved with {id} -> HTTP 422"
       ]
     },
     {
       "endpoint": "/v1/listings",
       "category": "data_quality",
-      "documented": "API is honest and healthy data",
-      "actual": "Contains impossible data (negative prices, floors > total floors)",
-      "how_found": "Scanning payload for physical impossibilities",
-      "impact": "Breaks frontend UI formatting and metrics",
+      "documented": "Every listing corresponds to exactly one physical property and is safe to show to a user.",
+      "actual": "Contains 33 physically impossible records: negative prices, floor greater than total floors, carpet area greater than super built-up area, and 0-bedroom/0-bathroom apartments.",
+      "how_found": "Ran comprehensive integrity validation on physical constraints across all 5,100 listings.",
+      "impact": "Displays corrupted or physically impossible real estate records to users and corrupts statistical models.",
       "evidence": [
         "100-5000050",
         "100-5000339",
@@ -175,11 +329,26 @@
     },
     {
       "endpoint": "/v1/listings",
+      "category": "data_quality",
+      "documented": "Every listing corresponds to exactly one physical property and is safe to show to a user.",
+      "actual": "Contains 11 records with swapped latitude and longitude coordinates where latitude > 50 (~72.8° in Arctic Russia) and longitude < 50 (~19.0° in West Africa/Atlantic Ocean) instead of Mumbai coordinates (lat ~19.0°, lon ~72.8°).",
+      "how_found": "Filtered listings for coordinate anomalies (latitude > 50 or longitude < 50) and identified inverted coordinates.",
+      "impact": "Plotting properties on map interfaces places Mumbai homes in Arctic Siberia and the Atlantic Ocean.",
+      "evidence": [
+        "100-5001382",
+        "100-5001980",
+        "DWE-5003960",
+        "MAG-5002818",
+        "SQU-5003928"
+      ]
+    },
+    {
+      "endpoint": "/v1/listings",
       "category": "fraud",
-      "documented": "genuine properties",
-      "actual": "Extreme low price per sqft clickbait/lead-generation",
-      "how_found": "Calculating price per sqft outliers",
-      "impact": "Users tricked by fake bait listings",
+      "documented": "Returns genuine active sale listings in your city.",
+      "actual": "Contains 11 fake listings with minuscule clickbait prices (< Rs 3,000/sqft in prime Mumbai localities) and syndicates of identical descriptions posted solely to attract leads and generate enquiries.",
+      "how_found": "Queried listings with anomalous price per sqft outliers and duplicate description clusters.",
+      "impact": "Deceives property buyers with unrealistic bait prices and corrupts price statistics.",
       "evidence": [
         "DWE-5000622",
         "DWE-5000893",
@@ -195,18 +364,15 @@
       ]
     },
     {
-      "endpoint": "/v1/projects",
-      "category": "consistency",
-      "documented": "total_listings agrees with GET /v1/listings?project_id",
-      "actual": "Count mismatches the actual number of listings returned",
-      "how_found": "Comparing project total_listings to actual listing occurrences",
-      "impact": "Misleading availability counts in UI",
+      "endpoint": "/v1/listings",
+      "category": "duplicates",
+      "documented": "Every listing_id is globally unique, and each listing corresponds to exactly one physical property.",
+      "actual": "Cross-portal duplicates exist where multiple portals list the same physical unit (same apartment, locality, floor, total floors, bedrooms, and facing). 5,100 records represent only 5,079 distinct physical properties.",
+      "how_found": "Deduplicated records using composite key of apartment name, locality, floor, total floors, bedroom count, and facing direction.",
+      "impact": "Buyers encounter duplicate listings of identical properties across different brokers and portals.",
       "evidence": [
-        "P50001",
-        "P50004",
-        "P50008",
-        "P50011",
-        "P50014"
+        "MAG-5005024",
+        "MAG-5002602"
       ]
     }
   ]
