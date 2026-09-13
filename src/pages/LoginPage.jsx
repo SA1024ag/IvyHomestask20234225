@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Building2,
@@ -12,7 +12,6 @@ import {
   EyeOff,
   CheckCircle2,
   Zap,
-  Sparkles,
   UserCheck
 } from 'lucide-react';
 

@@ -94,7 +94,7 @@ export default function RentalsPage() {
           const apiData = await apiClient.getRentals({ limit: 50 });
           const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
           if (isMounted) setRawRentals(results);
-        } catch (_apiErr) {
+        } catch {
           if (isMounted) setApiError('Could not load rentals from server.');
         }
       } finally {

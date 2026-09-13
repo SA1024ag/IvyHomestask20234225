@@ -56,7 +56,7 @@ const getStoredListingsState = () => {
   try {
     const raw = sessionStorage.getItem('ivy_listings_state');
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch {}
   return null;
 };
 
@@ -103,7 +103,7 @@ export default function ListingsPage() {
           page
         })
       );
-    } catch (e) {}
+    } catch {}
   }, [selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, searchQuery, sortOption, page]);
 
   // Track and save scroll position
@@ -111,7 +111,7 @@ export default function ListingsPage() {
     const handleScroll = () => {
       try {
         sessionStorage.setItem('ivy_listings_scroll', String(window.scrollY));
-      } catch (e) {}
+      } catch {}
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -127,7 +127,7 @@ export default function ListingsPage() {
             window.scrollTo({ top: Number(savedScroll), behavior: 'instant' });
           }, 40);
         }
-      } catch (e) {}
+      } catch {}
     }
   }, [isLoading, rawListings.length]);
 
@@ -155,7 +155,7 @@ export default function ListingsPage() {
         const apiData = await apiClient.getListings({ limit: 50 });
         const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
         setRawListings(results);
-      } catch (_apiErr) {
+      } catch {
         setApiError('Could not connect to live API server. Please ensure you are authenticated.');
       }
     } finally {
@@ -307,7 +307,7 @@ export default function ListingsPage() {
     try {
       sessionStorage.removeItem('ivy_listings_state');
       sessionStorage.removeItem('ivy_listings_scroll');
-    } catch (e) {}
+    } catch {}
   };
 
   const handlePricePreset = (preset) => {
