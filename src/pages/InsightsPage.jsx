@@ -9,30 +9,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import {
-  BarChart3,
-  TrendingUp,
-  MapPin,
-  BedDouble,
-  FileSearch,
-  Database,
-  CheckCircle2,
-  ArrowUpRight,
-  Loader2,
-  Activity,
-  AlertTriangle,
-  AlertOctagon,
-  ShieldCheck,
-  Copy,
-  Building2,
-  KeyRound,
-  Filter,
-  ArrowUpDown,
-  Coins,
-  EyeOff,
-  Layers,
-  Sparkles
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { apiClient } from '../api/client';
 
 function ExecutiveChartTooltip({ active, payload, label }) {
@@ -43,7 +20,7 @@ function ExecutiveChartTooltip({ active, payload, label }) {
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-xs)',
         padding: '0.85rem 1.1rem',
         boxShadow: '0 14px 35px -4px rgba(0, 0, 0, 0.45)',
         minWidth: '220px',
@@ -62,7 +39,7 @@ function ExecutiveChartTooltip({ active, payload, label }) {
         {payload.map((entry, index) => (
           <div key={`entry-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '0.35rem', fontSize: '0.78rem' }}>
             <span style={{ color: 'rgba(255, 255, 255, 0.75)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '1px', backgroundColor: entry.color, display: 'inline-block' }} />
               {entry.name === 'documented' ? 'Documented Claimed' : 'Actual Active Verified'}:
             </span>
             <span style={{ fontWeight: 700, color: '#ffffff', fontFamily: 'monospace' }}>
@@ -696,15 +673,14 @@ export default function InsightsPage() {
       <div className="page-header" style={{ marginBottom: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
           <span className="badge badge-accent">
-            <BarChart3 size={13} /> Market Intelligence
+            Market Intelligence
           </span>
           <span className="badge badge-emerald">
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
             Mumbai Region (City ID: 5)
           </span>
           <span className="badge badge-slate">5,100 Verified Records</span>
           <span className="badge badge-amber">
-            <ShieldCheck size={13} /> 10 Forensic Discoveries Reconciled
+            10 Forensic Discoveries Reconciled
           </span>
         </div>
         <h1 className="page-title">Property Insights & Analytics</h1>
@@ -722,7 +698,7 @@ export default function InsightsPage() {
           justifyContent: 'center',
           gap: '1rem',
           backgroundColor: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-subtle)'
         }}>
           <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
@@ -738,13 +714,9 @@ export default function InsightsPage() {
               backgroundColor: 'var(--status-amber-bg)',
               color: 'var(--status-amber-text)',
               border: '1px solid var(--status-amber-border)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
+              borderRadius: 'var(--radius-xs)',
+              fontSize: '0.85rem'
             }}>
-              <AlertTriangle size={16} />
               <span>{error} Rendering cached metrics derived from verified datasets.</span>
             </div>
           )}
@@ -770,16 +742,12 @@ export default function InsightsPage() {
                   marginBottom: '1rem'
                 }}>
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     color: 'var(--text-muted)'
                   }}>
-                    <TrendingUp size={16} color="var(--accent-primary)" />
                     <span>Median Valuation</span>
                   </div>
                   <span className="badge badge-accent" style={{ fontSize: '0.7rem' }}>
@@ -821,8 +789,8 @@ export default function InsightsPage() {
                 color: 'var(--text-muted)'
               }}>
                 <span>Across 5,100 Mumbai listings</span>
-                <span style={{ color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                  <ArrowUpRight size={13} /> Active Market
+                <span style={{ color: '#10b981', fontWeight: 600 }}>
+                  Active Market
                 </span>
               </div>
             </div>
@@ -842,16 +810,12 @@ export default function InsightsPage() {
                   marginBottom: '1rem'
                 }}>
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     color: 'var(--text-muted)'
                   }}>
-                    <Activity size={16} color="#8b5cf6" />
                     <span>Price per Sq.Ft</span>
                   </div>
                   <span className="badge badge-slate" style={{ fontSize: '0.7rem' }}>
@@ -904,16 +868,12 @@ export default function InsightsPage() {
                   marginBottom: '1rem'
                 }}>
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     color: 'var(--text-muted)'
                   }}>
-                    <Database size={16} color="#10b981" />
                     <span>Total Inventories</span>
                   </div>
                   <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
@@ -947,7 +907,6 @@ export default function InsightsPage() {
                 color: 'var(--text-muted)'
               }}>
                 <span>10 prime Mumbai localities</span>
-                <CheckCircle2 size={13} color="#10b981" />
               </div>
             </div>
 
@@ -967,16 +926,12 @@ export default function InsightsPage() {
                   marginBottom: '1rem'
                 }}>
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     color: 'var(--text-muted)'
                   }}>
-                    <ShieldCheck size={16} color="#10b981" />
                     <span>Audit Health Shield</span>
                   </div>
                   <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
@@ -1014,7 +969,6 @@ export default function InsightsPage() {
                 color: 'var(--text-muted)'
               }}>
                 <span>Defensive Client Layer Active</span>
-                <Sparkles size={13} color="var(--accent-primary)" />
               </div>
             </div>
           </div>
@@ -1028,14 +982,11 @@ export default function InsightsPage() {
             {/* Bento Block 1: Locality Valuation & Supply */}
             <div className="ivy-card" style={{ padding: '1.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MapPin size={18} color="var(--accent-primary)" />
-                  <div>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                      Locality Valuation & Supply
-                    </h2>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Micro-market median price and inventory volume</p>
-                  </div>
+                <div>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                    Locality Valuation & Supply
+                  </h2>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Micro-market median price and inventory volume</p>
                 </div>
                 <span className="badge badge-slate" style={{ fontSize: '0.72rem' }}>
                   {localityData.length} Hubs
@@ -1066,14 +1017,14 @@ export default function InsightsPage() {
                           flex: 1,
                           height: '6px',
                           backgroundColor: 'var(--bg-surface-subtle)',
-                          borderRadius: '9999px',
+                          borderRadius: 'var(--radius-xs)',
                           overflow: 'hidden'
                         }}>
                           <div style={{
                             width: `${barWidth}%`,
                             height: '100%',
                             backgroundColor: 'var(--accent-primary)',
-                            borderRadius: '9999px'
+                            borderRadius: 'var(--radius-xs)'
                           }} />
                         </div>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, minWidth: '55px', textAlign: 'right' }}>
@@ -1089,14 +1040,11 @@ export default function InsightsPage() {
             {/* Bento Block 2: BHK Configuration Composition */}
             <div className="ivy-card" style={{ padding: '1.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <BedDouble size={18} color="var(--accent-primary)" />
-                  <div>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                      Bedrooms (BHK) Supply Split
-                    </h2>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Citywide bedroom distribution ratio</p>
-                  </div>
+                <div>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                    Bedrooms (BHK) Supply Split
+                  </h2>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Citywide bedroom distribution ratio</p>
                 </div>
                 <span className="badge badge-slate" style={{ fontSize: '0.72rem' }}>
                   {bhkData.length} Types
@@ -1114,7 +1062,7 @@ export default function InsightsPage() {
                       style={{
                         padding: '1rem',
                         backgroundColor: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-md)',
+                        borderRadius: 'var(--radius-xs)',
                         border: '1px solid var(--border-subtle)'
                       }}
                     >
@@ -1128,14 +1076,14 @@ export default function InsightsPage() {
                       <div style={{
                         height: '7px',
                         backgroundColor: 'var(--border-subtle)',
-                        borderRadius: '9999px',
+                        borderRadius: 'var(--radius-xs)',
                         overflow: 'hidden'
                       }}>
                         <div style={{
                           width: `${sharePct}%`,
                           height: '100%',
                           background: 'linear-gradient(90deg, var(--accent-primary) 0%, #0284c7 100%)',
-                          borderRadius: '9999px'
+                          borderRadius: 'var(--radius-xs)'
                         }} />
                       </div>
                     </div>
@@ -1148,26 +1096,17 @@ export default function InsightsPage() {
           {/* ─── Availability Mismatch Bar Chart ─── */}
           <div className="ivy-card" style={{ padding: '2rem', marginTop: '0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #ef4444, #f97316)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                }}>
-                  <BarChart3 size={20} color="#fff" />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Availability Mismatch — Documented vs Actual</h2>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    API self-reported record counts vs. verified live counts after forensic audit
-                  </p>
-                </div>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Availability Mismatch — Documented vs Actual</h2>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  API self-reported record counts vs. verified live counts after forensic audit
+                </p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '9999px', backgroundColor: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--radius-xs)', backgroundColor: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#ef4444', display: 'inline-block' }} /> Documented
                 </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: '9999px', backgroundColor: 'rgba(16,185,129,0.08)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: 'var(--radius-xs)', backgroundColor: 'rgba(16,185,129,0.08)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#10b981', display: 'inline-block' }} /> Actual Active
                 </span>
               </div>
@@ -1200,12 +1139,12 @@ export default function InsightsPage() {
                   content={<ExecutiveChartTooltip />}
                   cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
                 />
-                <Bar dataKey="documented" name="documented" radius={[6, 6, 0, 0]} maxBarSize={56}>
+                <Bar dataKey="documented" name="documented" radius={[2, 2, 0, 0]} maxBarSize={56}>
                   {[0, 1, 2].map(i => (
                     <Cell key={i} fill="#ef4444" fillOpacity={0.8} />
                   ))}
                 </Bar>
-                <Bar dataKey="actual" name="actual" radius={[6, 6, 0, 0]} maxBarSize={56}>
+                <Bar dataKey="actual" name="actual" radius={[2, 2, 0, 0]} maxBarSize={56}>
                   {[0, 1, 2].map(i => (
                     <Cell key={i} fill="#10b981" fillOpacity={0.85} />
                   ))}
@@ -1222,7 +1161,7 @@ export default function InsightsPage() {
               ].map(item => (
                 <div key={item.label} style={{
                   padding: '0.85rem 1rem',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: `${item.color}0d`,
                   border: `1px solid ${item.color}22`,
                 }}>
@@ -1238,41 +1177,30 @@ export default function InsightsPage() {
 
           {/* ─── Forensic Answers Panel Toggle ─── */}
           <div style={{
+            padding: '1.25rem 1.5rem',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-sm)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '1.1rem 1.5rem',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
             flexWrap: 'wrap',
             gap: '1rem',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                <CheckCircle2 size={18} color="#fff" />
+            <div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.01em' }}>
+                10 Forensic Discovery Answers
               </div>
-              <div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.01em' }}>
-                  10 Forensic Discovery Answers
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '1px' }}>
-                  All answers from <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-text)' }}>submission.json</code> — with explanation &amp; methodology
-                </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                All answers from <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-text)' }}>submission.json</code> — with explanation &amp; methodology
               </div>
             </div>
             <button
               type="button"
               onClick={() => setShowAnswers(v => !v)}
               className="btn btn-secondary btn-sm"
-              style={{ fontWeight: 700, gap: '0.4rem' }}
+              style={{ fontWeight: 700 }}
             >
-              {showAnswers ? <EyeOff size={15} /> : <CheckCircle2 size={15} />}
               {showAnswers ? 'Hide Answers' : 'View All 10 Answers'}
             </button>
           </div>
@@ -1282,23 +1210,22 @@ export default function InsightsPage() {
             <div style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: 'var(--radius-sm)',
               overflow: 'hidden',
             }}>
               {/* Panel header */}
               <div style={{
                 padding: '1.25rem 1.75rem',
                 borderBottom: '1px solid var(--border-subtle)',
-                background: 'linear-gradient(to right, var(--bg-surface-subtle), var(--bg-surface))',
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                background: 'var(--bg-surface-subtle)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
               }}>
-                <ShieldCheck size={20} color="var(--accent-primary)" />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-heading)' }}>All 10 Forensic Question Answers</div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Methodology, evidence, and verified values from full dataset analysis</div>
                 </div>
-                <span className="badge badge-emerald" style={{ marginLeft: 'auto', fontSize: '0.72rem' }}>
-                  <CheckCircle2 size={12} /> 10 / 10 Answered
+                <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                  10 / 10 Answered
                 </span>
               </div>
 
@@ -1309,7 +1236,7 @@ export default function InsightsPage() {
                     key={item.q}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '52px 1fr auto',
+                      gridTemplateColumns: '48px 1fr auto',
                       gap: '1rem',
                       alignItems: 'flex-start',
                       padding: '1.1rem 1.75rem',
@@ -1321,9 +1248,9 @@ export default function InsightsPage() {
                   >
                     {/* Q number pill */}
                     <div style={{
-                      width: '44px', height: '44px', borderRadius: '12px',
+                      width: '40px', height: '40px', borderRadius: 'var(--radius-xs)',
                       backgroundColor: `${item.color}18`,
-                      border: `1.5px solid ${item.color}33`,
+                      border: `1px solid ${item.color}33`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0,
                     }}>
@@ -1351,7 +1278,7 @@ export default function InsightsPage() {
                     <div style={{
                       textAlign: 'right', flexShrink: 0,
                       padding: '0.45rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-xs)',
                       backgroundColor: `${item.color}12`,
                       border: `1px solid ${item.color}25`,
                       minWidth: '110px',
@@ -1370,9 +1297,9 @@ export default function InsightsPage() {
           {/* Master Unified Forensic Audit Intelligence Center */}
           <div className="ivy-card" style={{
             padding: '2rem',
-            background: 'linear-gradient(to bottom right, var(--bg-surface), var(--bg-surface-subtle))',
+            background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)'
+            borderRadius: 'var(--radius-sm)'
           }}>
             {/* Header */}
             <div style={{
@@ -1383,34 +1310,18 @@ export default function InsightsPage() {
               flexWrap: 'wrap',
               gap: '1rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--status-amber-bg)',
-                  color: 'var(--status-amber-text)',
-                  border: '1px solid var(--status-amber-border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <FileSearch size={22} />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em' }}>
+                    Forensic Audit &amp; Platform Discrepancies
+                  </h2>
+                  <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                    10 / 10 Mitigated
+                  </span>
                 </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em' }}>
-                      Forensic Audit & Platform Discrepancies
-                    </h2>
-                    <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
-                      <CheckCircle2 size={12} /> 10 / 10 Mitigated
-                    </span>
-                  </div>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
-                    Reconciliation of the 10 verified discrepancies discovered between API documentation and live server behavior, with active client defenses.
-                  </p>
-                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
+                  Reconciliation of the 10 verified discrepancies discovered between API documentation and live server behavior, with active client defenses.
+                </p>
               </div>
 
               {/* Filter Tabs */}
@@ -1418,10 +1329,10 @@ export default function InsightsPage() {
                 display: 'flex',
                 alignItems: 'center',
                 backgroundColor: 'var(--bg-surface-subtle)',
-                padding: '4px',
-                borderRadius: 'var(--radius-lg)',
+                padding: '3px',
+                borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-subtle)',
-                gap: '4px',
+                gap: '3px',
                 flexWrap: 'wrap'
               }}>
                 <button
@@ -1429,7 +1340,7 @@ export default function InsightsPage() {
                   onClick={() => setAuditTab('all')}
                   style={{
                     padding: '0.45rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-xs)',
                     border: 'none',
                     fontSize: '0.8rem',
                     fontWeight: 700,
@@ -1446,7 +1357,7 @@ export default function InsightsPage() {
                   onClick={() => setAuditTab('catalog')}
                   style={{
                     padding: '0.45rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-xs)',
                     border: 'none',
                     fontSize: '0.8rem',
                     fontWeight: 700,
@@ -1456,14 +1367,14 @@ export default function InsightsPage() {
                     color: auditTab === 'catalog' ? '#ffffff' : 'var(--text-muted)'
                   }}
                 >
-                  Catalog & Data Integrity ({catalogCount})
+                  Catalog &amp; Data Integrity ({catalogCount})
                 </button>
                 <button
                   type="button"
                   onClick={() => setAuditTab('api')}
                   style={{
                     padding: '0.45rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-xs)',
                     border: 'none',
                     fontSize: '0.8rem',
                     fontWeight: 700,
@@ -1473,7 +1384,7 @@ export default function InsightsPage() {
                     color: auditTab === 'api' ? '#ffffff' : 'var(--text-muted)'
                   }}
                 >
-                  API Protocol & Architecture ({apiCount})
+                  API Protocol &amp; Architecture ({apiCount})
                 </button>
               </div>
             </div>
@@ -1485,7 +1396,7 @@ export default function InsightsPage() {
                 display: 'flex',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 padding: '3px',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-subtle)',
                 gap: '3px',
               }}>
@@ -1493,7 +1404,7 @@ export default function InsightsPage() {
                   type="button"
                   onClick={() => setAuditView('cards')}
                   style={{
-                    padding: '0.35rem 0.8rem', borderRadius: 'var(--radius-sm)', border: 'none',
+                    padding: '0.35rem 0.8rem', borderRadius: 'var(--radius-xs)', border: 'none',
                     fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s ease',
                     backgroundColor: auditView === 'cards' ? 'var(--accent-primary)' : 'transparent',
                     color: auditView === 'cards' ? '#fff' : 'var(--text-muted)',
@@ -1505,7 +1416,7 @@ export default function InsightsPage() {
                   type="button"
                   onClick={() => setAuditView('table')}
                   style={{
-                    padding: '0.35rem 0.8rem', borderRadius: 'var(--radius-sm)', border: 'none',
+                    padding: '0.35rem 0.8rem', borderRadius: 'var(--radius-xs)', border: 'none',
                     fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s ease',
                     backgroundColor: auditView === 'table' ? 'var(--accent-primary)' : 'transparent',
                     color: auditView === 'table' ? '#fff' : 'var(--text-muted)',
@@ -1524,20 +1435,19 @@ export default function InsightsPage() {
                 gap: '1.25rem'
               }}>
                 {filteredFindings.map((finding) => {
-                  const IconComponent = finding.icon;
                   return (
                     <div
                       key={finding.id}
                       style={{
                         padding: '1.4rem',
                         backgroundColor: 'var(--bg-surface)',
-                        borderRadius: 'var(--radius-lg)',
+                        borderRadius: 'var(--radius-sm)',
                         border: '1px solid var(--border-subtle)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
                         gap: '1rem',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                         transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                       }}
                     >
@@ -1546,7 +1456,7 @@ export default function InsightsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                             <span className={`badge ${finding.badgeClass}`} style={{ fontSize: '0.7rem' }}>
-                              <IconComponent size={12} /> {finding.category}
+                              {finding.category}
                             </span>
                             <span style={{
                               fontSize: '0.68rem',
@@ -1554,14 +1464,14 @@ export default function InsightsPage() {
                               color: 'var(--text-muted)',
                               backgroundColor: 'var(--bg-surface-subtle)',
                               padding: '2px 6px',
-                              borderRadius: '4px',
+                              borderRadius: 'var(--radius-xs)',
                               border: '1px solid var(--border-subtle)'
                             }}>
                               {finding.endpoint}
                             </span>
                           </div>
                           <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>
-                            <CheckCircle2 size={11} /> {finding.status}
+                            {finding.status}
                           </span>
                         </div>
 
@@ -1586,7 +1496,7 @@ export default function InsightsPage() {
                             padding: '0.65rem',
                             backgroundColor: 'rgba(239, 68, 68, 0.05)',
                             border: '1px solid rgba(239, 68, 68, 0.18)',
-                            borderRadius: 'var(--radius-sm)'
+                            borderRadius: 'var(--radius-xs)'
                           }}>
                             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>
                               Documented Claim
@@ -1600,7 +1510,7 @@ export default function InsightsPage() {
                             padding: '0.65rem',
                             backgroundColor: 'rgba(59, 130, 246, 0.05)',
                             border: '1px solid rgba(59, 130, 246, 0.18)',
-                            borderRadius: 'var(--radius-sm)'
+                            borderRadius: 'var(--radius-xs)'
                           }}>
                             <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>
                               Audited Reality
@@ -1615,7 +1525,7 @@ export default function InsightsPage() {
                         <div style={{
                           padding: '0.55rem 0.75rem',
                           backgroundColor: 'var(--bg-surface-subtle)',
-                          borderRadius: 'var(--radius-sm)',
+                          borderRadius: 'var(--radius-xs)',
                           border: '1px solid var(--border-subtle)',
                           fontSize: '0.73rem',
                           color: 'var(--text-muted)'
@@ -1634,14 +1544,10 @@ export default function InsightsPage() {
                       <div style={{
                         borderTop: '1px solid var(--border-subtle)',
                         paddingTop: '0.75rem',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '0.5rem',
                         fontSize: '0.75rem',
                         color: 'var(--text-body)',
                         lineHeight: 1.4
                       }}>
-                        <CheckCircle2 size={14} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div>
                           <strong style={{ color: '#10b981' }}>Client Mitigation: </strong>
                           {finding.mitigation}
@@ -1653,7 +1559,7 @@ export default function InsightsPage() {
               </div>
             ) : (
               /* ── Full Table View ── */
-              <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: 'var(--bg-surface-subtle)', borderBottom: '2px solid var(--border-subtle)' }}>
@@ -1696,7 +1602,6 @@ export default function InsightsPage() {
                   </thead>
                   <tbody>
                     {sortedFindings.map((finding, idx) => {
-                      const IconComponent = finding.icon;
                       const severityColors = {
                         critical: { bg: 'rgba(239,68,68,0.08)', text: '#ef4444', border: 'rgba(239,68,68,0.25)' },
                         warning:  { bg: 'rgba(245,158,11,0.08)', text: '#f59e0b', border: 'rgba(245,158,11,0.25)' },
@@ -1720,13 +1625,13 @@ export default function InsightsPage() {
                           </td>
                           {/* Category */}
                           <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap' }}>
-                            <span className={`badge ${finding.badgeClass}`} style={{ fontSize: '0.68rem', gap: '3px' }}>
-                              <IconComponent size={11} /> {finding.category}
+                            <span className={`badge ${finding.badgeClass}`} style={{ fontSize: '0.68rem' }}>
+                              {finding.category}
                             </span>
                           </td>
                           {/* Endpoint */}
                           <td style={{ padding: '0.85rem 1rem' }}>
-                            <code style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-text)', backgroundColor: 'var(--accent-subtle)', padding: '2px 6px', borderRadius: '4px' }}>
+                            <code style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-text)', backgroundColor: 'var(--accent-subtle)', padding: '2px 6px', borderRadius: 'var(--radius-xs)' }}>
                               {finding.endpoint}
                             </code>
                           </td>
@@ -1740,7 +1645,7 @@ export default function InsightsPage() {
                             <span style={{
                               display: 'inline-block',
                               padding: '0.2rem 0.55rem',
-                              borderRadius: '9999px',
+                              borderRadius: 'var(--radius-xs)',
                               fontSize: '0.68rem',
                               fontWeight: 800,
                               textTransform: 'uppercase',
@@ -1755,7 +1660,7 @@ export default function InsightsPage() {
                           {/* Status */}
                           <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap' }}>
                             <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>
-                              <CheckCircle2 size={10} /> {finding.status}
+                              {finding.status}
                             </span>
                           </td>
                           {/* Documented */}
@@ -1774,8 +1679,7 @@ export default function InsightsPage() {
                           </td>
                           {/* Mitigation */}
                           <td style={{ padding: '0.85rem 1rem', minWidth: '200px' }}>
-                            <div style={{ fontSize: '0.73rem', color: 'var(--text-body)', lineHeight: 1.45, display: 'flex', gap: '4px' }}>
-                              <CheckCircle2 size={12} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div style={{ fontSize: '0.73rem', color: 'var(--text-body)', lineHeight: 1.45 }}>
                               <span>{finding.mitigation}</span>
                             </div>
                           </td>

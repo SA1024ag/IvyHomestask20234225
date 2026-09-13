@@ -90,7 +90,7 @@ export default function CompareFloatingBanner() {
           border: '1px solid #f59e0b',
           color: '#92400e',
           padding: '0.65rem 1rem',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-xs)',
           fontSize: '0.85rem',
           fontWeight: 600,
           display: 'flex',
@@ -100,7 +100,6 @@ export default function CompareFloatingBanner() {
           pointerEvents: 'auto',
           animation: 'fadeIn 0.2s ease'
         }}>
-          <AlertCircle size={16} color="#d97706" style={{ flexShrink: 0 }} />
           <span>{warningMessage}</span>
         </div>
       )}
@@ -111,7 +110,7 @@ export default function CompareFloatingBanner() {
           backgroundColor: 'rgba(15, 23, 42, 0.94)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--radius-xs)',
           padding: isMinimized ? '0.65rem 1rem' : '0.85rem 1.25rem',
           color: '#ffffff',
           boxShadow: '0 20px 35px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
@@ -129,7 +128,7 @@ export default function CompareFloatingBanner() {
                 <div style={{
                   width: '28px',
                   height: '28px',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: 'var(--accent-primary)',
                   display: 'flex',
                   alignItems: 'center',
@@ -152,10 +151,10 @@ export default function CompareFloatingBanner() {
                     color: '#ffffff',
                     padding: '0.35rem 0.75rem',
                     fontSize: '0.8rem',
-                    borderRadius: 'var(--radius-full)'
+                    borderRadius: 'var(--radius-xs)'
                   }}
                 >
-                  View Table →
+                  View Table
                 </NavLink>
                 <button
                   type="button"
@@ -184,7 +183,7 @@ export default function CompareFloatingBanner() {
                   <div style={{
                     width: '32px',
                     height: '32px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-xs)',
                     backgroundColor: 'var(--accent-primary)',
                     display: 'flex',
                     alignItems: 'center',
@@ -214,7 +213,7 @@ export default function CompareFloatingBanner() {
                         key={id}
                         style={{
                           backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                          borderRadius: 'var(--radius-full)',
+                          borderRadius: 'var(--radius-xs)',
                           padding: '3px 10px',
                           fontSize: '0.78rem',
                           display: 'flex',
@@ -266,11 +265,11 @@ export default function CompareFloatingBanner() {
                     color: '#94a3b8',
                     fontSize: '0.8rem',
                     padding: '0.4rem 0.6rem',
+                    borderRadius: 'var(--radius-xs)',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}
                   title="Clear all selections in this category"
                 >
-                  <Trash2 size={13} />
                   <span>Clear</span>
                 </button>
 
@@ -283,14 +282,12 @@ export default function CompareFloatingBanner() {
                     fontWeight: 700,
                     fontSize: '0.85rem',
                     padding: '0.5rem 1.25rem',
-                    borderRadius: 'var(--radius-full)',
+                    borderRadius: 'var(--radius-xs)',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px'
                   }}
                 >
                   <span>Compare {categoryLabel} ({count})</span>
-                  <span>→</span>
                 </NavLink>
 
                 {/* Minimize Toggle */}

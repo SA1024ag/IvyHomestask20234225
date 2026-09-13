@@ -13,14 +13,7 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis
 } from 'recharts';
-import {
-  SlidersHorizontal,
-  Award,
-  Maximize2,
-  TrendingUp,
-  Info,
-  Check
-} from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const PROPERTY_PALETTE = [
   { stroke: '#6366f1', fill: '#4f46e5', name: 'Property 1' },
@@ -36,7 +29,6 @@ function formatPriceINR(val) {
   return `₹${Number(val).toLocaleString('en-IN')}`;
 }
 
-// Sleek dark-mode floating card tooltip with subtle drop shadow
 function ExecutiveCompareTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
     return (
@@ -45,7 +37,7 @@ function ExecutiveCompareTooltip({ active, payload, label }) {
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-xs)',
         padding: '0.85rem 1.1rem',
         boxShadow: '0 14px 35px -4px rgba(0, 0, 0, 0.45)',
         minWidth: '220px',
@@ -75,7 +67,7 @@ function ExecutiveCompareTooltip({ active, payload, label }) {
             }}
           >
             <span style={{ color: 'rgba(255, 255, 255, 0.75)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: entry.color, display: 'inline-block' }} />
               {entry.name}:
             </span>
             <span style={{ fontWeight: 700, color: '#ffffff', fontFamily: 'monospace' }}>
@@ -389,7 +381,7 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
       padding: '1.75rem',
       border: '1px solid var(--border-subtle)',
       background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-surface-subtle) 100%)',
-      borderRadius: '16px',
+      borderRadius: 'var(--radius-sm)',
       boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
     }}>
       {/* Header & View Mode Switcher */}
@@ -403,27 +395,13 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
         borderBottom: '1px solid var(--border-subtle)',
         paddingBottom: '1.25rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '12px',
-            backgroundColor: 'var(--accent-subtle)',
-            color: 'var(--accent-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <SlidersHorizontal size={20} strokeWidth={2} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
-              Multi-Parameter Comparative Analytics
-            </h2>
-            <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-              Simultaneous cross-metric benchmarking across price, space, rate efficiency, and specs
-            </p>
-          </div>
+        <div>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
+            Multi-Parameter Comparative Analytics
+          </h2>
+          <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+            Simultaneous cross-metric benchmarking across price, space, rate efficiency, and specs
+          </p>
         </div>
 
         {/* View Switcher Tabs */}
@@ -431,7 +409,7 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
           display: 'flex',
           backgroundColor: 'var(--bg-surface-subtle)',
           padding: '4px',
-          borderRadius: '10px',
+          borderRadius: 'var(--radius-xs)',
           border: '1px solid var(--border-subtle)',
           gap: '2px'
         }}>
@@ -522,7 +500,7 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.35rem 0.75rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'var(--bg-surface)',
               border: `1.5px solid ${s.palette.stroke}`,
               fontSize: '0.8rem',
@@ -530,7 +508,7 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
               color: 'var(--text-heading)'
             }}
           >
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: s.palette.fill }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '1px', backgroundColor: s.palette.fill }} />
             <span>{s.fullName}</span>
           </div>
         ))}
@@ -590,8 +568,8 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
         {viewMode === 'normalized' && (
           <div style={{ width: '100%', height: 320 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Info size={12} /> Normalized 0–100 Scale: 100 denotes optimal affordability, maximum space, or highest spec.
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Normalized 0–100 Scale: 100 denotes optimal affordability, maximum space, or highest spec.
               </span>
             </div>
             <ResponsiveContainer width="100%" height="100%">
@@ -691,33 +669,17 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
             <div
               key={i}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
                 padding: '0.65rem 0.85rem',
                 backgroundColor: 'var(--bg-surface)',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-subtle)'
               }}
             >
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--accent-subtle)',
-                color: 'var(--accent-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <h.icon size={16} />
-              </div>
               <div style={{ overflow: 'hidden' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   {h.title}
                 </div>
-                <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
                   {h.desc}
                 </div>
               </div>

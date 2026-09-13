@@ -56,13 +56,13 @@
   --shadow-hover: 0 14px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
   --shadow-float: 0 20px 35px -10px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
 
-  /* Geometry */
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-  --radius-full: 9999px;
+  /* Geometry (Sharp, Architectural & Executive) */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-full: 3px;
 
   --header-height: 70px;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -155,7 +155,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
-  border-radius: 9999px;
+  border-radius: var(--radius-xs);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
@@ -185,11 +185,11 @@ button, input, select, textarea {
   padding: 2.25rem 1.5rem 5rem;
 }
 
-/* Production-Grade Card Foundation */
+/* Production-Grade Card Foundation (Sharp Executive Box) */
 .ivy-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
@@ -210,7 +210,7 @@ button, input, select, textarea {
   font-weight: 600;
   font-size: 0.85rem;
   padding: 0.55rem 1.15rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
   user-select: none;
@@ -229,7 +229,7 @@ button, input, select, textarea {
 }
 .btn-primary:hover:not(:disabled) {
   background-color: var(--accent-hover);
-  box-shadow: 0 4px 14px -3px rgba(67, 56, 202, 0.4);
+  box-shadow: 0 4px 14px -3px rgba(16, 185, 129, 0.35);
   transform: translateY(-1px);
 }
 .btn-primary:active:not(:disabled) {
@@ -282,7 +282,7 @@ button, input, select, textarea {
   padding: 0.65rem 0.9rem;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--text-heading);
   outline: none;
   font-size: 0.85rem;
@@ -294,13 +294,13 @@ button, input, select, textarea {
   box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
-/* Restrained Monochrome / Semantic Badges */
+/* Restrained Monochrome / Semantic Badges (Sharp) */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-full);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-xs);
   font-size: 0.725rem;
   font-weight: 600;
   letter-spacing: 0.02em;

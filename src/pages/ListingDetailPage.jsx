@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  ArrowLeft,
-  Heart,
-  MapPin,
-  Bed,
-  Bath,
-  Maximize2,
-  Building,
-  Phone,
-  Compass,
-  Layers,
-  Car,
-  ShieldCheck,
-  Share2,
-  Loader2,
-  AlertCircle,
-  ExternalLink,
-  Sparkles
-} from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useFavourites } from '../context/FavouritesContext';
 import PropertyCard, { formatINR } from '../components/PropertyCard';
@@ -90,7 +72,7 @@ export default function ListingDetailPage() {
         <div style={{
           width: '56px',
           height: '56px',
-          borderRadius: '50%',
+          borderRadius: 'var(--radius-xs)',
           backgroundColor: '#fef2f2',
           color: '#b91c1c',
           display: 'flex',
@@ -98,15 +80,14 @@ export default function ListingDetailPage() {
           justifyContent: 'center',
           margin: '0 auto 1.5rem'
         }}>
-          <AlertCircle size={32} />
+          <AlertCircle size={28} />
         </div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>Property Not Found</h2>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: '420px', margin: '0.5rem auto 1.5rem' }}>
           {error || `Listing with ID "${id}" could not be retrieved from the Ivy Homes service.`}
         </p>
         <NavLink to="/listings" className="btn btn-primary btn-sm">
-          <ArrowLeft size={16} />
-          <span>Back to Catalog</span>
+          Back to Catalog
         </NavLink>
       </div>
     );
@@ -140,8 +121,7 @@ export default function ListingDetailPage() {
           onClick={() => navigate(-1)}
           className="btn btn-secondary btn-sm"
         >
-          <ArrowLeft size={16} />
-          <span>Back</span>
+          Back
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -151,8 +131,7 @@ export default function ListingDetailPage() {
             className="btn btn-secondary btn-sm"
             title="Copy property link"
           >
-            <Share2 size={15} />
-            <span>{copiedLink ? 'Link Copied!' : 'Share'}</span>
+            {copiedLink ? 'Link Copied!' : 'Share'}
           </button>
 
           <button
@@ -165,14 +144,13 @@ export default function ListingDetailPage() {
               backgroundColor: saved ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-surface)'
             }}
           >
-            <Heart size={16} fill={saved ? '#ef4444' : 'none'} stroke={saved ? '#ef4444' : 'currentColor'} />
-            <span>{saved ? 'Saved to Favourites' : 'Save Property'}</span>
+            {saved ? 'Saved to Favourites' : 'Save Property'}
           </button>
         </div>
       </div>
 
       {/* Main Property Card */}
-      <div className="ivy-card" style={{ padding: '2rem', marginBottom: '2.5rem' }}>
+      <div className="ivy-card" style={{ padding: '2rem', marginBottom: '2.5rem', borderRadius: 'var(--radius-sm)' }}>
         {/* Header Ribbon */}
         <div style={{
           display: 'flex',
@@ -190,8 +168,7 @@ export default function ListingDetailPage() {
               </span>
               {listing.is_verified && (
                 <span className="badge badge-blue">
-                  <ShieldCheck size={12} />
-                  <span>Verified by Ivy Homes</span>
+                  Verified by Ivy Homes
                 </span>
               )}
               <span className="badge badge-slate" style={{ fontFamily: 'var(--font-mono)' }}>
@@ -218,7 +195,6 @@ export default function ListingDetailPage() {
               marginTop: '0.35rem',
               textTransform: 'capitalize'
             }}>
-              <MapPin size={16} color="var(--accent-primary)" />
               <span>{listing.locality}, Mumbai (City ID: {listing.city_id || 5})</span>
             </div>
           </div>
@@ -253,65 +229,58 @@ export default function ListingDetailPage() {
           padding: '1.75rem 0',
           borderBottom: '1px solid var(--border-subtle)'
         }}>
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>BEDROOMS</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Bed size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{listing.bedroom || '--'} BHK</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>BATHROOMS</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Bath size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{listing.bathroom || '--'} Baths</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>CARPET AREA</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Maximize2 size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{normalizedCarpet ? `${normalizedCarpet} sqft` : '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>SUPER BUILT-UP AREA</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Layers size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{listing.super_built_up_area ? `${listing.super_built_up_area} sqft` : '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FURNISHING</div>
             <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', textTransform: 'capitalize', color: 'var(--text-heading)' }}>
               {listing.furnishing || 'Unfurnished'}
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FACING DIRECTION</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'capitalize', color: 'var(--text-heading)' }}>
-              <Compass size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', textTransform: 'capitalize', color: 'var(--text-heading)' }}>
               <span>{listing.facing_direction || 'East'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>FLOOR ELEVATION</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Building size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{listing.floor || '1'} of {listing.total_floors || '--'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>PARKING SPACES</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <Car size={18} color="var(--accent-primary)" />
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', color: 'var(--text-heading)' }}>
               <span>{listing.covered_parking ? `${listing.covered_parking} Covered` : 'Available'}</span>
             </div>
           </div>
@@ -337,7 +306,7 @@ export default function ListingDetailPage() {
               whiteSpace: 'pre-wrap',
               backgroundColor: 'var(--bg-surface-subtle)',
               padding: '1.25rem',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               border: '1px solid var(--border-subtle)'
             }}>
               {listing.description || 'No custom description provided by seller for this property.'}
@@ -371,11 +340,10 @@ export default function ListingDetailPage() {
             <div style={{
               padding: '1.5rem',
               backgroundColor: 'var(--accent-subtle)',
-              borderRadius: 'var(--radius-lg)',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--accent-border)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-text)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                <ShieldCheck size={18} color="var(--accent-primary)" />
+              <div style={{ color: 'var(--accent-text)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem' }}>
                 <span>Verified Seller Contact</span>
               </div>
 
@@ -390,9 +358,8 @@ export default function ListingDetailPage() {
                 <a
                   href={`tel:${listing.posted_by_contact || '+912001234567'}`}
                   className="btn btn-primary"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Phone size={16} />
                   <span>{listing.posted_by_contact || 'Call Agent'}</span>
                 </a>
               </div>
@@ -403,10 +370,9 @@ export default function ListingDetailPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-secondary btn-sm"
-                  style={{ width: '100%', marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                  style={{ width: '100%', marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <span>View Original Listing</span>
-                  <ExternalLink size={14} />
                 </a>
               )}
             </div>
@@ -419,8 +385,7 @@ export default function ListingDetailPage() {
         <section style={{ marginTop: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
-                <Sparkles size={16} />
+              <div style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
                 <span>Comparable Properties</span>
               </div>
               <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.25rem' }}>
@@ -428,7 +393,7 @@ export default function ListingDetailPage() {
               </h2>
             </div>
             <NavLink to={`/listings?locality=${listing.locality}`} className="btn btn-secondary btn-sm">
-              More in {listing.locality} →
+              More in {listing.locality}
             </NavLink>
           </div>
 

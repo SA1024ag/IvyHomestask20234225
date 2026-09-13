@@ -6,15 +6,11 @@ import {
   Loader2,
   Lock,
   Building2,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
   Home,
   KeyRound,
   Heart,
   ArrowLeftRight,
-  BarChart3,
-  Check
+  BarChart3
 } from 'lucide-react';
 
 const PAGE_CONTEXT = {
@@ -124,26 +120,25 @@ export default function ProtectedRoute({ children }) {
             position: 'relative',
           }}>
             <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '22px',
+              width: '72px',
+              height: '72px',
+              borderRadius: 'var(--radius-sm)',
               background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-subtle) 100%)',
               border: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '2.2rem',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.1)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             }}>
-              {React.createElement(ctx.icon, { size: 36, color: 'var(--accent-primary)', strokeWidth: 1.75 })}
+              {React.createElement(ctx.icon, { size: 32, color: 'var(--accent-primary)', strokeWidth: 1.75 })}
             </div>
             <div style={{
               position: 'absolute',
               bottom: '-6px',
-              right: 'calc(50% - 46px)',
-              width: '26px',
-              height: '26px',
-              borderRadius: '50%',
+              right: 'calc(50% - 42px)',
+              width: '24px',
+              height: '24px',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'var(--accent-primary)',
               border: '2px solid var(--bg-canvas)',
               display: 'flex',
@@ -205,16 +200,12 @@ export default function ProtectedRoute({ children }) {
                   fontSize: '0.72rem',
                   fontWeight: 600,
                   padding: '0.25rem 0.65rem',
-                  borderRadius: '9999px',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: 'var(--bg-surface-subtle)',
                   border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-muted)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px'
+                  color: 'var(--text-muted)'
                 }}>
-                  <Check size={13} color="var(--accent-primary)" strokeWidth={2.5} />
-                  <span>{f}</span>
+                  {f}
                 </span>
               ))}
             </div>
@@ -230,15 +221,12 @@ export default function ProtectedRoute({ children }) {
                 fontSize: '0.975rem',
                 justifyContent: 'center',
                 marginBottom: '1rem',
-                gap: '0.5rem',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
               }}
             >
-              <Zap size={17} />
               Sign In to Continue
-              <ArrowRight size={17} />
             </Link>
 
             {/* Subtext */}
@@ -255,14 +243,12 @@ export default function ProtectedRoute({ children }) {
           <div style={{
             marginTop: '1.25rem',
             padding: '0.85rem 1.1rem',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-xs)',
             backgroundColor: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
+            alignItems: 'center'
           }}>
-            <ShieldCheck size={18} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
             <div style={{ fontSize: '0.775rem', color: 'var(--text-body)', lineHeight: 1.4 }}>
               <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Auto-renewing sessions: </span>
               Tokens are refreshed every 12 min so you stay logged in for 30+ minutes seamlessly.

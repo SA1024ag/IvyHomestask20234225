@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  FilterX
-} from 'lucide-react';
+import { FilterX } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
@@ -437,7 +429,6 @@ export default function ListingsPage() {
         {/* Total stats pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
-            <CheckCircle2 size={14} />
             <span>{sortedListings.length.toLocaleString('en-IN')} Matched Properties</span>
           </div>
         </div>
@@ -471,8 +462,7 @@ export default function ListingsPage() {
               zIndex: 5
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
-              <SlidersHorizontal size={17} color="var(--accent-primary)" />
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
               <span>Search Filters</span>
             </div>
             {hasActiveFilters && (
@@ -483,7 +473,6 @@ export default function ListingsPage() {
                 style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.2rem 0.4rem' }}
                 title="Reset all filters"
               >
-                <RotateCcw size={13} />
                 <span>Reset</span>
               </button>
             )}
@@ -505,8 +494,7 @@ export default function ListingsPage() {
             {/* Search Input */}
             <div className="input-group">
               <label className="input-label" htmlFor="search-input">Property / Keyword</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <input
                   id="search-input"
                   type="text"
@@ -517,7 +505,7 @@ export default function ListingsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                  style={{ fontSize: '0.85rem' }}
                 />
               </div>
             </div>
@@ -751,7 +739,7 @@ export default function ListingsPage() {
               <div style={{
                 width: '52px',
                 height: '52px',
-                borderRadius: '50%',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 color: 'var(--text-muted)',
                 display: 'flex',
@@ -804,7 +792,7 @@ export default function ListingsPage() {
                 justifyContent: 'space-between',
                 padding: '1.25rem 1.5rem',
                 backgroundColor: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-lg)',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)',
                 flexWrap: 'wrap',
                 gap: '1rem'
@@ -827,7 +815,6 @@ export default function ListingsPage() {
                     disabled={page === 1}
                     className="btn btn-secondary btn-sm"
                   >
-                    <ChevronLeft size={16} />
                     <span>Previous</span>
                   </button>
 
@@ -902,7 +889,6 @@ export default function ListingsPage() {
                     className="btn btn-secondary btn-sm"
                   >
                     <span>Next</span>
-                    <ChevronRight size={16} />
                   </button>
                 </div>
               </div>

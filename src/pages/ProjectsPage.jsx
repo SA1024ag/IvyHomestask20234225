@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import {
-  FolderKanban,
-  MapPin,
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  FilterX,
-  Building2,
-  X
-} from 'lucide-react';
+import { FilterX, X, Loader2 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import ProjectCard, { formatProjectPrice, formatDate } from '../components/ProjectCard';
@@ -216,8 +204,8 @@ export default function ProjectsPage() {
       <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-            <span className="badge badge-amber" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <FolderKanban size={12} /> Developer Projects
+            <span className="badge badge-amber">
+              Developer Projects
             </span>
             <span className="badge badge-slate">Mumbai Region</span>
             <span className="badge badge-emerald">Direct Builder Inventories</span>
@@ -267,8 +255,7 @@ export default function ProjectsPage() {
               zIndex: 5
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
-              <SlidersHorizontal size={17} color="var(--accent-primary)" />
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
               <span>Project Filters</span>
             </div>
             {activeFilterCount > 0 && (
@@ -279,7 +266,6 @@ export default function ProjectsPage() {
                 style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.2rem 0.4rem' }}
                 title="Reset all filters"
               >
-                <RotateCcw size={13} />
                 <span>Reset</span>
               </button>
             )}
@@ -289,8 +275,7 @@ export default function ProjectsPage() {
             {/* Search Input */}
             <div className="input-group">
               <label className="input-label" htmlFor="project-search">Search Projects / Developers</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <input
                   id="project-search"
                   type="text"
@@ -301,7 +286,7 @@ export default function ProjectsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                  style={{ fontSize: '0.85rem' }}
                 />
               </div>
             </div>
@@ -309,8 +294,7 @@ export default function ProjectsPage() {
             {/* Locality Dropdown */}
             <div className="input-group">
               <label className="input-label" htmlFor="project-locality">Locality</label>
-              <div style={{ position: 'relative' }}>
-                <MapPin size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <select
                   id="project-locality"
                   value={selectedLocality}
@@ -319,7 +303,7 @@ export default function ProjectsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem', textTransform: 'capitalize' }}
+                  style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}
                 >
                   {LOCALITIES.map((loc) => (
                     <option key={loc} value={loc} style={{ textTransform: 'capitalize' }}>
@@ -333,8 +317,7 @@ export default function ProjectsPage() {
             {/* Project Status Dropdown */}
             <div className="input-group">
               <label className="input-label" htmlFor="project-status">Project Status</label>
-              <div style={{ position: 'relative' }}>
-                <Building2 size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <select
                   id="project-status"
                   value={selectedStatus}
@@ -343,7 +326,7 @@ export default function ProjectsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                  style={{ fontSize: '0.85rem' }}
                 >
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -387,7 +370,7 @@ export default function ProjectsPage() {
                         <span style={{
                           width: '6px',
                           height: '6px',
-                          borderRadius: '50%',
+                          borderRadius: '1px',
                           backgroundColor: 'var(--accent-primary)'
                         }} />
                       )}
@@ -491,7 +474,7 @@ export default function ProjectsPage() {
               <div style={{
                 width: '56px',
                 height: '56px',
-                borderRadius: '50%',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 display: 'flex',
                 alignItems: 'center',
@@ -508,7 +491,7 @@ export default function ProjectsPage() {
                 Try resetting status or locality filters to explore all available developer projects in Mumbai.
               </p>
               <button onClick={handleResetFilters} className="btn btn-primary">
-                <RotateCcw size={16} /> Reset All Filters
+                Reset All Filters
               </button>
             </div>
           ) : (
@@ -566,7 +549,7 @@ export default function ProjectsPage() {
                   disabled={page === 1}
                   className="btn btn-secondary btn-sm"
                 >
-                  <ChevronLeft size={16} /> Previous
+                  Previous
                 </button>
 
                 {/* Interactive Page Jumper */}
@@ -638,7 +621,7 @@ export default function ProjectsPage() {
                   disabled={!hasMore || page >= totalPages}
                   className="btn btn-secondary btn-sm"
                 >
-                  Next <ChevronRight size={16} />
+                  Next
                 </button>
               </div>
             </div>
@@ -685,7 +668,7 @@ export default function ProjectsPage() {
               <button
                 onClick={() => setSelectedProjectModal(null)}
                 className="btn btn-ghost"
-                style={{ padding: '0.4rem', borderRadius: '50%', minWidth: 'auto' }}
+                style={{ padding: '0.4rem', borderRadius: 'var(--radius-xs)', minWidth: 'auto' }}
                 aria-label="Close modal"
               >
                 <X size={18} />
@@ -695,7 +678,7 @@ export default function ProjectsPage() {
             <div style={{
               backgroundColor: 'var(--bg-surface-subtle)',
               padding: '1rem',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               marginBottom: '1.25rem',
               border: '1px solid var(--border-subtle)'
             }}>
@@ -757,7 +740,7 @@ export default function ProjectsPage() {
                       style={{
                         padding: '4px 10px',
                         backgroundColor: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-full)',
+                        borderRadius: 'var(--radius-xs)',
                         border: '1px solid var(--border-subtle)',
                         fontSize: '0.78rem',
                         textTransform: 'capitalize',

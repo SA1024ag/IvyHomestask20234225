@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  MapPin,
-  Bed,
-  Bath,
-  ShieldCheck,
-  ArrowLeftRight,
-  Phone,
-  UserCheck
-} from 'lucide-react';
+
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 
@@ -113,10 +105,10 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           >
             <span
               style={{
-                fontSize: '0.72rem',
+                fontSize: '0.68rem',
                 fontWeight: 700,
-                padding: '3px 9px',
-                borderRadius: 'var(--radius-full)',
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'rgba(15, 23, 42, 0.75)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
@@ -132,19 +124,15 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
                 fontSize: '0.68rem',
                 fontWeight: 700,
                 padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'rgba(5, 150, 105, 0.85)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
                 color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <ShieldCheck size={11} strokeWidth={2.5} />
-              <span>Verified Rental</span>
+              Verified Rental
             </span>
 
             {compared && (
@@ -153,16 +141,12 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
                   fontSize: '0.68rem',
                   fontWeight: 700,
                   padding: '3px 8px',
-                  borderRadius: 'var(--radius-full)',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#ffffff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
+                  color: '#ffffff'
                 }}
               >
-                <ArrowLeftRight size={10} />
-                <span>Comparing</span>
+                Comparing
               </span>
             )}
           </div>
@@ -176,7 +160,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
               fontSize: '0.68rem',
               fontWeight: 600,
               padding: '3px 8px',
-              borderRadius: 'var(--radius-full)',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'rgba(15, 23, 42, 0.65)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
@@ -247,14 +231,13 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
+              gap: '6px',
               color: 'var(--text-muted)',
               fontSize: '0.825rem',
               marginBottom: '1rem',
               textTransform: 'capitalize'
             }}
           >
-            <MapPin size={14} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {rental.locality || 'Mumbai'}
             </span>
@@ -270,7 +253,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           <div
             style={{
               backgroundColor: 'var(--bg-surface-subtle)',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               padding: '0.75rem 0.9rem',
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
@@ -321,18 +304,15 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
               marginBottom: '0.85rem'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Bed size={14} color="var(--text-muted)" />
+            <div>
               <span style={{ fontWeight: 600 }}>{rental.bedroom} BHK</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Bath size={14} color="var(--text-muted)" />
+            <div>
               <span style={{ fontWeight: 600 }}>{rental.bathroom || 2} Bath</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <UserCheck size={14} color="var(--text-muted)" />
+            <div>
               <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{rental.posted_by || 'Owner'}</span>
             </div>
           </div>
@@ -356,7 +336,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 'var(--radius-xs)',
             fontSize: '0.8rem',
             fontWeight: 600,
             cursor: 'pointer',
@@ -386,7 +366,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
               justifyContent: 'space-between',
               backgroundColor: 'var(--accent-subtle)',
               border: '1px solid var(--accent-border)',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius-xs)',
               padding: '0.45rem 0.75rem'
             }}
           >
@@ -403,7 +383,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
               className="btn btn-primary btn-sm"
               style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', flexShrink: 0 }}
             >
-              <Phone size={12} /> Call
+              Call
             </a>
           </div>
         ) : (
@@ -412,7 +392,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
             className="btn btn-secondary btn-sm"
             style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem' }}
           >
-            <Phone size={14} /> Contact Lister
+            Contact Lister
           </button>
         )}
       </div>

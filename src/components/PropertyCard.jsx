@@ -139,8 +139,8 @@ export default function PropertyCard({ listing }) {
             <span style={{
               fontSize: '0.72rem',
               fontWeight: 700,
-              padding: '3px 9px',
-              borderRadius: 'var(--radius-full)',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'rgba(15, 23, 42, 0.7)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
@@ -155,18 +155,14 @@ export default function PropertyCard({ listing }) {
               <span style={{
                 fontSize: '0.68rem',
                 fontWeight: 700,
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
+                padding: '3px 7px',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'rgba(5, 150, 105, 0.85)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
                 color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
+                border: '1px solid rgba(255, 255, 255, 0.2)'
               }}>
-                <ShieldCheck size={11} strokeWidth={2.5} />
                 <span>Verified</span>
               </span>
             )}
@@ -175,15 +171,11 @@ export default function PropertyCard({ listing }) {
               <span style={{
                 fontSize: '0.68rem',
                 fontWeight: 700,
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
+                padding: '3px 7px',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'var(--accent-primary)',
-                color: '#ffffff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
+                color: '#ffffff'
               }}>
-                <ArrowLeftRight size={10} />
                 <span>Comparing</span>
               </span>
             )}
@@ -206,7 +198,7 @@ export default function PropertyCard({ listing }) {
               right: '12px',
               width: '36px',
               height: '36px',
-              borderRadius: '50%',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: saved ? 'rgba(239, 68, 68, 0.15)' : 'rgba(15, 23, 42, 0.55)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
@@ -289,18 +281,15 @@ export default function PropertyCard({ listing }) {
 
           {/* Locality */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
             fontSize: '0.8rem',
             color: 'var(--text-muted)',
             marginBottom: '1rem',
-            textTransform: 'capitalize'
+            textTransform: 'capitalize',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}>
-            <MapPin size={13} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {listing.locality || 'Mumbai, Maharashtra'}
-            </span>
+            {listing.locality || 'Mumbai, Maharashtra'}
           </div>
 
           {/* Specs Grid */}
@@ -313,18 +302,15 @@ export default function PropertyCard({ listing }) {
             borderBottom: '1px solid var(--border-subtle)',
             fontSize: '0.78rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-body)' }}>
-              <Bed size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <div style={{ color: 'var(--text-body)' }}>
               <span style={{ fontWeight: 600 }}>{listing.bedroom ?? 2} BHK</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-body)' }}>
-              <Bath size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <div style={{ color: 'var(--text-body)' }}>
               <span style={{ fontWeight: 600 }}>{listing.bathroom ?? 2} Bath</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-body)', overflow: 'hidden' }}>
-              <Maximize2 size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            <div style={{ color: 'var(--text-body)', overflow: 'hidden' }}>
               <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {normalizedCarpetArea ? `${Number(normalizedCarpetArea).toLocaleString('en-IN')} sqft` : 'N/A'}
               </span>
@@ -374,13 +360,11 @@ export default function PropertyCard({ listing }) {
           style={{
             flex: 1,
             justifyContent: 'center',
-            gap: '4px',
             fontSize: '0.8rem',
             fontWeight: 600
           }}
         >
           <span>View Details</span>
-          <ArrowUpRight size={13} />
         </NavLink>
       </div>
     </motion.div>

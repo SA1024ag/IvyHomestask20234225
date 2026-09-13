@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import {
-  KeyRound,
-  Search,
-  MapPin,
-  SlidersHorizontal,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
-  FilterX
-} from 'lucide-react';
+import { FilterX } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import RentalCard from '../components/RentalCard';
@@ -302,8 +293,8 @@ export default function RentalsPage() {
       <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-            <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <KeyRound size={12} /> Verified Rentals
+            <span className="badge badge-emerald">
+              Verified Rentals
             </span>
             <span className="badge badge-slate">Mumbai Region</span>
             <span className="badge badge-blue">Zero Brokerage Options</span>
@@ -317,7 +308,6 @@ export default function RentalsPage() {
         {/* Total stats pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
-            <KeyRound size={14} />
             <span>{sortedRentals.length.toLocaleString('en-IN')} Matched Rentals</span>
           </div>
         </div>
@@ -350,8 +340,7 @@ export default function RentalsPage() {
               zIndex: 5
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
-              <SlidersHorizontal size={17} color="var(--accent-primary)" />
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-heading)' }}>
               <span>Rental Filters</span>
             </div>
             {activeFilterCount > 0 && (
@@ -362,7 +351,6 @@ export default function RentalsPage() {
                 style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.2rem 0.4rem' }}
                 title="Reset all filters"
               >
-                <RotateCcw size={13} />
                 <span>Reset</span>
               </button>
             )}
@@ -384,8 +372,7 @@ export default function RentalsPage() {
             {/* Search Input */}
             <div className="input-group">
               <label className="input-label" htmlFor="rental-search">Property / Society</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <input
                   id="rental-search"
                   type="text"
@@ -396,7 +383,7 @@ export default function RentalsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+                  style={{ fontSize: '0.85rem' }}
                 />
               </div>
             </div>
@@ -404,8 +391,7 @@ export default function RentalsPage() {
             {/* Locality Dropdown */}
             <div className="input-group">
               <label className="input-label" htmlFor="rental-locality">Locality</label>
-              <div style={{ position: 'relative' }}>
-                <MapPin size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <select
                   id="rental-locality"
                   value={selectedLocality}
@@ -414,7 +400,7 @@ export default function RentalsPage() {
                     setPage(1);
                   }}
                   className="input-field"
-                  style={{ paddingLeft: '34px', fontSize: '0.85rem', textTransform: 'capitalize' }}
+                  style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}
                 >
                   {LOCALITIES.map((loc) => (
                     <option key={loc} value={loc} style={{ textTransform: 'capitalize' }}>
@@ -600,7 +586,7 @@ export default function RentalsPage() {
               <div style={{
                 width: '56px',
                 height: '56px',
-                borderRadius: '50%',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 display: 'flex',
                 alignItems: 'center',
@@ -617,7 +603,7 @@ export default function RentalsPage() {
                 Try expanding your locality selection or removing the furnishing filter to discover more rental properties.
               </p>
               <button onClick={handleResetFilters} className="btn btn-primary">
-                <RotateCcw size={16} /> Reset All Filters
+                Reset All Filters
               </button>
             </div>
           ) : (
@@ -657,7 +643,7 @@ export default function RentalsPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 backgroundColor: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-lg)',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)',
                 flexWrap: 'wrap',
                 gap: '1rem'
@@ -679,7 +665,7 @@ export default function RentalsPage() {
                     disabled={page === 1}
                     className="btn btn-secondary btn-sm"
                   >
-                    <ChevronLeft size={16} /> Previous
+                    Previous
                   </button>
 
                   {/* Interactive Page Jumper */}
@@ -751,7 +737,7 @@ export default function RentalsPage() {
                     disabled={page >= totalPages}
                     className="btn btn-secondary btn-sm"
                   >
-                    Next <ChevronRight size={16} />
+                    Next
                   </button>
                 </div>
               </div>

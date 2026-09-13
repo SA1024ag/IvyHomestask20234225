@@ -62,8 +62,8 @@ export default function Navbar() {
           alignItems: 'center',
           gap: '0.25rem',
           backgroundColor: 'var(--bg-surface-subtle)',
-          padding: '4px',
-          borderRadius: 'var(--radius-full)',
+          padding: '3px',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-subtle)'
         }} className="desktop-nav">
           {navItems.map((item) => {
@@ -79,8 +79,8 @@ export default function Navbar() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  padding: '0.4rem 0.9rem',
-                  borderRadius: 'var(--radius-full)',
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: 'var(--radius-xs)',
                   fontSize: '0.85rem',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--text-heading)' : 'var(--text-muted)',
@@ -94,10 +94,10 @@ export default function Navbar() {
                 {Boolean(item.badge) && (
                   <span style={{
                     marginLeft: '2px',
-                    padding: '1px 6px',
+                    padding: '1px 5px',
                     fontSize: '0.65rem',
                     fontWeight: 700,
-                    borderRadius: '9999px',
+                    borderRadius: 'var(--radius-xs)',
                     backgroundColor: 'var(--accent-primary)',
                     color: '#ffffff'
                   }}>
@@ -113,16 +113,14 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
           {/* Theme Toggle Button */}
           <button
-            type="button"
             onClick={toggleTheme}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle theme mode"
             className="btn btn-secondary btn-sm"
             style={{
               width: '36px',
               height: '36px',
               padding: 0,
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-sm)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -141,21 +139,19 @@ export default function Navbar() {
                 display: 'none',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: 'var(--radius-full)',
+                padding: '0.35rem 0.65rem',
+                borderRadius: 'var(--radius-sm)',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 border: '1px solid var(--border-subtle)',
                 fontSize: '0.78rem',
                 color: 'var(--text-muted)'
               }} className="user-status-badge">
                 <span style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  backgroundColor: '#10b981',
-                  boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.25)'
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '1px',
+                  backgroundColor: '#10b981'
                 }} />
-                <User size={13} color="var(--accent-primary)" />
                 <span style={{ fontWeight: 600, maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user?.email || 'User'}
                 </span>
@@ -166,7 +162,6 @@ export default function Navbar() {
                 className="btn btn-secondary btn-sm"
                 title="Sign out of Ivy Homes"
               >
-                <LogOut size={14} />
                 <span className="logout-text">Logout</span>
               </button>
             </>
@@ -205,11 +200,10 @@ export default function Navbar() {
               gap: '0.6rem',
               padding: '0.65rem 0.85rem',
               backgroundColor: 'var(--bg-surface-subtle)',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-sm)',
               marginBottom: '0.5rem',
               border: '1px solid var(--border-subtle)'
             }}>
-              <User size={16} color="var(--accent-primary)" />
               <div style={{ fontSize: '0.8rem' }}>
                 <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{user?.email}</div>
                 <div style={{ color: 'var(--text-muted)' }}>Authenticated Session Active</div>
@@ -243,7 +237,7 @@ export default function Navbar() {
                     padding: '2px 7px',
                     fontSize: '0.7rem',
                     fontWeight: 700,
-                    borderRadius: '9999px',
+                    borderRadius: 'var(--radius-xs)',
                     backgroundColor: 'var(--accent-primary)',
                     color: '#ffffff'
                   }}>

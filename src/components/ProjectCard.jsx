@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Building,
-  MapPin,
-  Eye,
-  ArrowLeftRight,
-  ShieldCheck,
-  Building2
-} from 'lucide-react';
+
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 
@@ -146,7 +139,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
                 fontSize: '0.72rem',
                 fontWeight: 700,
                 padding: '3px 9px',
-                borderRadius: 'var(--radius-full)',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: statusBadgeColor,
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
@@ -164,19 +157,15 @@ export default function ProjectCard({ proj, onViewPlan }) {
                   fontSize: '0.68rem',
                   fontWeight: 700,
                   padding: '3px 8px',
-                  borderRadius: 'var(--radius-full)',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: 'rgba(15, 23, 42, 0.75)',
                   backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
                   color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}
               >
-                <ShieldCheck size={11} strokeWidth={2.5} />
-                <span>RERA Approved</span>
+                RERA Approved
               </span>
             )}
 
@@ -186,16 +175,12 @@ export default function ProjectCard({ proj, onViewPlan }) {
                   fontSize: '0.68rem',
                   fontWeight: 700,
                   padding: '3px 8px',
-                  borderRadius: 'var(--radius-full)',
+                  borderRadius: 'var(--radius-xs)',
                   backgroundColor: 'var(--accent-primary)',
-                  color: '#ffffff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
+                  color: '#ffffff'
                 }}
               >
-                <ArrowLeftRight size={10} />
-                <span>Comparing</span>
+                Comparing
               </span>
             )}
           </div>
@@ -210,7 +195,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
                 fontSize: '0.68rem',
                 fontWeight: 600,
                 padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: 'rgba(15, 23, 42, 0.65)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
@@ -238,9 +223,6 @@ export default function ProjectCard({ proj, onViewPlan }) {
           {/* Developer Name */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
               fontSize: '0.75rem',
               fontWeight: 700,
               color: 'var(--accent-text)',
@@ -252,10 +234,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
               whiteSpace: 'nowrap'
             }}
           >
-            <Building size={13} style={{ flexShrink: 0 }} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {proj.developer_name || 'Grade A Developer'}
-            </span>
+            {proj.developer_name || 'Grade A Developer'}
           </div>
 
           {/* Project Title */}
@@ -279,14 +258,13 @@ export default function ProjectCard({ proj, onViewPlan }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
+              gap: '6px',
               color: 'var(--text-muted)',
               fontSize: '0.825rem',
               marginBottom: '1rem',
               textTransform: 'capitalize'
             }}
           >
-            <MapPin size={14} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {proj.locality || 'Mumbai'}
             </span>
@@ -309,7 +287,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
             style={{
               backgroundColor: 'var(--bg-surface-subtle)',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               padding: '0.75rem 1rem',
               marginBottom: '0.85rem'
             }}
@@ -401,7 +379,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
                       padding: '2px 7px',
                       backgroundColor: 'var(--bg-surface-subtle)',
                       border: '1px solid var(--border-subtle)',
-                      borderRadius: '4px',
+                      borderRadius: 'var(--radius-xs)',
                       color: 'var(--text-body)',
                       textTransform: 'capitalize',
                       whiteSpace: 'nowrap'
@@ -442,7 +420,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
             alignItems: 'center',
             gap: '6px',
             padding: '6px 12px',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 'var(--radius-xs)',
             fontSize: '0.8rem',
             fontWeight: 600,
             cursor: 'pointer',
@@ -468,7 +446,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
           className="btn btn-secondary btn-sm"
           style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem' }}
         >
-          <Eye size={14} /> View Development Plan
+          View Development Plan
         </button>
       </div>
     </div>

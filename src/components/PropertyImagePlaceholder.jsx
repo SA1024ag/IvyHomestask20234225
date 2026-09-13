@@ -74,7 +74,7 @@ export default function PropertyImagePlaceholder({
           style={{
             width: '42px',
             height: '42px',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-xs)',
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(8px)',

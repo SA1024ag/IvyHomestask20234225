@@ -1,23 +1,5 @@
 import React from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import {
-  Building2,
-  Home,
-  KeyRound,
-  FolderKanban,
-  ArrowRight,
-  ShieldCheck,
-  TrendingUp,
-  Sparkles,
-  MapPin,
-  CheckCircle2,
-  Activity,
-  ArrowLeftRight,
-  BarChart3,
-  Layers,
-  Award,
-  ShieldAlert
-} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const LOCALITY_SPOTLIGHTS = [
@@ -112,7 +94,7 @@ export default function LandingPage() {
           {/* User Welcome Pill if Authenticated */}
           {isAuthenticated && (
             <span className="badge badge-emerald" style={{ fontSize: '0.78rem', padding: '0.3rem 0.8rem' }}>
-              <CheckCircle2 size={13} /> Active Session: Welcome back, {user?.name || user?.email}
+              Active Session: Welcome back, {user?.name || user?.email}
             </span>
           )}
 
@@ -152,29 +134,19 @@ export default function LandingPage() {
             padding: '2rem',
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--radius-md)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
           }}>
             <div>
-              {/* Header Accent Pill */}
+              {/* Header Category Tag */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #047857 0%, #10b981 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.3)'
-                }}>
-                  <Home size={24} />
-                </div>
-                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent-primary)' }}>
+                  Channel 01 • Buy
+                </span>
+                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem' }}>
                   5,100 Verified Records
                 </span>
               </div>
@@ -195,7 +167,7 @@ export default function LandingPage() {
                 marginBottom: '1.5rem',
                 padding: '0.85rem',
                 backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)'
               }}>
                 <div>
@@ -234,14 +206,12 @@ export default function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
                 fontWeight: 700,
                 textDecoration: 'none'
               }}
             >
               <span>Explore Properties for Sale</span>
-              <ArrowRight size={16} />
             </NavLink>
           </div>
 
@@ -250,29 +220,19 @@ export default function LandingPage() {
             padding: '2rem',
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--radius-md)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
           }}>
             <div>
-              {/* Header Accent Pill */}
+              {/* Header Category Tag */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(5, 150, 105, 0.3)'
-                }}>
-                  <KeyRound size={24} />
-                </div>
-                <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent-primary)' }}>
+                  Channel 02 • Rent
+                </span>
+                <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem' }}>
                   Curated Executive Leases
                 </span>
               </div>
@@ -293,7 +253,7 @@ export default function LandingPage() {
                 marginBottom: '1.5rem',
                 padding: '0.85rem',
                 backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)'
               }}>
                 <div>
@@ -302,7 +262,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Lease Clarity</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669' }}>100% Honest</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>100% Honest</div>
                 </div>
               </div>
 
@@ -332,14 +292,12 @@ export default function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
                 fontWeight: 700,
                 textDecoration: 'none'
               }}
             >
               <span>Browse Rental Homes</span>
-              <ArrowRight size={16} />
             </NavLink>
           </div>
 
@@ -348,29 +306,19 @@ export default function LandingPage() {
             padding: '2rem',
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
+            borderRadius: 'var(--radius-md)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
           }}>
             <div>
-              {/* Header Accent Pill */}
+              {/* Header Category Tag */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #047857 0%, #10b981 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.3)'
-                }}>
-                  <FolderKanban size={24} />
-                </div>
-                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent-primary)' }}>
+                  Channel 03 • Developments
+                </span>
+                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.25rem 0.65rem' }}>
                   50+ Master Projects
                 </span>
               </div>
@@ -391,7 +339,7 @@ export default function LandingPage() {
                 marginBottom: '1.5rem',
                 padding: '0.85rem',
                 backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)'
               }}>
                 <div>
@@ -430,14 +378,12 @@ export default function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
                 fontWeight: 700,
                 textDecoration: 'none'
               }}
             >
               <span>Discover Builder Projects</span>
-              <ArrowRight size={16} />
             </NavLink>
           </div>
         </div>
@@ -446,94 +392,50 @@ export default function LandingPage() {
             3. LIVE MARKET TELEMETRY & AUDIT INTEGRITY BANNER
             ===================================================================== */}
         <div className="ivy-card" style={{
-          padding: '1.35rem 1.75rem',
-          background: 'linear-gradient(to right, var(--bg-surface), var(--bg-surface-subtle))',
+          padding: '1.25rem 1.75rem',
+          background: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-xl)'
+          borderRadius: 'var(--radius-md)'
         }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1.25rem',
+            gap: '1.5rem',
             alignItems: 'center'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-green-bg)',
-                color: 'var(--status-green-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <Activity size={20} />
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
+                Citywide Benchmark
               </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Citywide Benchmark</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text-heading)' }}>₹32,528 / sqft</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                ₹32,528 / sqft
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-blue-bg)',
-                color: 'var(--status-blue-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <TrendingUp size={20} />
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
+                Median Valuation
               </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Median Valuation</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text-heading)' }}>₹3.30 Cr</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                ₹3.30 Cr
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--accent-subtle)',
-                color: 'var(--accent-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <Building2 size={20} />
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
+                Deduplicated Catalog
               </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Deduplicated Catalog</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text-heading)' }}>4,775 Unique Homes</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                4,775 Unique Homes
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-amber-bg)',
-                color: 'var(--status-amber-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <ShieldCheck size={20} />
+            <div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
+                Forensic Health Shield
               </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Forensic Health Shield</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#10b981' }}>10 / 10 Mitigated</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
+                10 / 10 Mitigated
               </div>
             </div>
           </div>
@@ -561,20 +463,7 @@ export default function LandingPage() {
             gap: '1.25rem'
           }}>
             {/* Edge 1 */}
-            <div className="ivy-card" style={{ padding: '1.5rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-blue-bg)',
-                color: 'var(--status-blue-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '0.85rem'
-              }}>
-                <Layers size={18} />
-              </div>
+            <div className="ivy-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius-sm)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
                 Zero Duplicate Broker Spam
               </h3>
@@ -584,20 +473,7 @@ export default function LandingPage() {
             </div>
 
             {/* Edge 2 */}
-            <div className="ivy-card" style={{ padding: '1.5rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-amber-bg)',
-                color: 'var(--status-amber-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '0.85rem'
-              }}>
-                <ShieldAlert size={18} />
-              </div>
+            <div className="ivy-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius-sm)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
                 Zero Fake Lead-Generation Bait
               </h3>
@@ -607,20 +483,7 @@ export default function LandingPage() {
             </div>
 
             {/* Edge 3 */}
-            <div className="ivy-card" style={{ padding: '1.5rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--accent-subtle)',
-                color: 'var(--accent-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '0.85rem'
-              }}>
-                <ArrowLeftRight size={18} />
-              </div>
+            <div className="ivy-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius-sm)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
                 Unified Multi-Asset Compare
               </h3>
@@ -630,20 +493,7 @@ export default function LandingPage() {
             </div>
 
             {/* Edge 4 */}
-            <div className="ivy-card" style={{ padding: '1.5rem' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                backgroundColor: 'var(--status-green-bg)',
-                color: 'var(--status-green-text)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '0.85rem'
-              }}>
-                <CheckCircle2 size={18} />
-              </div>
+            <div className="ivy-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius-sm)' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
                 True Live Developer Inventories
               </h3>
@@ -661,7 +511,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
               <span className="badge badge-slate" style={{ marginBottom: '0.4rem' }}>
-                <MapPin size={12} /> Micro-Market Exploration
+                Micro-Market Exploration
               </span>
               <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.03em' }}>
                 Explore Prime Mumbai Enclaves
@@ -671,8 +521,7 @@ export default function LandingPage() {
               </p>
             </div>
             <NavLink to="/insights" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
-              <BarChart3 size={14} />
-              <span>View Micro-Market Intelligence</span>
+              View Micro-Market Intelligence
             </NavLink>
           </div>
 
@@ -687,7 +536,7 @@ export default function LandingPage() {
                 className="ivy-card landing-card-hover"
                 style={{
                   padding: '1.35rem',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: 'var(--radius-sm)',
                   border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   flexDirection: 'column',
@@ -716,7 +565,7 @@ export default function LandingPage() {
                     alignItems: 'center',
                     padding: '0.65rem 0.75rem',
                     backgroundColor: 'var(--bg-surface-subtle)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-xs)',
                     marginBottom: '0.85rem'
                   }}>
                     <div>
@@ -758,7 +607,7 @@ export default function LandingPage() {
             ===================================================================== */}
         <div style={{
           padding: '2.5rem 1.75rem',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: 'var(--radius-md)',
           background: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #111827 100%)',
           color: '#ffffff',
           textAlign: 'center',
@@ -770,16 +619,15 @@ export default function LandingPage() {
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.3rem 0.75rem',
-              borderRadius: '9999px',
+              padding: '0.25rem 0.65rem',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'rgba(255, 255, 255, 0.15)',
               backdropFilter: 'blur(8px)',
               fontSize: '0.75rem',
               fontWeight: 700,
               marginBottom: '0.85rem'
             }}>
-              <Sparkles size={12} /> The Standard in Mumbai Real Estate
+              The Standard in Mumbai Real Estate
             </span>
 
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '0.75rem', color: '#ffffff' }}>
@@ -795,7 +643,7 @@ export default function LandingPage() {
                 to="/listings"
                 style={{
                   padding: '0.75rem 1.4rem',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: 'var(--radius-sm)',
                   backgroundColor: '#ffffff',
                   color: '#064e3b',
                   fontWeight: 800,
@@ -803,19 +651,17 @@ export default function LandingPage() {
                   textDecoration: 'none',
                   boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
                   display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem'
+                  alignItems: 'center'
                 }}
               >
                 <span>Explore Properties (Buy)</span>
-                <ArrowRight size={15} />
               </NavLink>
 
               <NavLink
                 to="/rentals"
                 style={{
                   padding: '0.75rem 1.4rem',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   color: '#ffffff',
                   fontWeight: 700,
@@ -824,8 +670,7 @@ export default function LandingPage() {
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem'
+                  alignItems: 'center'
                 }}
               >
                 <span>Browse Rentals</span>
@@ -835,7 +680,7 @@ export default function LandingPage() {
                 to="/projects"
                 style={{
                   padding: '0.75rem 1.4rem',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   color: '#ffffff',
                   fontWeight: 700,
@@ -844,8 +689,7 @@ export default function LandingPage() {
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem'
+                  alignItems: 'center'
                 }}
               >
                 <span>Builder Projects</span>

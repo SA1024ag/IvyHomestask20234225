@@ -1,12 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  Bookmark,
-  Heart,
-  Home,
-  ArrowRight,
-  Loader2
-} from 'lucide-react';
+import { Bookmark, Loader2 } from 'lucide-react';
 import { useFavourites } from '../context/FavouritesContext';
 import PropertyCard from '../components/PropertyCard';
 
@@ -39,7 +33,6 @@ export default function FavouritesPage() {
             <span>Sync with Server</span>
           </button>
           <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem' }}>
-            <Heart size={14} fill="#ef4444" stroke="#ef4444" />
             <span>{favourites.length} Saved {favourites.length === 1 ? 'Property' : 'Properties'}</span>
           </div>
         </div>
@@ -54,7 +47,7 @@ export default function FavouritesPage() {
           justifyContent: 'center',
           gap: '0.75rem',
           backgroundColor: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-lg)',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-subtle)'
         }}>
           <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
@@ -75,9 +68,9 @@ export default function FavouritesPage() {
           margin: '2rem auto'
         }}>
           <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
+            width: '56px',
+            height: '56px',
+            borderRadius: 'var(--radius-xs)',
             backgroundColor: 'var(--accent-subtle)',
             display: 'flex',
             alignItems: 'center',
@@ -85,7 +78,7 @@ export default function FavouritesPage() {
             color: 'var(--accent-primary)',
             marginBottom: '1.25rem'
           }}>
-            <Bookmark size={30} strokeWidth={1.8} />
+            <Bookmark size={26} strokeWidth={1.8} />
           </div>
 
           <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-heading)' }}>
@@ -96,9 +89,7 @@ export default function FavouritesPage() {
           </p>
 
           <NavLink to="/listings" className="btn btn-primary" style={{ marginTop: '1.75rem' }}>
-            <Home size={16} />
-            <span>Explore Sale Catalog</span>
-            <ArrowRight size={16} />
+            Explore Sale Catalog
           </NavLink>
         </div>
       ) : (

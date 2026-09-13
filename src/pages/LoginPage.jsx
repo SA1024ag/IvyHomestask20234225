@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import IvyLogo from '../components/IvyLogo';
-import {
-  Lock,
-  Mail,
-  ArrowRight,
-  ShieldCheck,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  Zap,
-  UserCheck
-} from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const DEMO_ACCOUNTS = [
   {
@@ -114,7 +103,7 @@ export default function LoginPage() {
           <div style={{
             marginBottom: '1.5rem',
             padding: '0.85rem 1rem',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-xs)',
             backgroundColor: 'var(--accent-subtle)',
             border: '1px solid var(--accent-border)',
             display: 'flex',
@@ -122,11 +111,8 @@ export default function LoginPage() {
             justifyContent: 'space-between',
             gap: '0.75rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <UserCheck size={18} color="var(--accent-primary)" />
-              <div style={{ fontSize: '0.825rem', color: 'var(--accent-text)' }}>
-                Active session: <strong>{user.email}</strong>
-              </div>
+            <div style={{ fontSize: '0.825rem', color: 'var(--accent-text)' }}>
+              Active session: <strong>{user.email}</strong>
             </div>
             <button
               onClick={() => navigate('/')}
@@ -173,9 +159,8 @@ export default function LoginPage() {
             justifyContent: 'space-between',
             marginBottom: '0.75rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-              <Zap size={16} color="var(--accent-primary)" />
-              <span>Demo Accounts</span>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+              Demo Accounts
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
               Click to fill form
@@ -194,7 +179,7 @@ export default function LoginPage() {
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     padding: '0.65rem',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-xs)',
                     border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                     backgroundColor: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
                     cursor: 'pointer',
@@ -213,7 +198,6 @@ export default function LoginPage() {
                       justifyContent: 'space-between'
                     }}>
                       <span>{acc.name}</span>
-                      {isSelected && <CheckCircle2 size={12} color="var(--accent-primary)" />}
                     </div>
                     <div style={{
                       fontSize: '0.68rem',
@@ -239,20 +223,18 @@ export default function LoginPage() {
                       padding: '3px 6px',
                       fontSize: '0.65rem',
                       fontWeight: 700,
-                      borderRadius: '4px',
+                      borderRadius: 'var(--radius-xs)',
                       border: 'none',
                       backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-hover)',
                       color: isSelected ? '#ffffff' : 'var(--text-body)',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '2px',
                       width: 'fit-content'
                     }}
                     title={`Instant 1-click sign in as ${acc.email}`}
                   >
                     <span>Instant In</span>
-                    <ArrowRight size={10} />
                   </button>
                 </div>
               );
@@ -264,12 +246,8 @@ export default function LoginPage() {
               marginTop: '0.65rem',
               fontSize: '0.75rem',
               color: 'var(--accent-text)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
               fontWeight: 500
             }}>
-              <CheckCircle2 size={13} color="var(--accent-primary)" />
               <span>{fillFeedback}</span>
             </div>
           )}
@@ -279,18 +257,14 @@ export default function LoginPage() {
         <div className="ivy-card" style={{ padding: '2rem' }}>
           {errorMessage && (
             <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '0.625rem',
               padding: '0.85rem 1rem',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               backgroundColor: 'var(--status-amber-bg)',
               border: '1px solid var(--status-amber-border)',
               color: 'var(--status-amber-text)',
               fontSize: '0.875rem',
               marginBottom: '1.25rem'
             }}>
-              <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div>
                 <strong style={{ fontWeight: 700 }}>Authentication error: </strong>
                 {errorMessage}
@@ -303,8 +277,7 @@ export default function LoginPage() {
               <label className="input-label" htmlFor="email-input">
                 Email Address
               </label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <div>
                 <input
                   id="email-input"
                   type="email"
@@ -316,7 +289,6 @@ export default function LoginPage() {
                   placeholder="demo1@ivy.homes"
                   required
                   className="input-field"
-                  style={{ paddingLeft: '38px' }}
                 />
               </div>
             </div>
@@ -331,7 +303,6 @@ export default function LoginPage() {
                 </span>
               </div>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   id="password-input"
                   type={showPassword ? 'text' : 'password'}
@@ -340,7 +311,7 @@ export default function LoginPage() {
                   placeholder="Enter demo password"
                   required
                   className="input-field"
-                  style={{ paddingLeft: '38px', paddingRight: '40px' }}
+                  style={{ paddingRight: '40px' }}
                 />
                 <button
                   type="button"
@@ -382,10 +353,7 @@ export default function LoginPage() {
                   <span>Authenticating...</span>
                 </>
               ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight size={18} />
-                </>
+                <span>Sign In</span>
               )}
             </button>
           </form>
@@ -395,14 +363,12 @@ export default function LoginPage() {
         <div style={{
           marginTop: '1.5rem',
           padding: '0.9rem 1.1rem',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-xs)',
           backgroundColor: 'var(--bg-surface)',
           border: '1px solid var(--border-subtle)',
           display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
+          alignItems: 'center'
         }}>
-          <ShieldCheck size={20} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
           <div style={{ fontSize: '0.78rem', color: 'var(--text-body)', lineHeight: 1.4 }}>
             <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Automatic 30+ Min Session Renewal: </span>
             Tokens are safely persisted in localStorage and proactively refreshed via <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-text)' }}>/auth/refresh</code>.
