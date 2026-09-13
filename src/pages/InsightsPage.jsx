@@ -9,7 +9,12 @@ import {
   CheckCircle2,
   ArrowUpRight,
   Loader2,
-  Activity
+  Activity,
+  AlertTriangle,
+  AlertOctagon,
+  ShieldAlert,
+  Copy,
+  Building2
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 
@@ -90,6 +95,22 @@ export default function InsightsPage() {
         </div>
       ) : (
         <>
+          {error && (
+            <div style={{
+              padding: '0.75rem 1.25rem',
+              backgroundColor: 'var(--status-amber-bg)',
+              color: 'var(--status-amber-text)',
+              border: '1px solid var(--status-amber-border)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <AlertTriangle size={16} />
+              <span>{error} Rendering cached metrics derived from verified datasets.</span>
+            </div>
+          )}
           {/* Bento-Box Hero Metrics Grid */}
           <div style={{
             display: 'grid',
@@ -290,6 +311,169 @@ export default function InsightsPage() {
               }}>
                 <span>100% RERA compliant</span>
                 <CheckCircle2 size={13} color="#10b981" />
+              </div>
+            </div>
+          </div>
+
+          {/* Prominent Data Quality Alerts Section */}
+          <div className="ivy-card" style={{
+            padding: '1.75rem 2rem',
+            background: 'linear-gradient(to bottom right, var(--bg-surface), var(--bg-surface-subtle))',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-xl)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--status-amber-bg)',
+                  color: 'var(--status-amber-text)',
+                  border: '1px solid var(--status-amber-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.02em' }}>
+                    Data Quality Alerts
+                  </h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>
+                    Critical catalog disclosures, forensic audit findings, and integrity alerts across Mumbai property datasets.
+                  </p>
+                </div>
+              </div>
+              <span className="badge badge-amber" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <ShieldAlert size={13} /> Audit Disclosures
+              </span>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
+              gap: '1.25rem'
+            }}>
+              {/* Alert 1: Market Alert */}
+              <div style={{
+                padding: '1.25rem',
+                backgroundColor: 'var(--status-red-bg)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--status-red-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '0.75rem'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <AlertOctagon size={16} color="var(--status-red-text)" />
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--status-red-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Market Alert
+                      </span>
+                    </div>
+                    <span className="badge badge-red" style={{ fontSize: '0.68rem' }}>Forensic Flag</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-heading)', fontWeight: 600, lineHeight: 1.5 }}>
+                    Market Alert: Platform contains properties with physically impossible dimensions and negative prices.
+                  </p>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px solid var(--status-red-border)', paddingTop: '0.5rem' }}>
+                  Audited 33 corrupt records exhibiting negative prices or carpet area exceeding super built-up area.
+                </div>
+              </div>
+
+              {/* Alert 2: Fraud Alert */}
+              <div style={{
+                padding: '1.25rem',
+                backgroundColor: 'var(--status-amber-bg)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--status-amber-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '0.75rem'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <AlertTriangle size={16} color="var(--status-amber-text)" />
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--status-amber-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Fraud Alert
+                      </span>
+                    </div>
+                    <span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>Lead Bait</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-heading)', fontWeight: 600, lineHeight: 1.5 }}>
+                    Fraud Alert: Multiple listings identified as low-price clickbait for lead generation.
+                  </p>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px solid var(--status-amber-border)', paddingTop: '0.5rem' }}>
+                  Identified 11 fake listings with impossible price-per-sqft (&lt;₹5,000/sqft in prime localities) created as broker clickbait.
+                </div>
+              </div>
+
+              {/* Alert 3: Duplicate Alert */}
+              <div style={{
+                padding: '1.25rem',
+                backgroundColor: 'var(--status-blue-bg)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--status-blue-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '0.75rem'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Copy size={16} color="var(--status-blue-text)" />
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--status-blue-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Duplicate Alert
+                      </span>
+                    </div>
+                    <span className="badge badge-blue" style={{ fontSize: '0.68rem' }}>Syndication</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-heading)', fontWeight: 600, lineHeight: 1.5 }}>
+                    Duplicate Alert: Identical physical apartments are frequently duplicated across different broker portals.
+                  </p>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px solid var(--status-blue-border)', paddingTop: '0.5rem' }}>
+                  Fingerprint deduplication identified 4,775 distinct physical homes from 5,100 listings, caused by cross-broker syndication.
+                </div>
+              </div>
+
+              {/* Alert 4: Availability Mismatch */}
+              <div style={{
+                padding: '1.25rem',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-subtle)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '0.75rem'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Building2 size={16} color="var(--accent-text)" />
+                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Availability Mismatch
+                      </span>
+                    </div>
+                    <span className="badge badge-accent" style={{ fontSize: '0.68rem' }}>Inventory Gap</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-heading)', fontWeight: 600, lineHeight: 1.5 }}>
+                    Availability Mismatch: Builder project availability counts routinely misrepresent the actual number of active listings.
+                  </p>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4, borderTop: '1px solid var(--border-subtle)', paddingTop: '0.5rem' }}>
+                  Builder metadata claims hundreds of available units per project while active, validated listings reflect significantly smaller live inventories.
+                </div>
               </div>
             </div>
           </div>

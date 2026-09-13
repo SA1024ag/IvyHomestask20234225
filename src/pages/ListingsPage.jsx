@@ -62,6 +62,9 @@ export default function ListingsPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sorting States (Client-Side Sorting Fallback for order=desc)
+  const [sortOption, setSortOption] = useState('price_asc');
+
   // Pagination States
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -78,10 +81,14 @@ export default function ListingsPage() {
     setIsLoading(true);
     setApiError(null);
 
+    const [field, order] = sortOption.split('_');
+
     const queryParams = {
       page: page,
       limit: limit,
-      offset: (page - 1) * limit
+      offset: (page - 1) * limit,
+      sort_by: field === 'area' ? 'carpet_area' : field === 'newest' ? 'posted_at' : 'price',
+      order: order || 'asc'
     };
 
     // Pass filters to the server
@@ -119,24 +126,30 @@ export default function ListingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing]);
+  }, [page, limit, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, sortOption]);
 
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
 
-  // CRITICAL CLIENT-SIDE FALLBACK FILTERING:
-  // Strictly filter the resulting array on client-side to enforce filters even if server ignores them!
+  // CRITICAL CLIENT-SIDE FALLBACK FILTERING & ACTIVE STATUS ENFORCEMENT:
+  // 1. Strictly filter to only render properties where is_live === true (API leaks inactive records)
+  // 2. Client-side fallback for furnishing, min_price, max_price (silently ignored by server)
   const filteredListings = useMemo(() => {
     return rawListings.filter((item) => {
-      // 1. Locality Filter
+      // 1. Active Status Enforcement: strictly filter out inactive/expired listings
+      if (item.is_live !== true) {
+        return false;
+      }
+
+      // 2. Locality Filter
       if (selectedLocality !== 'All Localities') {
         if (!item.locality || item.locality.toLowerCase() !== selectedLocality.toLowerCase()) {
           return false;
         }
       }
 
-      // 2. BHK / Bedroom Filter
+      // 3. BHK / Bedroom Filter
       if (selectedBhk) {
         if (selectedBhk === '5') {
           if (Number(item.bedroom) < 5) return false;
@@ -145,7 +158,7 @@ export default function ListingsPage() {
         }
       }
 
-      // 3. Price Range Filters
+      // 4. Price Range Filters (server silently ignores min_price & max_price)
       if (minPrice && Number(item.price) < Number(minPrice)) {
         return false;
       }
@@ -153,14 +166,14 @@ export default function ListingsPage() {
         return false;
       }
 
-      // 4. Furnishing Filter
+      // 5. Furnishing Filter (server silently ignores furnishing parameter)
       if (selectedFurnishing) {
-        if (!item.furnishing || item.furnishing.toLowerCase() !== selectedFurnishing.toLowerCase()) {
+        if (!item.furnishing || item.furnishing.trim().toLowerCase() !== selectedFurnishing.trim().toLowerCase()) {
           return false;
         }
       }
 
-      // 5. Search Text Filter (Apartment name or description)
+      // 6. Search Text Filter (Apartment name or description)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const apt = (item.apartment_name || '').toLowerCase();
@@ -175,10 +188,40 @@ export default function ListingsPage() {
     });
   }, [rawListings, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, searchQuery]);
 
+  // CRITICAL CLIENT-SIDE SORTING FALLBACK:
+  // Server ignores order=desc and always returns asc. We sort/reverse locally on the client!
+  const sortedListings = useMemo(() => {
+    const list = [...filteredListings];
+    const [field, order] = sortOption.split('_');
+
+    list.sort((a, b) => {
+      let valA = 0;
+      let valB = 0;
+
+      if (field === 'price') {
+        valA = Number(a.price) || 0;
+        valB = Number(b.price) || 0;
+      } else if (field === 'area') {
+        valA = Number(a.carpet_area) || 0;
+        valB = Number(b.carpet_area) || 0;
+      } else if (field === 'newest') {
+        valA = new Date(a.posted_at).getTime() || 0;
+        valB = new Date(b.posted_at).getTime() || 0;
+      }
+
+      if (order === 'desc') {
+        return valB > valA ? 1 : valB < valA ? -1 : 0;
+      }
+      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    });
+
+    return list;
+  }, [filteredListings, sortOption]);
+
   // Current batch listings for grid display
   const paginatedListings = useMemo(() => {
-    return filteredListings;
-  }, [filteredListings]);
+    return sortedListings;
+  }, [sortedListings]);
 
   const totalPages = Math.ceil(totalServerCount / limit) || 1;
 
@@ -457,8 +500,35 @@ export default function ListingsPage() {
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>Page {page}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Sort:</span>
+                <select
+                  value={sortOption}
+                  onChange={(e) => {
+                    setSortOption(e.target.value);
+                    setPage(1);
+                  }}
+                  className="input-field"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.3rem 0.6rem',
+                    borderRadius: 'var(--radius-sm)',
+                    minWidth: '150px'
+                  }}
+                  aria-label="Sort listings"
+                >
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="area_asc">Carpet: Small to Large</option>
+                  <option value="area_desc">Carpet: Large to Small</option>
+                  <option value="newest_desc">Newest Listed</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span>Page {page}</span>
+              </div>
             </div>
           </div>
 

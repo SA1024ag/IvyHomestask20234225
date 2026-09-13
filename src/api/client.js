@@ -1,7 +1,7 @@
 /**
  * Ivy Homes API Client Helper
  * Base URL: https://solve.ivy.homes
- * Automatically appends api_key query param and attaches Bearer token & X-API-Key headers.
+ * Attaches Bearer token & X-API-Key HTTP header. No api_key query parameter is passed in URL.
  * Includes automatic token refresh to ensure the session lasts beyond 30 minutes.
  */
 
@@ -25,11 +25,11 @@ function onRefreshed(token) {
 }
 
 /**
- * Builds the full URL with the mandatory api_key query param and any extra parameters.
+ * Builds the full URL with endpoint and any query parameters (excluding api_key which is passed via header).
  */
 export function buildUrl(endpoint, params = {}) {
   const url = new URL(`${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`);
-  url.searchParams.set('api_key', API_KEY);
+  // api_key is strictly passed via X-API-Key HTTP header, not as a query parameter
 
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
@@ -262,42 +262,27 @@ export const apiClient = {
   },
 
   // Favourites / Saved Listings API
-  // Note: Server serves this at /v1/saved; we support both /v1/saved and /v1/favourites
+  // Using the correct live endpoint: /v1/saved
   getFavourites: async () => {
     try {
       const data = await request('/v1/saved');
       return Array.isArray(data) ? data : (data.results || []);
-    } catch {
-      try {
-        const data = await request('/v1/favourites');
-        return Array.isArray(data) ? data : (data.results || []);
-      } catch {
-        return [];
-      }
+    } catch (err) {
+      console.error('Failed to fetch saved properties from /v1/saved:', err);
+      return [];
     }
   },
 
   addFavourite: async (listingId) => {
-    const payload = { listing_id: listingId, id: listingId };
-    try {
-      return await request('/v1/saved', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      return await request('/v1/favourites', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-    }
+    // /v1/saved strictly requires {"listing_id": "..."} in request body
+    return request('/v1/saved', {
+      method: 'POST',
+      body: JSON.stringify({ listing_id: listingId }),
+    });
   },
 
   removeFavourite: async (listingId) => {
-    try {
-      return await request(`/v1/saved/${listingId}`, { method: 'DELETE' });
-    } catch {
-      return await request(`/v1/favourites/${listingId}`, { method: 'DELETE' });
-    }
+    return request(`/v1/saved/${listingId}`, { method: 'DELETE' });
   },
 
   // Rentals API

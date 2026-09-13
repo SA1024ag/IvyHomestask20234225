@@ -336,6 +336,9 @@ export default function ProjectCard({ proj, onViewPlan }) {
             >
               {formatProjectPrice(proj.price_min)} – {formatProjectPrice(proj.price_max)}
             </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+              {proj.price_min ? `₹${Number(proj.price_min).toLocaleString('en-IN')}` : '—'} – {proj.price_max ? `₹${Number(proj.price_max).toLocaleString('en-IN')}` : '—'}
+            </div>
           </div>
 
           {/* Detailed Specs Grid */}

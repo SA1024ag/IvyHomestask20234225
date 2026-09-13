@@ -41,6 +41,10 @@
   --status-blue-text: #1d4ed8;
   --status-blue-border: #bfdbfe;
 
+  --status-red-bg: #fef2f2;
+  --status-red-text: #b91c1c;
+  --status-red-border: #fecaca;
+
   /* Subtle Badges */
   --badge-bg: #f1f5f9;
   --badge-text: #475569;
@@ -106,6 +110,10 @@
   --status-blue-bg: rgba(37, 99, 235, 0.15);
   --status-blue-text: #60a5fa;
   --status-blue-border: rgba(96, 165, 250, 0.3);
+
+  --status-red-bg: rgba(239, 68, 68, 0.15);
+  --status-red-text: #f87171;
+  --status-red-border: rgba(239, 68, 68, 0.3);
 
   /* Subtle Badges */
   --badge-bg: rgba(255, 255, 255, 0.07);
@@ -329,6 +337,12 @@ button, input, select, textarea {
   background-color: var(--badge-bg);
   color: var(--badge-text);
   border-color: var(--badge-border);
+}
+
+.badge-red {
+  background-color: var(--status-red-bg);
+  color: var(--status-red-text);
+  border-color: var(--status-red-border);
 }
 
 /* Page Typography System */

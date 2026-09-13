@@ -77,7 +77,13 @@ export default function ProjectsPage() {
     try {
       const data = await apiClient.getProjects(queryParams);
       const results = Array.isArray(data) ? data : (data.results || []);
-      setRawProjects(results);
+      // Convert project price_min & price_max from floating-point Crores to full Rupees
+      const convertedProjects = results.map((proj) => ({
+        ...proj,
+        price_min: proj.price_min != null ? (proj.price_min < 1000 ? Math.round(proj.price_min * 10000000) : proj.price_min) : null,
+        price_max: proj.price_max != null ? (proj.price_max < 1000 ? Math.round(proj.price_max * 10000000) : proj.price_max) : null,
+      }));
+      setRawProjects(convertedProjects);
       if (typeof data.total === 'number') {
         setTotalCount(data.total);
       }
@@ -553,6 +559,9 @@ export default function ProjectsPage() {
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>PRICE BRACKET</div>
               <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--accent-text)', marginTop: '2px' }}>
                 {formatProjectPrice(selectedProjectModal.price_min)} – {formatProjectPrice(selectedProjectModal.price_max)}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                {selectedProjectModal.price_min ? `₹${Number(selectedProjectModal.price_min).toLocaleString('en-IN')}` : '—'} – {selectedProjectModal.price_max ? `₹${Number(selectedProjectModal.price_max).toLocaleString('en-IN')}` : '—'}
               </div>
             </div>
 
