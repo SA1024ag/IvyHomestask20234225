@@ -697,7 +697,7 @@ export default function InsightsPage() {
           </span>
           <span className="badge badge-slate">5,100 Verified Records</span>
           <span className="badge badge-amber">
-            10 Forensic Discoveries Reconciled
+            {AUDIT_FINDINGS.length} Forensic Discoveries Reconciled
           </span>
         </div>
         <h1 className="page-title">Property Insights & Analytics</h1>
@@ -966,12 +966,12 @@ export default function InsightsPage() {
                   alignItems: 'baseline',
                   gap: '6px'
                 }}>
-                  <span>10 / 10</span>
+                  <span>{AUDIT_FINDINGS.length} / {AUDIT_FINDINGS.length}</span>
                   <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#10b981' }}>Mitigated</span>
                 </div>
 
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                  4 Catalog Anomalies + 6 API Discrepancies
+                  {catalogCount} Catalog Anomalies + {apiCount} API Discrepancies
                 </div>
               </div>
 
@@ -1206,7 +1206,7 @@ export default function InsightsPage() {
           }}>
             <div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.01em' }}>
-                10 Forensic Discovery Answers
+                {FORENSIC_ANSWERS.length} Forensic Discovery Answers
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                 All answers from <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent-text)' }}>submission.json</code> — with explanation &amp; methodology
@@ -1218,7 +1218,7 @@ export default function InsightsPage() {
               className="btn btn-secondary btn-sm"
               style={{ fontWeight: 700 }}
             >
-              {showAnswers ? 'Hide Answers' : 'View All 10 Answers'}
+              {showAnswers ? 'Hide Answers' : `View All ${FORENSIC_ANSWERS.length} Answers`}
             </button>
           </div>
 
@@ -1238,11 +1238,11 @@ export default function InsightsPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
               }}>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-heading)' }}>All 10 Forensic Question Answers</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-heading)' }}>All {FORENSIC_ANSWERS.length} Forensic Question Answers</div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Methodology, evidence, and verified values from full dataset analysis</div>
                 </div>
                 <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
-                  10 / 10 Answered
+                  {FORENSIC_ANSWERS.length} / {FORENSIC_ANSWERS.length} Answered
                 </span>
               </div>
 
@@ -1333,11 +1333,11 @@ export default function InsightsPage() {
                     Forensic Audit &amp; Platform Discrepancies
                   </h2>
                   <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
-                    10 / 10 Mitigated
+                    {AUDIT_FINDINGS.length} / {AUDIT_FINDINGS.length} Mitigated
                   </span>
                 </div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
-                  Reconciliation of the 10 verified discrepancies discovered between API documentation and live server behavior, with active client defenses.
+                  Reconciliation of the {AUDIT_FINDINGS.length} verified discrepancies discovered between API documentation and live server behavior, with active client defenses.
                 </p>
               </div>
 

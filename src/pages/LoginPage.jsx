@@ -151,7 +151,8 @@ export default function LoginPage() {
         {/* Quick Demo Fill Grid */}
         <div className="ivy-card" style={{
           marginBottom: '1.5rem',
-          padding: '1.25rem'
+          padding: '1.25rem',
+          borderRadius: '0.85rem'
         }}>
           <div style={{
             display: 'flex',
@@ -167,7 +168,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem' }}>
             {DEMO_ACCOUNTS.map((acc) => {
               const isSelected = activeDemoId === acc.id;
               return (
@@ -178,8 +179,8 @@ export default function LoginPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    padding: '0.65rem',
-                    borderRadius: 'var(--radius-xs)',
+                    padding: '0.75rem',
+                    borderRadius: '0.75rem',
                     border: isSelected ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                     backgroundColor: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
                     cursor: 'pointer',
@@ -219,18 +220,19 @@ export default function LoginPage() {
                     }}
                     disabled={isLoading}
                     style={{
-                      marginTop: '6px',
-                      padding: '3px 6px',
-                      fontSize: '0.65rem',
+                      marginTop: '8px',
+                      padding: '4px 10px',
+                      fontSize: '0.68rem',
                       fontWeight: 700,
-                      borderRadius: 'var(--radius-xs)',
+                      borderRadius: '9999px',
                       border: 'none',
                       backgroundColor: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface-hover)',
                       color: isSelected ? '#ffffff' : 'var(--text-body)',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      width: 'fit-content'
+                      width: 'fit-content',
+                      transition: 'all 0.15s ease'
                     }}
                     title={`Instant 1-click sign in as ${acc.email}`}
                   >
@@ -344,7 +346,8 @@ export default function LoginPage() {
                 width: '100%',
                 padding: '0.75rem',
                 fontSize: '0.95rem',
-                marginTop: '0.5rem'
+                marginTop: '0.5rem',
+                borderRadius: '9999px'
               }}
             >
               {isLoading ? (

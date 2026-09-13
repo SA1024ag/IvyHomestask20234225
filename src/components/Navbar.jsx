@@ -60,10 +60,10 @@ export default function Navbar() {
         <nav style={{
           display: 'none',
           alignItems: 'center',
-          gap: '0.25rem',
+          gap: '0.3rem',
           backgroundColor: 'var(--bg-surface-subtle)',
-          padding: '3px',
-          borderRadius: 'var(--radius-sm)',
+          padding: '4px 6px',
+          borderRadius: '9999px',
           border: '1px solid var(--border-subtle)'
         }} className="desktop-nav">
           {navItems.map((item) => {
@@ -79,8 +79,8 @@ export default function Navbar() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: 'var(--radius-xs)',
+                  padding: '0.4rem 0.95rem',
+                  borderRadius: '9999px',
                   fontSize: '0.85rem',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--text-heading)' : 'var(--text-muted)',
@@ -94,10 +94,10 @@ export default function Navbar() {
                 {Boolean(item.badge) && (
                   <span style={{
                     marginLeft: '2px',
-                    padding: '1px 5px',
+                    padding: '2px 7px',
                     fontSize: '0.65rem',
                     fontWeight: 700,
-                    borderRadius: 'var(--radius-xs)',
+                    borderRadius: '9999px',
                     backgroundColor: 'var(--accent-primary)',
                     color: '#ffffff'
                   }}>
@@ -120,7 +120,7 @@ export default function Navbar() {
               width: '36px',
               height: '36px',
               padding: 0,
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: '9999px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -139,8 +139,8 @@ export default function Navbar() {
                 display: 'none',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.35rem 0.65rem',
-                borderRadius: 'var(--radius-sm)',
+                padding: '0.35rem 0.85rem',
+                borderRadius: '9999px',
                 backgroundColor: 'var(--bg-surface-subtle)',
                 border: '1px solid var(--border-subtle)',
                 fontSize: '0.78rem',
@@ -149,7 +149,7 @@ export default function Navbar() {
                 <span style={{
                   width: '6px',
                   height: '6px',
-                  borderRadius: '1px',
+                  borderRadius: '9999px',
                   backgroundColor: '#10b981'
                 }} />
                 <span style={{ fontWeight: 600, maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -161,12 +161,13 @@ export default function Navbar() {
                 onClick={handleLogout}
                 className="btn btn-secondary btn-sm"
                 title="Sign out of Ivy Homes"
+                style={{ borderRadius: '9999px', padding: '0.4rem 1.05rem' }}
               >
                 <span className="logout-text">Logout</span>
               </button>
             </>
           ) : (
-            <NavLink to="/login" className="btn btn-primary btn-sm">
+            <NavLink to="/login" className="btn btn-primary btn-sm" style={{ borderRadius: '9999px', padding: '0.4rem 1.1rem' }}>
               Sign In
             </NavLink>
           )}
@@ -176,7 +177,7 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="btn btn-secondary btn-sm mobile-toggle"
             aria-label="Toggle navigation menu"
-            style={{ padding: '0.4rem', minWidth: 'auto', display: 'flex' }}
+            style={{ padding: '0.4rem', minWidth: 'auto', display: 'flex', borderRadius: '9999px' }}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
