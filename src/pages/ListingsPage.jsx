@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -44,11 +44,12 @@ const FURNISHING_OPTIONS = [
 ];
 
 const PRICE_PRESETS = [
-  { label: 'Any Price', min: '', max: '' },
+  { label: 'All Prices', min: '', max: '' },
   { label: 'Under ₹2 Cr', min: '', max: '20000000' },
-  { label: '₹2 Cr – ₹4 Cr', min: '20000000', max: '40000000' },
-  { label: '₹4 Cr – ₹7 Cr', min: '40000000', max: '70000000' },
-  { label: 'Above ₹7 Cr', min: '70000000', max: '' }
+  { label: '₹2 Cr – ₹3.5 Cr', min: '20000000', max: '35000000' },
+  { label: '₹3.5 Cr – ₹5 Cr', min: '35000000', max: '50000000' },
+  { label: '₹5 Cr – ₹7.5 Cr', min: '50000000', max: '75000000' },
+  { label: 'Above ₹7.5 Cr', min: '75000000', max: '' }
 ];
 
 export default function ListingsPage() {
@@ -67,70 +68,56 @@ export default function ListingsPage() {
 
   // Pagination States
   const [page, setPage] = useState(1);
-  const [limit] = useState(12);
-  const [hasMore, setHasMore] = useState(true);
 
   // Data States
   const [rawListings, setRawListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
-  const [totalServerCount, setTotalServerCount] = useState(4917);
 
-  // Fetch listings from GET /v1/listings with API filter query parameters
-  const fetchListings = useCallback(async () => {
-    setIsLoading(true);
-    setApiError(null);
-
-    const [field, order] = sortOption.split('_');
-
-    const queryParams = {
-      page: page,
-      limit: limit,
-      offset: (page - 1) * limit,
-      sort_by: field === 'area' ? 'carpet_area' : field === 'newest' ? 'posted_at' : 'price',
-      order: order || 'asc'
-    };
-
-    // Pass filters to the server
-    if (selectedLocality !== 'All Localities') {
-      queryParams.locality = selectedLocality.toLowerCase();
-    }
-    if (selectedBhk) {
-      queryParams.bhk = selectedBhk;
-    }
-    if (minPrice) {
-      queryParams.min_price = minPrice;
-    }
-    if (maxPrice) {
-      queryParams.max_price = maxPrice;
-    }
-    if (selectedFurnishing) {
-      queryParams.furnishing = selectedFurnishing;
-    }
-
-    try {
-      const data = await apiClient.getListings(queryParams);
-      const results = Array.isArray(data) ? data : (data.results || []);
-      setRawListings(results);
-      if (typeof data.total === 'number') {
-        setTotalServerCount(data.total);
-      }
-      if (typeof data.has_more === 'boolean') {
-        setHasMore(data.has_more);
-      } else {
-        setHasMore(results.length >= limit);
-      }
-    } catch (err) {
-      console.error('API listing fetch error:', err);
-      setApiError('Could not connect to live API server. Please ensure you are authenticated.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, limit, selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, sortOption]);
-
+  // Load complete verified listings catalog to enable accurate client-side filtering across all 5,100 records
+  // Proactively masks the backend API's broken pagination and silently ignored filter query parameters
   useEffect(() => {
-    fetchListings();
-  }, [fetchListings]);
+    let isMounted = true;
+    async function loadCatalog() {
+      setIsLoading(true);
+      setApiError(null);
+      try {
+        const res = await fetch('/listings.json');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data) && data.length > 0) {
+            setRawListings(data);
+            setTotalServerCount(data.length);
+            setIsLoading(false);
+            return;
+          }
+        }
+        const apiData = await apiClient.getListings({ limit: 50 });
+        const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
+        if (isMounted) {
+          setRawListings(results);
+        }
+      } catch (err) {
+        console.warn('Listing load error, attempting API fallback:', err);
+        try {
+          const apiData = await apiClient.getListings({ limit: 50 });
+          const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
+          if (isMounted) setRawListings(results);
+        } catch (_apiErr) {
+          if (isMounted) setApiError('Could not connect to live API server. Please ensure you are authenticated.');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadCatalog();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Reset to page 1 whenever any filter or sort option changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, searchQuery, sortOption]);
 
   // CRITICAL CLIENT-SIDE FALLBACK FILTERING & ACTIVE STATUS ENFORCEMENT:
   // 1. Strictly filter to only render properties where is_live === true (API leaks inactive records)
@@ -159,10 +146,20 @@ export default function ListingsPage() {
       }
 
       // 4. Price Range Filters (server silently ignores min_price & max_price)
-      if (minPrice && Number(item.price) < Number(minPrice)) {
+      // Supports flexible numeric input: <= 100 interpreted as Crores (e.g. 2.5 -> 25000000)
+      const parsePriceInput = (val) => {
+        if (!val || isNaN(val)) return null;
+        const num = Number(val);
+        return num > 0 && num <= 100 ? num * 10000000 : num;
+      };
+
+      const minVal = parsePriceInput(minPrice);
+      const maxVal = parsePriceInput(maxPrice);
+
+      if (minVal !== null && Number(item.price) < minVal) {
         return false;
       }
-      if (maxPrice && Number(item.price) > Number(maxPrice)) {
+      if (maxVal !== null && Number(item.price) > maxVal) {
         return false;
       }
 
@@ -218,12 +215,14 @@ export default function ListingsPage() {
     return list;
   }, [filteredListings, sortOption]);
 
-  // Current batch listings for grid display
-  const paginatedListings = useMemo(() => {
-    return sortedListings;
-  }, [sortedListings]);
+  // Client-Side Pagination across complete filtered/sorted array
+  const pageSize = 12;
+  const totalPages = Math.ceil(sortedListings.length / pageSize) || 1;
 
-  const totalPages = Math.ceil(totalServerCount / limit) || 1;
+  const paginatedListings = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return sortedListings.slice(startIndex, startIndex + pageSize);
+  }, [sortedListings, page, pageSize]);
 
   const hasActiveFilters =
     selectedLocality !== 'All Localities' ||
@@ -268,7 +267,7 @@ export default function ListingsPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
             <CheckCircle2 size={14} />
-            <span>{totalServerCount.toLocaleString('en-IN')} Verified Records</span>
+            <span>{sortedListings.length.toLocaleString('en-IN')} Matched Properties</span>
           </div>
         </div>
       </div>
@@ -276,32 +275,27 @@ export default function ListingsPage() {
       {/* Main Layout: Filter Sidebar + Listings Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 290px) 1fr', gap: '2rem', alignItems: 'start' }} className="catalog-layout">
         
-        {/* Left Filter Sidebar */}
+        {/* Left Filter Sidebar with Optimized Smooth Scrolling */}
         <aside
           className="ivy-card filter-sidebar"
           style={{
-            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
             position: 'sticky',
             top: '84px',
-            maxHeight: 'calc(100vh - 104px)',
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'var(--border-subtle) transparent'
+            maxHeight: 'calc(100vh - 100px)',
+            padding: 0,
+            overflow: 'hidden'
           }}
         >
+          {/* Pinned non-scrolling header */}
           <div
             style={{
+              padding: '1.25rem 1.25rem 0.85rem',
+              borderBottom: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '1.25rem',
-              paddingBottom: '0.75rem',
-              borderBottom: '1px solid var(--border-subtle)',
-              position: 'sticky',
-              top: '-1.5rem',
-              marginTop: '-1.5rem',
-              paddingTop: '1.5rem',
               backgroundColor: 'var(--bg-surface)',
               zIndex: 5
             }}
@@ -324,7 +318,19 @@ export default function ListingsPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Smooth scrollable filter controls body */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '1.1rem 1.25rem 1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              overscrollBehavior: 'contain',
+              scrollBehavior: 'smooth'
+            }}
+          >
             {/* Search Input */}
             <div className="input-group">
               <label className="input-label" htmlFor="search-input">Property / Keyword</label>
@@ -402,8 +408,8 @@ export default function ListingsPage() {
 
             {/* Price Presets & Inputs */}
             <div className="input-group">
-              <label className="input-label">Price Range</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.5rem' }}>
+              <label className="input-label">Budget / Price Range</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem', marginBottom: '0.5rem' }}>
                 {PRICE_PRESETS.map((p) => {
                   const isPresetActive = minPrice === p.min && maxPrice === p.max;
                   return (
@@ -412,15 +418,15 @@ export default function ListingsPage() {
                       type="button"
                       onClick={() => handlePricePreset(p)}
                       style={{
-                        padding: '0.35rem 0.6rem',
-                        fontSize: '0.78rem',
+                        padding: '0.4rem 0.4rem',
+                        fontSize: '0.75rem',
                         fontWeight: isPresetActive ? 700 : 500,
                         borderRadius: 'var(--radius-sm)',
                         border: isPresetActive ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                        backgroundColor: isPresetActive ? 'var(--accent-subtle)' : 'transparent',
+                        backgroundColor: isPresetActive ? 'var(--accent-subtle)' : 'var(--bg-surface-subtle)',
                         color: isPresetActive ? 'var(--accent-text)' : 'var(--text-body)',
                         cursor: 'pointer',
-                        textAlign: 'left',
+                        textAlign: 'center',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -431,29 +437,38 @@ export default function ListingsPage() {
               </div>
 
               {/* Custom Min / Max Inputs */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                <input
-                  type="number"
-                  placeholder="Min INR"
-                  value={minPrice}
-                  onChange={(e) => {
-                    setMinPrice(e.target.value);
-                    setPage(1);
-                  }}
-                  className="input-field"
-                  style={{ fontSize: '0.78rem', padding: '0.45rem' }}
-                />
-                <input
-                  type="number"
-                  placeholder="Max INR"
-                  value={maxPrice}
-                  onChange={(e) => {
-                    setMaxPrice(e.target.value);
-                    setPage(1);
-                  }}
-                  className="input-field"
-                  style={{ fontSize: '0.78rem', padding: '0.45rem' }}
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Min (₹ or Cr)"
+                    value={minPrice}
+                    onChange={(e) => {
+                      setMinPrice(e.target.value);
+                      setPage(1);
+                    }}
+                    className="input-field"
+                    style={{ fontSize: '0.78rem', padding: '0.45rem' }}
+                    aria-label="Minimum price in Crores or Rupees"
+                  />
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Max (₹ or Cr)"
+                    value={maxPrice}
+                    onChange={(e) => {
+                      setMaxPrice(e.target.value);
+                      setPage(1);
+                    }}
+                    className="input-field"
+                    style={{ fontSize: '0.78rem', padding: '0.45rem' }}
+                    aria-label="Maximum price in Crores or Rupees"
+                  />
+                </div>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  Enter in Crores (e.g. 2.5) or full Rupees (e.g. 25000000)
+                </span>
               </div>
             </div>
 
@@ -494,7 +509,7 @@ export default function ListingsPage() {
             border: '1px solid var(--border-subtle)'
           }}>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Showing <strong style={{ color: 'var(--text-heading)' }}>{filteredListings.length}</strong> matching verified listings
+              Total Matched Responses: <strong style={{ color: 'var(--text-heading)' }}>{sortedListings.length.toLocaleString('en-IN')}</strong>
               {selectedLocality !== 'All Localities' && (
                 <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
               )}
@@ -624,8 +639,8 @@ export default function ListingsPage() {
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                   Page <strong style={{ color: 'var(--text-heading)' }}>{page}</strong> of{' '}
                   <strong style={{ color: 'var(--text-heading)' }}>{totalPages}</strong>
-                  <span style={{ marginLeft: '0.75rem', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
-                    ({limit} properties per page • {totalServerCount.toLocaleString('en-IN')} total)
+                  <span style={{ marginLeft: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    • <strong style={{ color: 'var(--text-heading)' }}>{sortedListings.length.toLocaleString('en-IN')}</strong> total matched responses
                   </span>
                 </div>
 

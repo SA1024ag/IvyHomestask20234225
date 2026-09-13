@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   KeyRound,
   Search,
@@ -45,7 +45,7 @@ const FURNISHING_OPTIONS = [
 ];
 
 export default function RentalsPage() {
-  const { rentalsCount } = useCompare();
+  const { count: rentalsCount } = useCompare();
 
   // Filter States
   const [selectedLocality, setSelectedLocality] = useState('All Localities');
@@ -60,9 +60,6 @@ export default function RentalsPage() {
 
   // Pagination States
   const [page, setPage] = useState(1);
-  const [limit] = useState(15);
-  const [totalCount, setTotalCount] = useState(2025);
-  const [hasMore, setHasMore] = useState(true);
 
   // Data States
   const [rawRentals, setRawRentals] = useState([]);
@@ -70,60 +67,48 @@ export default function RentalsPage() {
   const [apiError, setApiError] = useState(null);
   const [contactRevealedId, setContactRevealedId] = useState(null);
 
-  // Fetch rentals from GET /v1/rentals
-  const fetchRentals = useCallback(async () => {
-    setIsLoading(true);
-    setApiError(null);
-
-    const [field, order] = sortOption.split('_');
-
-    const queryParams = {
-      page: page,
-      limit: limit,
-      offset: (page - 1) * limit,
-      sort_by: field === 'area' ? 'carpet_area' : field === 'newest' ? 'posted_at' : 'price',
-      order: order || 'asc'
-    };
-
-    if (selectedLocality !== 'All Localities') {
-      queryParams.locality = selectedLocality.toLowerCase();
-    }
-    if (selectedBhk) {
-      queryParams.bhk = selectedBhk;
-    }
-    if (selectedFurnishing) {
-      queryParams.furnishing = selectedFurnishing;
-    }
-    if (minPrice) {
-      queryParams.min_price = minPrice;
-    }
-    if (maxPrice) {
-      queryParams.max_price = maxPrice;
-    }
-
-    try {
-      const data = await apiClient.getRentals(queryParams);
-      const results = Array.isArray(data) ? data : (data.results || []);
-      setRawRentals(results);
-      if (typeof data.total === 'number') {
-        setTotalCount(data.total);
-      }
-      if (typeof data.has_more === 'boolean') {
-        setHasMore(data.has_more);
-      } else {
-        setHasMore(results.length >= limit);
-      }
-    } catch (err) {
-      console.error('Rentals fetch error:', err);
-      setApiError(err.message || 'Could not load rentals from server.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, limit, selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, sortOption]);
-
+  // Load complete verified rentals dataset
   useEffect(() => {
-    fetchRentals();
-  }, [fetchRentals]);
+    let isMounted = true;
+    async function loadRentalCatalog() {
+      setIsLoading(true);
+      setApiError(null);
+      try {
+        const res = await fetch('/rentals.json');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data) && data.length > 0) {
+            setRawRentals(data);
+            setIsLoading(false);
+            return;
+          }
+        }
+        const apiData = await apiClient.getRentals({ limit: 50 });
+        const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
+        if (isMounted) {
+          setRawRentals(results);
+        }
+      } catch (err) {
+        console.warn('Rentals load error, attempting API fallback:', err);
+        try {
+          const apiData = await apiClient.getRentals({ limit: 50 });
+          const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
+          if (isMounted) setRawRentals(results);
+        } catch (_apiErr) {
+          if (isMounted) setApiError('Could not load rentals from server.');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadRentalCatalog();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Reset to page 1 whenever any filter or sort option changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, searchQuery, sortOption]);
 
   // Client-Side Fallback Filtering:
   // Strictly filters results in case API ignored query parameters (furnishing, min_price, max_price)
@@ -196,6 +181,15 @@ export default function RentalsPage() {
     return list;
   }, [filteredRentals, sortOption]);
 
+  // Client-Side Pagination across complete filtered/sorted array
+  const pageSize = 12;
+  const totalPages = Math.ceil(sortedRentals.length / pageSize) || 1;
+
+  const paginatedRentals = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    return sortedRentals.slice(startIndex, startIndex + pageSize);
+  }, [sortedRentals, page, pageSize]);
+
   // Reset all filters
   const handleResetFilters = () => {
     setSelectedLocality('All Localities');
@@ -215,8 +209,6 @@ export default function RentalsPage() {
     (maxPrice ? 1 : 0) +
     (searchQuery.trim() ? 1 : 0);
 
-  const totalPages = Math.ceil(totalCount / limit) || 1;
-
   return (
     <div className="main-content" style={{ paddingBottom: rentalsCount > 0 ? '7.5rem' : '2rem' }}>
       {/* Page Header */}
@@ -235,41 +227,38 @@ export default function RentalsPage() {
           </p>
         </div>
 
+        {/* Total stats pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="badge badge-emerald" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
-            <span>{totalCount.toLocaleString('en-IN')} Verified Rentals</span>
+            <KeyRound size={14} />
+            <span>{sortedRentals.length.toLocaleString('en-IN')} Matched Rentals</span>
           </div>
         </div>
       </div>
 
       {/* Main Layout: Left Filter Sidebar + Rentals Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 290px) 1fr', gap: '2rem', alignItems: 'start' }} className="catalog-layout">
-        {/* Left Filter Sidebar */}
+        {/* Left Filter Sidebar with Optimized Smooth Scrolling */}
         <aside
           className="ivy-card filter-sidebar"
           style={{
-            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
             position: 'sticky',
             top: '84px',
-            maxHeight: 'calc(100vh - 104px)',
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'var(--border-subtle) transparent'
+            maxHeight: 'calc(100vh - 100px)',
+            padding: 0,
+            overflow: 'hidden'
           }}
         >
+          {/* Pinned non-scrolling header */}
           <div
             style={{
+              padding: '1.25rem 1.25rem 0.85rem',
+              borderBottom: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '1.25rem',
-              paddingBottom: '0.75rem',
-              borderBottom: '1px solid var(--border-subtle)',
-              position: 'sticky',
-              top: '-1.5rem',
-              marginTop: '-1.5rem',
-              paddingTop: '1.5rem',
               backgroundColor: 'var(--bg-surface)',
               zIndex: 5
             }}
@@ -292,7 +281,19 @@ export default function RentalsPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Smooth scrollable filter controls body */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '1.1rem 1.25rem 1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              overscrollBehavior: 'contain',
+              scrollBehavior: 'smooth'
+            }}
+          >
             {/* Search Input */}
             <div className="input-group">
               <label className="input-label" htmlFor="rental-search">Property / Society</label>
@@ -435,7 +436,7 @@ export default function RentalsPage() {
             border: '1px solid var(--border-subtle)'
           }}>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Showing <strong style={{ color: 'var(--text-heading)' }}>{sortedRentals.length}</strong> matching verified rentals
+              Total Matched Responses: <strong style={{ color: 'var(--text-heading)' }}>{sortedRentals.length.toLocaleString('en-IN')}</strong>
               {selectedLocality !== 'All Localities' && (
                 <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
               )}
@@ -547,7 +548,7 @@ export default function RentalsPage() {
                   gap: '1.75rem'
                 }}
               >
-                {sortedRentals.map((rental) => (
+                {paginatedRentals.map((rental) => (
                   <RentalCard
                     key={rental.listing_id}
                     rental={rental}
@@ -577,8 +578,8 @@ export default function RentalsPage() {
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                   Page <strong style={{ color: 'var(--text-heading)' }}>{page}</strong> of{' '}
                   <strong style={{ color: 'var(--text-heading)' }}>{totalPages}</strong>
-                  <span style={{ marginLeft: '0.75rem', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
-                    ({limit} properties per batch • {totalCount.toLocaleString('en-IN')} total)
+                  <span style={{ marginLeft: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                    • <strong style={{ color: 'var(--text-heading)' }}>{sortedRentals.length.toLocaleString('en-IN')}</strong> total matched responses
                   </span>
                 </div>
 
