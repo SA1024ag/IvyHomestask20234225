@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Building2,
@@ -42,6 +42,9 @@ const DEMO_ACCOUNTS = [
 export default function LoginPage() {
   const { user, login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Where the user came from before hitting the auth wall
+  const fromPath = location.state?.from?.pathname || '/';
 
   const [email, setEmail] = useState('demo1@ivy.homes');
   const [password, setPassword] = useState('b42f2e3a58');
@@ -71,7 +74,7 @@ export default function LoginPage() {
 
     try {
       await login(account.email, account.password);
-      navigate('/', { replace: true });
+      navigate(fromPath, { replace: true });
     } catch (err) {
       setErrorMessage(err.message || 'Authentication failed.');
     } finally {
@@ -86,7 +89,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      navigate('/', { replace: true });
+      navigate(fromPath, { replace: true });
     } catch (err) {
       setErrorMessage(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -139,18 +142,29 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
             width: '56px',
-            height: '56px',
+            height: '60px',
+            width: '60px',
             margin: '0 auto 1.25rem',
             borderRadius: '16px',
-            backgroundColor: 'var(--accent-primary)',
+            backgroundColor: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(67, 56, 202, 0.4)',
-            transform: 'rotate(-2deg)'
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
+            padding: '8px',
+            border: '1px solid var(--border-subtle)',
+            overflow: 'hidden'
           }}>
-            <Building2 size={32} strokeWidth={2.2} />
+            <img
+              src="/logo.png"
+              alt="Ivy Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
           </div>
 
           <h1 style={{

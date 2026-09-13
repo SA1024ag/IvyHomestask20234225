@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Heart,
   MapPin,
@@ -78,7 +79,9 @@ export default function PropertyCard({ listing }) {
   const photoUrl = ARCHITECTURAL_PHOTOS[photoIndex];
 
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -5, boxShadow: '0 20px 40px -8px rgba(15,23,42,0.13)' }}
+      transition={{ type: 'spring', stiffness: 380, damping: 22 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="ivy-card"
@@ -192,11 +195,16 @@ export default function PropertyCard({ listing }) {
           </div>
 
           {/* Frosted Glass Heart Button */}
-          <button
+          <motion.button
+            key={String(saved)}
             type="button"
             onClick={handleHeartClick}
             aria-label={saved ? 'Remove from saved' : 'Save property to favourites'}
             title={saved ? 'Remove from saved' : 'Save property'}
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.22, 0.92, 1] }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            whileTap={{ scale: 0.82 }}
             style={{
               position: 'absolute',
               top: '12px',
@@ -213,7 +221,6 @@ export default function PropertyCard({ listing }) {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              transition: 'transform 0.15s ease, background-color 0.15s ease'
             }}
           >
             <Heart
@@ -221,7 +228,7 @@ export default function PropertyCard({ listing }) {
               fill={saved ? '#ef4444' : 'none'}
               strokeWidth={2.2}
             />
-          </button>
+          </motion.button>
 
           {/* Bottom Gradient Fade */}
           <div style={{
@@ -381,6 +388,6 @@ export default function PropertyCard({ listing }) {
           <ArrowUpRight size={13} />
         </NavLink>
       </div>
-    </div>
+    </motion.div>
   );
 }

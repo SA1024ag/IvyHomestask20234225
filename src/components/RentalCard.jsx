@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   MapPin,
   BedDouble,
@@ -49,7 +50,9 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
     : 'Semi Furnished';
 
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -5, boxShadow: '0 20px 40px -8px rgba(15,23,42,0.13)' }}
+      transition={{ type: 'spring', stiffness: 380, damping: 22 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="ivy-card"
@@ -420,6 +423,6 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

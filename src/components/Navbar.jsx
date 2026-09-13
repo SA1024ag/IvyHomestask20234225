@@ -44,10 +44,6 @@ export default function Navbar() {
     { label: 'Insights', path: '/insights', icon: BarChart3 },
   ];
 
-  if (!isAuthenticated && location.pathname === '/login') {
-    return null;
-  }
-
   return (
     <header className="glass-header">
       <div style={{
@@ -67,15 +63,26 @@ export default function Navbar() {
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              backgroundColor: 'var(--accent-primary)',
+              backgroundColor: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 2px 8px rgba(67, 56, 202, 0.3)',
-              transition: 'transform 0.15s ease'
+              padding: '4px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+              border: '1px solid var(--border-subtle)',
+              transition: 'transform 0.15s ease',
+              overflow: 'hidden'
             }}>
-              <Building2 size={20} strokeWidth={2.2} />
+              <img
+                src="/logo.png"
+                alt="Ivy Logo"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>

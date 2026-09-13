@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   SlidersHorizontal,
@@ -6,12 +7,71 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  Loader2,
   FilterX
 } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
+
+// ─── Skeleton Loader ──────────────────────────────────────────────────────────
+function PropertyCardSkeleton() {
+  return (
+    <div
+      className="ivy-card"
+      style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+    >
+      {/* Image placeholder */}
+      <div style={{
+        width: '100%',
+        aspectRatio: '16 / 10',
+        backgroundColor: 'var(--bg-surface-subtle)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)',
+          animation: 'skeletonShimmer 1.6s infinite',
+        }} />
+      </div>
+      {/* Body */}
+      <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div style={{ height: '26px', width: '55%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'skeletonShimmer 1.6s infinite' }} />
+        </div>
+        <div style={{ height: '16px', width: '80%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'skeletonShimmer 1.6s infinite 0.1s' }} />
+        </div>
+        <div style={{ height: '14px', width: '50%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'skeletonShimmer 1.6s infinite 0.2s' }} />
+        </div>
+        {/* Specs row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ height: '32px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: `skeletonShimmer 1.6s infinite ${i * 0.12}s` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Action row */}
+      <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', gap: '0.65rem' }}>
+        <div style={{ height: '34px', width: '90px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'skeletonShimmer 1.6s infinite' }} />
+        </div>
+        <div style={{ height: '34px', flex: 1, borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'skeletonShimmer 1.6s infinite 0.1s' }} />
+        </div>
+      </div>
+      <style>{`
+        @keyframes skeletonShimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 const LOCALITIES = [
   'All Localities',
@@ -62,13 +122,20 @@ const getStoredListingsState = () => {
 
 export default function ListingsPage() {
   const { count: compareCount } = useCompare();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const storedState = useMemo(() => getStoredListingsState(), []);
 
-  // Filter States (restores previous state if returning via back button)
-  const [selectedLocality, setSelectedLocality] = useState(storedState?.selectedLocality ?? 'All Localities');
-  const [selectedBhk, setSelectedBhk] = useState(storedState?.selectedBhk ?? '');
-  const [selectedFurnishing, setSelectedFurnishing] = useState(storedState?.selectedFurnishing ?? '');
+  // Filter States — URL params take priority over sessionStorage
+  const [selectedLocality, setSelectedLocality] = useState(
+    searchParams.get('locality') || storedState?.selectedLocality || 'All Localities'
+  );
+  const [selectedBhk, setSelectedBhk] = useState(
+    searchParams.get('bhk') || storedState?.selectedBhk || ''
+  );
+  const [selectedFurnishing, setSelectedFurnishing] = useState(
+    searchParams.get('furnishing') || storedState?.selectedFurnishing || ''
+  );
   const [minPrice, setMinPrice] = useState(storedState?.minPrice ?? '');
   const [maxPrice, setMaxPrice] = useState(storedState?.maxPrice ?? '');
   const [searchQuery, setSearchQuery] = useState(storedState?.searchQuery ?? '');
@@ -78,6 +145,15 @@ export default function ListingsPage() {
     ? storedState.sortOption
     : 'newest_desc';
   const [sortOption, setSortOption] = useState(initialSort);
+
+  // Sync BHK, locality, furnishing → URL params (replace mode, no history spam)
+  useEffect(() => {
+    const params = {};
+    if (selectedBhk) params.bhk = selectedBhk;
+    if (selectedLocality !== 'All Localities') params.locality = selectedLocality;
+    if (selectedFurnishing) params.furnishing = selectedFurnishing;
+    setSearchParams(params, { replace: true });
+  }, [selectedBhk, selectedLocality, selectedFurnishing, setSearchParams]);
 
   // Pagination States
   const [page, setPage] = useState(storedState?.page ?? 1);
@@ -620,24 +696,19 @@ export default function ListingsPage() {
             </div>
           </div>
 
-          {/* Loading State */}
+          {/* Skeleton Loading State */}
           {isLoading ? (
-            <div style={{
-              minHeight: '340px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              backgroundColor: 'var(--bg-surface)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-subtle)'
-            }}>
-              <Loader2 size={36} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
-              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                Querying verified residential catalog...
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <PropertyCardSkeleton key={i} />
+                ))}
               </div>
-            </div>
+            </>
           ) : apiError ? (
             <div className="ivy-card" style={{ padding: '2rem', textAlign: 'center', color: '#ef4444', backgroundColor: 'var(--bg-surface)' }}>
               <p style={{ fontWeight: 600 }}>{apiError}</p>

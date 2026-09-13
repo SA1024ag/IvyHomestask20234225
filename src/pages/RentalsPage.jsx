@@ -7,12 +7,62 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   FilterX
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import RentalCard from '../components/RentalCard';
+
+// ─── Rental Skeleton Card ────────────────────────────────────────────────────
+function RentalCardSkeleton() {
+  return (
+    <div className="ivy-card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Image */}
+      <div style={{ width: '100%', aspectRatio: '16 / 10', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite' }} />
+      </div>
+      {/* Body */}
+      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', flex: 1 }}>
+        <div style={{ height: '28px', width: '45%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite' }} />
+        </div>
+        <div style={{ height: '18px', width: '75%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite 0.1s' }} />
+        </div>
+        <div style={{ height: '14px', width: '40%', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite 0.2s' }} />
+        </div>
+        {/* Financial box */}
+        <div style={{ height: '60px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden', marginTop: '0.25rem' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite 0.15s' }} />
+        </div>
+        {/* Spec row */}
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ height: '20px', flex: 1, borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: `rentalShimmer 1.6s infinite ${i * 0.1}s` }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Action row */}
+      <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', gap: '0.75rem' }}>
+        <div style={{ height: '36px', width: '80px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite' }} />
+        </div>
+        <div style={{ height: '36px', flex: 1, borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-subtle)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, var(--bg-surface-hover) 50%, transparent 100%)', animation: 'rentalShimmer 1.6s infinite 0.1s' }} />
+        </div>
+      </div>
+      <style>{`
+        @keyframes rentalShimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 const LOCALITIES = [
   'All Localities',
@@ -504,20 +554,16 @@ export default function RentalsPage() {
             </div>
           )}
 
-          {/* Loading State */}
+          {/* Skeleton Loading State */}
           {isLoading ? (
             <div style={{
-              padding: '5rem 0',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1rem'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+              gap: '1.5rem'
             }}>
-              <Loader2 size={36} color="var(--accent-primary)" className="spin" style={{ animation: 'spin 1s linear infinite' }} />
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
-                Fetching rental catalog from live server...
-              </p>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <RentalCardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredRentals.length === 0 ? (
             /* Empty State */

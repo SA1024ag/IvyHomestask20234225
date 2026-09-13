@@ -21,6 +21,7 @@ import {
 import { useCompare } from '../context/CompareContext';
 import { useFavourites } from '../context/FavouritesContext';
 import { formatINR } from '../components/PropertyCard';
+import CompareCharts from '../components/CompareCharts';
 
 // Helper: Format project price range using price_min and price_max
 function formatProjectPrice(val) {
@@ -242,9 +243,14 @@ export default function ComparePage() {
             Browse {currentTabObj.label} →
           </NavLink>
         </div>
-      ) : activeTab === 'sale' ? (
-        /* ================= TAB 1: SALE PROPERTIES ================= */
-        <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+      ) : (
+        <>
+          {/* Interactive Graphical & Visual Analytics */}
+          <CompareCharts items={currentList} type={activeTab} />
+
+          {activeTab === 'sale' ? (
+            /* ================= TAB 1: SALE PROPERTIES ================= */
+            <div className="ivy-card" style={{ overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{
               width: '100%',
@@ -795,6 +801,8 @@ export default function ComparePage() {
             </table>
           </div>
         </div>
+          )}
+        </>
       )}
     </div>
   );
