@@ -75,16 +75,32 @@
       "actual": "Passing the API key as a query parameter returns 401 Unauthorized with 'send your key in the X-API-Key request header, not as a query parameter'. All requests must supply the key in the X-API-Key HTTP header.",
       "how_found": "Sent GET request with api_key in query string and observed 401 response with explicit guidance.",
       "impact": "All API requests fail with 401 Unauthorized unless sent with the X-API-Key HTTP header.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings?api_key=IVY26-A3B2763F67F9 -> HTTP 401: send your key in the X-API-Key request header, not as a query parameter"
+      ]
     },
     {
       "endpoint": "/auth/login",
       "category": "auth",
-      "documented": "Returns { token, token_type: 'Bearer', expires_in: 86400, user: { email, name } }. Tokens are valid for 24 hours. There is no refresh flow.",
-      "actual": "Returns access_token (not token), expires_in: 900 (15 minutes, not 24 hours / 86400s), user object contains only { email } without name, and provides refresh_token and refresh_url: '/auth/refresh'.",
-      "how_found": "Logged in via POST /auth/login with demo credentials and inspected the response keys, user object, and expiry.",
-      "impact": "Frontend sessions expire after 15 minutes instead of 24 hours unless a refresh loop calling POST /auth/refresh is implemented.",
-      "evidence": []
+      "documented": "Tokens are valid for 24 hours. There is no refresh flow.",
+      "actual": "Tokens expire in 15 minutes (900s) and a refresh flow exists via POST /auth/refresh. Returns access_token instead of token, and user object omits name.",
+      "how_found": "Inspected POST /auth/login response payload and tested /auth/refresh with returned refresh_token.",
+      "impact": "Frontend sessions expire prematurely after 15 minutes without implementing the undocumented refresh flow.",
+      "evidence": [
+        "POST /auth/login -> HTTP 200: { access_token: '...', token_type: 'Bearer', expires_in: 900, refresh_token: '...', refresh_url: '/auth/refresh', user: { email: 'demo1@ivy.homes' } }"
+      ]
+    },
+    {
+      "endpoint": "/auth/logout",
+      "category": "auth",
+      "documented": "Invalidates the current token server side.",
+      "actual": "Tokens are stateless JWTs and are not invalidated server-side. Subsequent requests with the token still return 200.",
+      "how_found": "Sent authenticated request after calling POST /auth/logout",
+      "impact": "Requires strict client-side destruction of tokens to secure sessions",
+      "evidence": [
+        "POST /auth/logout -> HTTP 200: {\"ok\": true, \"note\": \"tokens are stateless; discard them client side\"}",
+        "Subsequent GET /v1/listings with logged-out token -> HTTP 200 OK (token remains valid)"
+      ]
     },
     {
       "endpoint": "/auth/refresh",
@@ -93,7 +109,9 @@
       "actual": "POST /auth/refresh exists and accepts { refresh_token: '...' }, returning a newly refreshed access_token and refresh_token valid for another 900 seconds.",
       "how_found": "Discovered refresh_url field in the POST /auth/login response and tested refreshing an active token via POST /auth/refresh.",
       "impact": "Allows client sessions to stay authenticated seamlessly beyond the 15-minute access token lifespan.",
-      "evidence": []
+      "evidence": [
+        "POST /auth/refresh with { refresh_token: '...' } -> HTTP 200: { access_token: '...', token_type: 'Bearer', expires_in: 900, refresh_token: '...' }"
+      ]
     },
     {
       "endpoint": "/v1/listings",
@@ -102,16 +120,24 @@
       "actual": "GET /v1/listings, /v1/rentals, and /v1/projects return 401 'missing bearer token - log in at POST /auth/login first' if called without an Authorization: Bearer <token> header.",
       "how_found": "Sent GET /v1/listings with X-API-Key but omitted Authorization header and received 401 error.",
       "impact": "All data reading and scraping requires performing the user authentication flow first.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings with X-API-Key -> HTTP 401: {\"detail\": \"missing bearer token - log in at POST /auth/login first\"}",
+        "GET /v1/rentals with X-API-Key -> HTTP 401: {\"detail\": \"missing bearer token - log in at POST /auth/login first\"}",
+        "GET /v1/projects with X-API-Key -> HTTP 401: {\"detail\": \"missing bearer token - log in at POST /auth/login first\"}"
+      ]
     },
     {
       "endpoint": "/v1/listings",
       "category": "pagination",
-      "documented": "Every collection endpoint takes page and limit. page is 1-indexed, limit default 20, max 200. Response: { total, page, page_size, results }.",
-      "actual": "Collection endpoints completely ignore 'page' and instead use 'offset' and 'limit'. Response envelope contains { limit, offset, count, total, has_more, results } with no 'page' or 'page_size' fields. Server also hard-caps limit to a maximum of 50 records per request.",
-      "how_found": "Requested page=2 and limit=500; observed response returned offset: 0, limit: 50, and exactly 50 records without page/page_size fields.",
-      "impact": "Clients relying on page/page_size parameters fail to paginate or endlessly fetch page 1; ingestion requires 4x more requests than documented.",
-      "evidence": []
+      "documented": "takes page and limit (default 20, max 200). Response: { total, page, page_size, results }",
+      "actual": "Ignores page, uses offset. Hard-caps limit at 50. Response envelope lacks page and page_size.",
+      "how_found": "Tested pagination limits and inspected response keys",
+      "impact": "Breaks standard page-based fetching logic",
+      "evidence": [
+        "GET /v1/listings?page=2 -> returns offset: 0 and page 1 items",
+        "GET /v1/listings?limit=500 -> returns limit: 50 and 50 records",
+        "Response envelope: { limit, offset, count, total, has_more, results } without page or page_size"
+      ]
     },
     {
       "endpoint": "/v1/listings",
@@ -165,7 +191,10 @@
       "actual": "min_price, max_price, and furnishing query parameters are accepted by the server but silently ignored; response returns all listings regardless of criteria.",
       "how_found": "Queried /v1/listings?furnishing=fully-furnished&min_price=10000000&max_price=15000000 and observed unfurnished properties and out-of-range prices returned.",
       "impact": "Price range and furnishing filtering cannot be performed server-side and must be executed in client-side state.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings?furnishing=fully-furnished returns unfurnished listings (e.g. 100-5000001)",
+        "GET /v1/listings?min_price=50000000 returns listings priced below 50M (e.g. 100-5000001 at 35.8M)"
+      ]
     },
     {
       "endpoint": "/v1/listings",
@@ -174,7 +203,9 @@
       "actual": "The project_id query parameter is silently ignored on /v1/listings, returning all city listings instead of filtering to the requested project.",
       "how_found": "Called /v1/listings?project_id=P50001 and received total: 4917 with non-matching and null project IDs.",
       "impact": "Filtering listings by builder project must be performed client-side.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings?project_id=P50001 returns non-matching project_ids: ['P50244', null, 'P50343', 'P50483', 'P50393']"
+      ]
     },
     {
       "endpoint": "/v1/listings",
@@ -183,7 +214,10 @@
       "actual": "order=desc is silently ignored by the server, always returning records in ascending order.",
       "how_found": "Queried /v1/listings?sort_by=price&order=desc and compared with sort_by=price&order=asc; both returned identical ascending order.",
       "impact": "Frontend sorting in descending order fails without client-side override.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings?sort_by=price&order=desc returns first 3 prices: [35000, 39000, 42000]",
+        "GET /v1/listings?sort_by=price&order=asc returns identical prices: [35000, 39000, 42000]"
+      ]
     },
     {
       "endpoint": "/v1/listing/{id}",
@@ -192,7 +226,10 @@
       "actual": "Returns 404 Not Found at singular /v1/listing/{id}. The active endpoint is plural: GET /v1/listings/{id}.",
       "how_found": "Tested GET /v1/listing/MAG-5002240 (404) and GET /v1/listings/MAG-5002240 (200).",
       "impact": "Detail view requests fail unless routing to the plural /v1/listings/{id}.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listing/MAG-5002240 -> HTTP 404 Not Found",
+        "GET /v1/listings/MAG-5002240 -> HTTP 200 OK"
+      ]
     },
     {
       "endpoint": "/v1/listings/{id}/similar",
@@ -201,7 +238,10 @@
       "actual": "Returns 404 Not Found on both singular and plural paths; endpoint was never implemented on the server.",
       "how_found": "Called GET /v1/listings/MAG-5002240/similar and /v1/listing/MAG-5002240/similar with valid authentication.",
       "impact": "Similar listing recommendations must be computed client-side.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/listings/MAG-5002240/similar -> HTTP 404 Not Found",
+        "GET /v1/listing/MAG-5002240/similar -> HTTP 404 Not Found"
+      ]
     },
     {
       "endpoint": "/v1/favourites",
@@ -210,7 +250,10 @@
       "actual": "Returns 404 Not Found. The active endpoints are GET /v1/saved, POST /v1/saved with body { listing_id: '...' }, and DELETE /v1/saved/{id}.",
       "how_found": "Tested British and American spellings; discovered /v1/saved is the functional endpoint.",
       "impact": "Favourites functionality fails completely unless using /v1/saved with listing_id payload key.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/favourites -> HTTP 404 Not Found",
+        "GET /v1/saved -> HTTP 200 OK"
+      ]
     },
     {
       "endpoint": "/v1/saved",
@@ -219,7 +262,10 @@
       "actual": "POST /v1/saved requires JSON body { listing_id: '...' }. Passing { id: '...' } returns HTTP 422 Unprocessable Entity.",
       "how_found": "Sent POST /v1/saved with { id: ... } and received 422 validation error indicating 'listing_id' is required.",
       "impact": "Saving listings requires conforming to the undocumented { listing_id } payload schema.",
-      "evidence": []
+      "evidence": [
+        "POST /v1/saved with body {\"id\": \"MAG-5002240\"} -> HTTP 422: Field required (body.listing_id)",
+        "POST /v1/saved with body {\"listing_id\": \"MAG-5002240\"} -> HTTP 201: {\"ok\": true, \"listing_id\": \"MAG-5002240\", \"saved_count\": 1}"
+      ]
     },
     {
       "endpoint": "/v1/analytics/summary",
@@ -228,7 +274,10 @@
       "actual": "Returns 404 Not Found on /v1/analytics/summary and /v1/analytics. No city analytics endpoint is implemented on the server.",
       "how_found": "Queried /v1/analytics/summary and related variations with valid auth; all returned 404.",
       "impact": "Insights and dashboard screens must calculate market aggregates directly from listings and rental data.",
-      "evidence": []
+      "evidence": [
+        "GET /v1/analytics/summary -> HTTP 404 Not Found",
+        "GET /v1/analytics -> HTTP 404 Not Found"
+      ]
     },
     {
       "endpoint": "/v1/projects",
@@ -267,7 +316,9 @@
       "actual": "Returns server_time with +05:30 IST offset and Asia/Kolkata timezone instead of UTC Z suffix.",
       "how_found": "GET request against /health inspecting server_time value with +05:30 offset.",
       "impact": "Parsers expecting strict UTC Z suffix fail or calculate local time offsets incorrectly.",
-      "evidence": []
+      "evidence": [
+        "GET /health -> HTTP 200: {\"status\": \"ok\", \"server_time\": \"2026-09-13T19:15:20.524521+05:30\", \"timezone\": \"Asia/Kolkata\"}"
+      ]
     },
     {
       "endpoint": "/v1/projects",
@@ -292,16 +343,16 @@
       "how_found": "Live network probe querying GET /v1/listings?limit=abc and POST /v1/saved with invalid payload.",
       "impact": "Client error handlers assuming detail is a string display [object Object] or crash upon error parsing.",
       "evidence": [
-        "GET /v1/listings?limit=abc -> HTTP 422",
-        "GET /v1/listings?limit=-5 -> HTTP 422",
-        "POST /v1/saved with {id} -> HTTP 422"
+        "GET /v1/listings?limit=abc -> HTTP 422: [{\"loc\": [\"query\", \"limit\"], \"msg\": \"Input should be a valid integer\", \"type\": \"int_parsing\"}]",
+        "GET /v1/listings?limit=-5 -> HTTP 422: [{\"loc\": [\"query\", \"limit\"], \"msg\": \"Input should be greater than 0\", \"type\": \"greater_than\"}]",
+        "POST /v1/saved with {id} -> HTTP 422: [{\"loc\": [\"body\", \"listing_id\"], \"msg\": \"Field required\", \"type\": \"missing\"}]"
       ]
     },
     {
       "endpoint": "/v1/listings",
       "category": "data_quality",
       "documented": "Every listing corresponds to exactly one physical property and is safe to show to a user.",
-      "actual": "Contains 33 physically impossible records: negative prices, floor greater than total floors, carpet area greater than super built-up area, and 0-bedroom/0-bathroom apartments.",
+      "actual": "Contains 33 physically impossible records across three categories: (a) carpet_area exceeding super_built_up_area, (b) floor number exceeding total_floors, and (c) negative or zero prices.",
       "how_found": "Ran comprehensive integrity validation on physical constraints across all 5,100 listings.",
       "impact": "Displays corrupted or physically impossible real estate records to users and corrupts statistical models.",
       "evidence": [
@@ -331,15 +382,21 @@
       "endpoint": "/v1/listings",
       "category": "data_quality",
       "documented": "Every listing corresponds to exactly one physical property and is safe to show to a user.",
-      "actual": "Contains 11 records with swapped latitude and longitude coordinates where latitude > 50 (~72.8° in Arctic Russia) and longitude < 50 (~19.0° in West Africa/Atlantic Ocean) instead of Mumbai coordinates (lat ~19.0°, lon ~72.8°).",
-      "how_found": "Filtered listings for coordinate anomalies (latitude > 50 or longitude < 50) and identified inverted coordinates.",
+      "actual": "Contains 11 records with swapped latitude and longitude coordinates where latitude > 50 (~72.8° in Arctic Russia) and longitude < 50 (~19.0° in West Africa/Atlantic Ocean) instead of genuine Mumbai coordinates (lat ~19.0°, lon ~72.8°).",
+      "how_found": "Filtered all 5,100 listings for coordinate anomalies (latitude > 50 or longitude < 50) and identified inverted lat/lon pairs matching Mumbai's real coordinates in reverse.",
       "impact": "Plotting properties on map interfaces places Mumbai homes in Arctic Siberia and the Atlantic Ocean.",
       "evidence": [
         "100-5001382",
         "100-5001980",
         "DWE-5003960",
         "MAG-5002818",
-        "SQU-5003928"
+        "MAG-5002515",
+        "MAG-5000752",
+        "SQU-5003928",
+        "SQU-5001264",
+        "SQU-5001967",
+        "SQU-5002609",
+        "ZER-5003369"
       ]
     },
     {
@@ -376,33 +433,6 @@
       ]
     },
     {
-      "endpoint": "/auth/login",
-      "category": "auth",
-      "documented": "Tokens are valid for 24 hours. There is no refresh flow.",
-      "actual": "Tokens expire in 15 minutes (900s) and a refresh flow exists via POST /auth/refresh",
-      "how_found": "Inspected POST /auth/login response payload and tested /auth/refresh",
-      "impact": "Frontend sessions expire prematurely without implementing the undocumented refresh flow",
-      "evidence": []
-    },
-    {
-      "endpoint": "/auth/logout",
-      "category": "auth",
-      "documented": "Invalidates the current token server side.",
-      "actual": "Tokens are stateless JWTs and are not invalidated server-side. Subsequent requests with the token still return 200.",
-      "how_found": "Sent authenticated request after calling POST /auth/logout",
-      "impact": "Requires strict client-side destruction of tokens to secure sessions",
-      "evidence": []
-    },
-    {
-      "endpoint": "/v1/listings",
-      "category": "pagination",
-      "documented": "takes page and limit (default 20, max 200). Response: { total, page, page_size, results }",
-      "actual": "Ignores page, uses offset. Hard-caps limit at 50. Response envelope lacks page and page_size.",
-      "how_found": "Tested pagination limits and inspected response keys",
-      "impact": "Breaks standard page-based fetching logic",
-      "evidence": []
-    },
-    {
       "endpoint": "/v1/rentals",
       "category": "completeness",
       "documented": "Collection returns active rental listings",
@@ -412,7 +442,9 @@
       "evidence": [
         "R5000017",
         "R5000023",
-        "R5000028"
+        "R5000028",
+        "R5000032",
+        "R5000035"
       ]
     },
     {
@@ -422,7 +454,10 @@
       "actual": "order=desc is silently ignored; returns ascending",
       "how_found": "Compared desc and asc query results",
       "impact": "Sorting UI fails server-side",
-      "evidence": []
+      "evidence": [
+        "GET /v1/rentals?sort_by=price&order=desc returns first 3 prices: [6600, 8500, 8800]",
+        "GET /v1/rentals?sort_by=price&order=asc returns identical prices: [6600, 8500, 8800]"
+      ]
     }
   ]
 }

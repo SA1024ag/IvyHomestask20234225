@@ -100,7 +100,7 @@ function solve() {
     const isFloorCorrupt = l.floor != null && l.total_floors != null && l.floor > l.total_floors;
     const isPriceCorrupt = l.price != null && l.price <= 0;
     const isCarpetCorrupt = l.carpet_area != null && l.carpet_area <= 0;
-    
+
     // For plots, bedroom = 0 is expected. For residential buildings, bedroom <= 0 is physically impossible.
     const isBedroomCorrupt = includePlotsInCorrupt
       ? (l.bedroom != null && l.bedroom <= 0)
