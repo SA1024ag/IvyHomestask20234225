@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -52,27 +52,81 @@ const PRICE_PRESETS = [
   { label: 'Above ₹7.5 Cr', min: '75000000', max: '' }
 ];
 
+const getStoredListingsState = () => {
+  try {
+    const raw = sessionStorage.getItem('ivy_listings_state');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+};
+
 export default function ListingsPage() {
   const { count: compareCount } = useCompare();
 
-  // Filter States
-  const [selectedLocality, setSelectedLocality] = useState('All Localities');
-  const [selectedBhk, setSelectedBhk] = useState('');
-  const [selectedFurnishing, setSelectedFurnishing] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const storedState = useMemo(() => getStoredListingsState(), []);
 
-  // Sorting States (Client-Side Sorting Fallback for order=desc)
-  const [sortOption, setSortOption] = useState('price_asc');
+  // Filter States (restores previous state if returning via back button)
+  const [selectedLocality, setSelectedLocality] = useState(storedState?.selectedLocality ?? 'All Localities');
+  const [selectedBhk, setSelectedBhk] = useState(storedState?.selectedBhk ?? '');
+  const [selectedFurnishing, setSelectedFurnishing] = useState(storedState?.selectedFurnishing ?? '');
+  const [minPrice, setMinPrice] = useState(storedState?.minPrice ?? '');
+  const [maxPrice, setMaxPrice] = useState(storedState?.maxPrice ?? '');
+  const [searchQuery, setSearchQuery] = useState(storedState?.searchQuery ?? '');
+
+  // Sorting States: default is 'default' (order in which they are listed in the catalog)
+  const [sortOption, setSortOption] = useState(storedState?.sortOption ?? 'default');
 
   // Pagination States
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(storedState?.page ?? 1);
 
   // Data States
   const [rawListings, setRawListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
+
+  // Persist filter and sorting state across page transitions (e.g. going to details and clicking back)
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        'ivy_listings_state',
+        JSON.stringify({
+          selectedLocality,
+          selectedBhk,
+          selectedFurnishing,
+          minPrice,
+          maxPrice,
+          searchQuery,
+          sortOption,
+          page
+        })
+      );
+    } catch (e) {}
+  }, [selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, searchQuery, sortOption, page]);
+
+  // Track and save scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      try {
+        sessionStorage.setItem('ivy_listings_scroll', String(window.scrollY));
+      } catch (e) {}
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Restore scroll position after data catalog loads
+  useEffect(() => {
+    if (!isLoading && rawListings.length > 0) {
+      try {
+        const savedScroll = sessionStorage.getItem('ivy_listings_scroll');
+        if (savedScroll) {
+          setTimeout(() => {
+            window.scrollTo({ top: Number(savedScroll), behavior: 'instant' });
+          }, 40);
+        }
+      } catch (e) {}
+    }
+  }, [isLoading, rawListings.length]);
 
   // Load complete verified listings catalog to enable accurate client-side filtering across all 5,100 records
   // Proactively masks the backend API's broken pagination and silently ignored filter query parameters
@@ -110,8 +164,13 @@ export default function ListingsPage() {
     fetchCatalog();
   }, [fetchCatalog]);
 
-  // Reset to page 1 whenever any filter or sort option changes
+  // Reset to page 1 ONLY when filters or sort change dynamically after initial mount
+  const isFirstFilterCheck = useRef(true);
   useEffect(() => {
+    if (isFirstFilterCheck.current) {
+      isFirstFilterCheck.current = false;
+      return;
+    }
     setPage(1);
   }, [selectedLocality, selectedBhk, minPrice, maxPrice, selectedFurnishing, searchQuery, sortOption]);
 
@@ -190,6 +249,10 @@ export default function ListingsPage() {
   // CRITICAL CLIENT-SIDE SORTING FALLBACK:
   // Server ignores order=desc and always returns asc. We sort/reverse locally on the client!
   const sortedListings = useMemo(() => {
+    if (sortOption === 'default') {
+      return filteredListings;
+    }
+
     const list = [...filteredListings];
     const [field, order] = sortOption.split('_');
 
@@ -230,7 +293,8 @@ export default function ListingsPage() {
     selectedFurnishing !== '' ||
     minPrice !== '' ||
     maxPrice !== '' ||
-    searchQuery !== '';
+    searchQuery !== '' ||
+    sortOption !== 'default';
 
   const handleResetFilters = () => {
     setSelectedLocality('All Localities');
@@ -239,7 +303,12 @@ export default function ListingsPage() {
     setMinPrice('');
     setMaxPrice('');
     setSearchQuery('');
+    setSortOption('default');
     setPage(1);
+    try {
+      sessionStorage.removeItem('ivy_listings_state');
+      sessionStorage.removeItem('ivy_listings_scroll');
+    } catch (e) {}
   };
 
   const handlePricePreset = (preset) => {
@@ -529,10 +598,11 @@ export default function ListingsPage() {
                     fontSize: '0.8rem',
                     padding: '0.3rem 0.6rem',
                     borderRadius: 'var(--radius-sm)',
-                    minWidth: '150px'
+                    minWidth: '160px'
                   }}
                   aria-label="Sort listings"
                 >
+                  <option value="default">Default Catalog Order</option>
                   <option value="price_asc">Price: Low to High</option>
                   <option value="price_desc">Price: High to Low</option>
                   <option value="area_asc">Carpet: Small to Large</option>
