@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Building2,
@@ -42,7 +42,6 @@ const DEMO_ACCOUNTS = [
 export default function LoginPage() {
   const { user, login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [email, setEmail] = useState('demo1@ivy.homes');
   const [password, setPassword] = useState('b42f2e3a58');
@@ -51,8 +50,6 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [activeDemoId, setActiveDemoId] = useState(1);
   const [fillFeedback, setFillFeedback] = useState('');
-
-  const from = location.state?.from?.pathname || '/listings';
 
   // Handle filling the form fields without submitting
   const handleFillForm = (account) => {
@@ -74,7 +71,7 @@ export default function LoginPage() {
 
     try {
       await login(account.email, account.password);
-      navigate(from, { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       setErrorMessage(err.message || 'Authentication failed.');
     } finally {
@@ -89,7 +86,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       setErrorMessage(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -129,11 +126,11 @@ export default function LoginPage() {
               </div>
             </div>
             <button
-              onClick={() => navigate('/listings')}
+              onClick={() => navigate('/')}
               className="btn btn-primary btn-sm"
               style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
             >
-              Dashboard →
+              Enter Home →
             </button>
           </div>
         )}
