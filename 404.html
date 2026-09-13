@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Ivy Homes | Redirecting...</title>
+    <script>
+      // Single Page Apps for GitHub Pages redirect to HashRouter
+      // Path format: /<repo-name>/<subpath>
+      // Converts: /IvyHomestask20234225/listings -> /IvyHomestask20234225/#/listings
+      (function() {
+        var pathSegmentsToKeep = 1; // 1 segment for GitHub Pages repo name
+        var l = window.location;
+        var path = l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/');
+        var search = l.search ? (l.search) : '';
+        var hash = l.hash ? l.hash : '';
+        var repo = '/' + l.pathname.split('/')[1];
+        
+        var target = l.protocol + '//' + l.host + repo + '/#/' + path + search + hash;
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting to <a href="/IvyHomestask20234225/">Ivy Homes</a>...</p>
+  </body>
+</html>
