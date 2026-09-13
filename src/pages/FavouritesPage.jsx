@@ -5,10 +5,7 @@ import {
   Heart,
   Home,
   ArrowRight,
-  Loader2,
-  Trash2,
-  Sparkles,
-  ShieldCheck
+  Loader2
 } from 'lucide-react';
 import { useFavourites } from '../context/FavouritesContext';
 import PropertyCard from '../components/PropertyCard';
