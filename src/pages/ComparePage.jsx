@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, X } from 'lucide-react';
+import { Heart, X, Building2, KeyRound, FolderKanban } from 'lucide-react';
 
 import { useCompare } from '../context/CompareContext';
 import { useFavourites } from '../context/FavouritesContext';

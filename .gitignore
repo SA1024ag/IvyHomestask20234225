@@ -1,6 +1,9 @@
-listings.json
-rentals.json
-projects.json
+/listings.json
+/rentals.json
+/projects.json
+!/public/listings.json
+!/public/rentals.json
+!/public/projects.json
 
 # Logs
 logs

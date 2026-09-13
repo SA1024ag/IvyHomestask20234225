@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FilterX, X, Loader2 } from 'lucide-react';
 import { apiClient } from '../api/client';
@@ -68,9 +68,19 @@ export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
   const [selectedProjectModal, setSelectedProjectModal] = useState(null);
+  const [catalogMode, setCatalogMode] = useState(false);
 
-  // Fetch projects from GET /v1/projects strictly using offset and limit (max 50)
-  const fetchProjects = useCallback(async () => {
+  // Convert project price_min & price_max from floating-point Crores/Lakhs to full Rupees
+  const normalizeProjectPrice = (val) => {
+    if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
+    const num = Number(val);
+    if (num >= 100000) return num;
+    if (num >= 20) return Math.round(num * 100000);
+    return Math.round(num * 10000000);
+  };
+
+  // Fallback API loader
+  const fetchFromApi = useCallback(async () => {
     setIsLoading(true);
     setApiError(null);
 
@@ -89,19 +99,7 @@ export default function ProjectsPage() {
 
     try {
       const data = await apiClient.getProjects(queryParams);
-      // Parse envelope: { limit, offset, count, total, has_more, results }
       const results = Array.isArray(data) ? data : (data.results || []);
-
-      // Convert project price_min & price_max from floating-point Crores/Lakhs to full Rupees
-      // Values >= 20 represent Lakhs (e.g. 90.8 L = 9,080,000), values < 20 represent Crores (e.g. 2.94 Cr = 29,400,000)
-      const normalizeProjectPrice = (val) => {
-        if (val === null || val === undefined || isNaN(val) || val <= 0) return null;
-        const num = Number(val);
-        if (num >= 100000) return num;
-        if (num >= 20) return Math.round(num * 100000);
-        return Math.round(num * 10000000);
-      };
-
       const convertedProjects = results.map((proj) => ({
         ...proj,
         price_min: normalizeProjectPrice(proj.price_min),
@@ -124,9 +122,49 @@ export default function ProjectsPage() {
     }
   }, [page, limit, selectedLocality, selectedStatus]);
 
+  // Load complete verified projects catalog to enable accurate client-side filtering across all 590 projects
+  const fetchCatalog = useCallback(async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}projects.json`);
+      if (res.ok) {
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (data.results || []);
+        if (arr.length > 0) {
+          const converted = arr.map((proj) => ({
+            ...proj,
+            price_min: normalizeProjectPrice(proj.price_min),
+            price_max: normalizeProjectPrice(proj.price_max),
+          }));
+          setRawProjects(converted);
+          setCatalogMode(true);
+          setTotalCount(converted.length);
+          setIsLoading(false);
+          return;
+        }
+      }
+      fetchFromApi();
+    } catch {
+      fetchFromApi();
+    }
+  }, [fetchFromApi]);
+
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    fetchCatalog();
+  }, [fetchCatalog]);
+
+  const isFirstFilterCheck = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterCheck.current) {
+      isFirstFilterCheck.current = false;
+      return;
+    }
+    if (!catalogMode) {
+      fetchFromApi();
+    }
+    setPage(1);
+  }, [selectedLocality, selectedStatus, searchQuery, sortOption, catalogMode, fetchFromApi]);
 
   // Client-side fallback filtering to guarantee UI correctness
   const filteredProjects = useMemo(() => {
@@ -190,7 +228,15 @@ export default function ProjectsPage() {
     (selectedStatus ? 1 : 0) +
     (searchQuery.trim() ? 1 : 0);
 
-  const totalPages = Math.ceil(totalCount / limit) || 1;
+  const totalPages = catalogMode
+    ? Math.max(1, Math.ceil(filteredProjects.length / limit))
+    : Math.ceil(totalCount / limit) || 1;
+
+  const paginatedProjects = useMemo(() => {
+    if (!catalogMode) return sortedProjects;
+    const startIndex = (page - 1) * limit;
+    return sortedProjects.slice(startIndex, startIndex + limit);
+  }, [sortedProjects, page, limit, catalogMode]);
 
   return (
     <motion.div
@@ -218,7 +264,7 @@ export default function ProjectsPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="badge badge-amber" style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}>
-            <span>{totalCount.toLocaleString('en-IN')} RERA Registered</span>
+            <span>{(catalogMode ? filteredProjects.length : totalCount).toLocaleString('en-IN')} RERA Registered</span>
           </div>
         </div>
       </div>
@@ -507,7 +553,7 @@ export default function ProjectsPage() {
                 gap: '1.75rem'
               }}
             >
-              {sortedProjects.map((proj) => (
+              {paginatedProjects.map((proj) => (
                 <motion.div key={proj.project_id} variants={cardItemVariants}>
                   <ProjectCard
                     proj={proj}
@@ -618,7 +664,7 @@ export default function ProjectsPage() {
                     setPage((prev) => prev + 1);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  disabled={!hasMore || page >= totalPages}
+                  disabled={page >= totalPages}
                   className="btn btn-secondary btn-sm"
                 >
                   Next

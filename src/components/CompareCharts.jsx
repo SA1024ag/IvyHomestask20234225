@@ -13,7 +13,7 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis
 } from 'recharts';
-import { Check } from 'lucide-react';
+import { Check, Award, Maximize2, TrendingUp } from 'lucide-react';
 
 const PROPERTY_PALETTE = [
   { stroke: '#6366f1', fill: '#4f46e5', name: 'Property 1' },
