@@ -343,19 +343,18 @@ export default function ProjectsPage() {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: selectedLocality !== 'All Localities' ? 'space-between' : 'flex-end',
             marginBottom: '1.25rem',
-            padding: '0.85rem 1.25rem',
+            padding: '0.65rem 1.25rem',
             backgroundColor: 'var(--bg-surface)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-subtle)'
           }}>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Showing <strong style={{ color: 'var(--text-heading)' }}>{filteredProjects.length}</strong> matching builder developments
-              {selectedLocality !== 'All Localities' && (
-                <span> in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
-              )}
-            </div>
+            {selectedLocality !== 'All Localities' && (
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <span>Projects in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               <span>Page {page}</span>
             </div>

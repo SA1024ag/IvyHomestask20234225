@@ -55,8 +55,8 @@ export default function RentalsPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sorting States (Client-Side Sorting Fallback for order=desc)
-  const [sortOption, setSortOption] = useState('price_asc');
+  // Sorting States: default is 'newest_desc' (Newly listed rentals)
+  const [sortOption, setSortOption] = useState('newest_desc');
 
   // Pagination States
   const [page, setPage] = useState(1);
@@ -160,22 +160,22 @@ export default function RentalsPage() {
     const [field, order] = sortOption.split('_');
 
     list.sort((a, b) => {
-      let valA = 0;
-      let valB = 0;
+      if (field === 'newest') {
+        const tA = new Date(a.posted_at).getTime() || 0;
+        const tB = new Date(b.posted_at).getTime() || 0;
+        return order === 'desc' ? tB - tA : tA - tB;
+      }
       if (field === 'price') {
-        valA = Number(a.price) || 0;
-        valB = Number(b.price) || 0;
-      } else if (field === 'area') {
-        valA = Number(a.carpet_area) || 0;
-        valB = Number(b.carpet_area) || 0;
-      } else if (field === 'newest') {
-        valA = new Date(a.posted_at).getTime() || 0;
-        valB = new Date(b.posted_at).getTime() || 0;
+        const pA = Number(a.price) || 0;
+        const pB = Number(b.price) || 0;
+        return order === 'desc' ? pB - pA : pA - pB;
       }
-      if (order === 'desc') {
-        return valB > valA ? 1 : valB < valA ? -1 : 0;
+      if (field === 'area') {
+        const aA = Number(a.carpet_area) || 0;
+        const aB = Number(b.carpet_area) || 0;
+        return order === 'desc' ? aB - aA : aA - aB;
       }
-      return valA > valB ? 1 : valA < valB ? -1 : 0;
+      return 0;
     });
 
     return list;
@@ -198,6 +198,7 @@ export default function RentalsPage() {
     setMinPrice('');
     setMaxPrice('');
     setSearchQuery('');
+    setSortOption('newest_desc');
     setPage(1);
   };
 
@@ -460,11 +461,11 @@ export default function RentalsPage() {
                   }}
                   aria-label="Sort rentals"
                 >
+                  <option value="newest_desc">Newly Listed (Default)</option>
                   <option value="price_asc">Rent: Low to High</option>
                   <option value="price_desc">Rent: High to Low</option>
                   <option value="area_asc">Carpet: Small to Large</option>
                   <option value="area_desc">Carpet: Large to Small</option>
-                  <option value="newest_desc">Newest Listed</option>
                 </select>
               </div>
 

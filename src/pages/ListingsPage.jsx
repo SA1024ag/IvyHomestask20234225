@@ -73,8 +73,11 @@ export default function ListingsPage() {
   const [maxPrice, setMaxPrice] = useState(storedState?.maxPrice ?? '');
   const [searchQuery, setSearchQuery] = useState(storedState?.searchQuery ?? '');
 
-  // Sorting States: default is 'default' (order in which they are listed in the catalog)
-  const [sortOption, setSortOption] = useState(storedState?.sortOption ?? 'default');
+  // Sorting States: default is 'newest_desc' (Newly listed properties)
+  const initialSort = (storedState?.sortOption && storedState.sortOption !== 'default')
+    ? storedState.sortOption
+    : 'newest_desc';
+  const [sortOption, setSortOption] = useState(initialSort);
 
   // Pagination States
   const [page, setPage] = useState(storedState?.page ?? 1);
@@ -249,14 +252,15 @@ export default function ListingsPage() {
   // CRITICAL CLIENT-SIDE SORTING FALLBACK:
   // Server ignores order=desc and always returns asc. We sort/reverse locally on the client!
   const sortedListings = useMemo(() => {
-    if (sortOption === 'default') {
-      return filteredListings;
-    }
-
     const list = [...filteredListings];
     const [field, order] = sortOption.split('_');
 
     list.sort((a, b) => {
+      if (field === 'newest') {
+        const tA = new Date(a.posted_at).getTime() || 0;
+        const tB = new Date(b.posted_at).getTime() || 0;
+        return order === 'desc' ? tB - tA : tA - tB;
+      }
       if (field === 'price') {
         const pA = Number(a.price) || 0;
         const pB = Number(b.price) || 0;
@@ -266,11 +270,6 @@ export default function ListingsPage() {
         const aA = Number(a.carpet_area) || 0;
         const aB = Number(b.carpet_area) || 0;
         return order === 'desc' ? aB - aA : aA - aB;
-      }
-      if (field === 'newest') {
-        const tA = new Date(a.posted_at).getTime() || 0;
-        const tB = new Date(b.posted_at).getTime() || 0;
-        return order === 'desc' ? tB - tA : tA - tB;
       }
       return 0;
     });
@@ -294,7 +293,7 @@ export default function ListingsPage() {
     minPrice !== '' ||
     maxPrice !== '' ||
     searchQuery !== '' ||
-    sortOption !== 'default';
+    sortOption !== 'newest_desc';
 
   const handleResetFilters = () => {
     setSelectedLocality('All Localities');
@@ -303,7 +302,7 @@ export default function ListingsPage() {
     setMinPrice('');
     setMaxPrice('');
     setSearchQuery('');
-    setSortOption('default');
+    setSortOption('newest_desc');
     setPage(1);
     try {
       sessionStorage.removeItem('ivy_listings_state');
@@ -602,12 +601,11 @@ export default function ListingsPage() {
                   }}
                   aria-label="Sort listings"
                 >
-                  <option value="default">Default Catalog Order</option>
+                  <option value="newest_desc">Newly Listed (Default)</option>
                   <option value="price_asc">Price: Low to High</option>
                   <option value="price_desc">Price: High to Low</option>
                   <option value="area_asc">Carpet: Small to Large</option>
                   <option value="area_desc">Carpet: Large to Small</option>
-                  <option value="newest_desc">Newest Listed</option>
                 </select>
               </div>
 
