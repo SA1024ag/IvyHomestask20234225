@@ -18,7 +18,8 @@ import {
   Layers,
   Award,
   ShieldAlert,
-  BedDouble
+  BedDouble,
+  SlidersHorizontal
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -143,6 +144,14 @@ export default function LandingPage() {
     }
   };
 
+  const handleSelectModeFromCard = (mode) => {
+    setSearchMode(mode);
+    const filterSection = document.getElementById('search-filter-section');
+    if (filterSection) {
+      filterSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div style={{ position: 'relative', overflow: 'hidden', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '3.5rem', paddingBottom: '4rem' }}>
       {/* Dynamic Ambient Background Glow Orbs */}
@@ -151,10 +160,10 @@ export default function LandingPage() {
       <div className="landing-glow-orb-3" />
 
       {/* =====================================================================
-          1. HERO SECTION & INTERACTIVE LAUNCHER
+          1. HERO HEADER SECTION
           ===================================================================== */}
-      <section className="main-content" style={{ position: 'relative', zIndex: 1, paddingTop: '1.5rem' }}>
-        <div style={{ maxWidth: '980px', margin: '0 auto', textAlign: 'center' }}>
+      <section className="main-content" style={{ position: 'relative', zIndex: 1, paddingTop: '1.5rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '980px', margin: '0 auto' }}>
           {/* Animated Hero Trust Badge */}
           <div style={{ display: 'inline-flex', marginBottom: '1.25rem' }}>
             <div className="landing-hero-badge">
@@ -189,128 +198,469 @@ export default function LandingPage() {
             color: 'var(--text-muted)',
             lineHeight: 1.6,
             maxWidth: '740px',
-            margin: '0 auto 2.25rem auto'
+            margin: '0 auto'
           }}>
-            Zero duplicate broker spam. Zero fake clickbait pricing. Explore an unbiased, data-audited catalog across verified luxury sales, executive rentals, and tier-1 builder developments.
+            Zero duplicate broker spam. Zero fake clickbait pricing. Choose from three unbiased, data-audited discovery channels across verified sales, corporate leases, and tier-1 builder developments.
           </p>
+        </div>
+      </section>
 
-          {/* Interactive Multi-Mode Search Console */}
+      {/* =====================================================================
+          2. THE 3 CORE PILLARS ON TOP (BUY, RENT, DEVELOPMENTS)
+          ===================================================================== */}
+      <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.75rem'
+        }}>
+          {/* ==================== OPTION 1: BUY ==================== */}
+          <div className="ivy-card landing-card-hover" style={{
+            padding: '2rem',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div>
+              {/* Header Accent Pill */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  boxShadow: '0 6px 16px rgba(67, 56, 202, 0.3)'
+                }}>
+                  <Home size={24} />
+                </div>
+                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                  5,100 Verified Records
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
+                Properties for Sale
+              </h3>
+
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
+                Exclusive residences, penthouses, and gated sea-view complexes across Mumbai's elite corridors. Every property is audited for genuine pricing and physical dimensions.
+              </p>
+
+              {/* Pillar Micro-Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.75rem',
+                marginBottom: '1.5rem',
+                padding: '0.85rem',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Median Price</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>₹3.30 Cr</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Carpet Rate</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>₹32,528/sqft</div>
+                </div>
+              </div>
+
+              {/* Quick Preset Links */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
+                <NavLink to="/listings?locality=bandra+west" className="landing-quick-chip">
+                  Bandra West
+                </NavLink>
+                <NavLink to="/listings?locality=worli" className="landing-quick-chip">
+                  Worli
+                </NavLink>
+                <NavLink to="/listings?bhk=3" className="landing-quick-chip">
+                  3 BHK
+                </NavLink>
+                <NavLink to="/listings?max_price=20000000" className="landing-quick-chip">
+                  &lt; ₹2 Cr
+                </NavLink>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <NavLink
+                to="/listings"
+                className="btn btn-primary"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.25rem',
+                  fontWeight: 700,
+                  textDecoration: 'none'
+                }}
+              >
+                <span>Explore Properties for Sale</span>
+                <ArrowRight size={16} />
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => handleSelectModeFromCard('buy')}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', color: 'var(--accent-text)', justifyContent: 'center', gap: '4px' }}
+              >
+                <SlidersHorizontal size={12} />
+                <span>Configure Filters Below</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ==================== OPTION 2: RENT ==================== */}
+          <div className="ivy-card landing-card-hover" style={{
+            padding: '2rem',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div>
+              {/* Header Accent Pill */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  boxShadow: '0 6px 16px rgba(5, 150, 105, 0.3)'
+                }}>
+                  <KeyRound size={24} />
+                </div>
+                <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                  Curated Executive Leases
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
+                Rental Residences
+              </h3>
+
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
+                Vetted rental homes for corporate executives, expatriates, and families. Transparent security deposits, accurate furnishing states, and zero fake pricing bait.
+              </p>
+
+              {/* Pillar Micro-Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.75rem',
+                marginBottom: '1.5rem',
+                padding: '0.85rem',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Move-In Speed</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Immediate</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Lease Clarity</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669' }}>100% Honest</div>
+                </div>
+              </div>
+
+              {/* Quick Preset Links */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
+                <NavLink to="/rentals?furnishing=fully-furnished" className="landing-quick-chip">
+                  Fully Furnished
+                </NavLink>
+                <NavLink to="/rentals?locality=powai" className="landing-quick-chip">
+                  Powai IT Hub
+                </NavLink>
+                <NavLink to="/rentals?bhk=2" className="landing-quick-chip">
+                  2 BHK Leases
+                </NavLink>
+                <NavLink to="/rentals?locality=andheri+west" className="landing-quick-chip">
+                  Andheri West
+                </NavLink>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <NavLink
+                to="/rentals"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.25rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  backgroundColor: '#059669',
+                  color: '#ffffff',
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'background-color 0.15s ease',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
+                }}
+              >
+                <span>Browse Rental Homes</span>
+                <ArrowRight size={16} />
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => handleSelectModeFromCard('rent')}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', color: '#059669', justifyContent: 'center', gap: '4px' }}
+              >
+                <SlidersHorizontal size={12} />
+                <span>Configure Filters Below</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ==================== OPTION 3: PROJECTS ==================== */}
+          <div className="ivy-card landing-card-hover" style={{
+            padding: '2rem',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div>
+              {/* Header Accent Pill */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  boxShadow: '0 6px 16px rgba(217, 119, 6, 0.3)'
+                }}>
+                  <FolderKanban size={24} />
+                </div>
+                <span className="badge badge-amber" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                  50+ Master Projects
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
+                Builder Developments
+              </h3>
+
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
+                Direct-from-developer RERA-registered projects by tier-1 builders (Lodha, Godrej, Oberoi). Verified possession timelines and normalized ₹ Cr pricing.
+              </p>
+
+              {/* Pillar Micro-Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.75rem',
+                marginBottom: '1.5rem',
+                padding: '0.85rem',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Developer Tier</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Tier-1 RERA</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Pricing Unit</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#d97706' }}>Correct ₹ Cr</div>
+                </div>
+              </div>
+
+              {/* Quick Preset Links */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
+                <NavLink to="/projects?search=Lodha" className="landing-quick-chip">
+                  Lodha
+                </NavLink>
+                <NavLink to="/projects?search=Godrej" className="landing-quick-chip">
+                  Godrej
+                </NavLink>
+                <NavLink to="/projects" className="landing-quick-chip">
+                  RERA Approved
+                </NavLink>
+                <NavLink to="/projects" className="landing-quick-chip">
+                  Pre-Launch
+                </NavLink>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <NavLink
+                to="/projects"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.25rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  backgroundColor: '#d97706',
+                  color: '#ffffff',
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'background-color 0.15s ease',
+                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)'
+                }}
+              >
+                <span>Discover Builder Projects</span>
+                <ArrowRight size={16} />
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => handleSelectModeFromCard('projects')}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem', color: '#d97706', justifyContent: 'center', gap: '4px' }}
+              >
+                <SlidersHorizontal size={12} />
+                <span>Configure Filters Below</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          3. INTERACTIVE MULTI-MODE SEARCH & FILTER CONSOLE (AFTER THE 3 CARDS)
+          ===================================================================== */}
+      <section id="search-filter-section" className="main-content" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
           <div className="ivy-card" style={{
-            padding: '1.75rem',
+            padding: '2rem',
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-xl)',
             boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px var(--border-subtle)',
             textAlign: 'left'
           }}>
-            {/* Mode Switcher Tabs */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '1.5rem',
-              borderBottom: '1px solid var(--border-subtle)',
-              paddingBottom: '0.75rem',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                type="button"
-                onClick={() => setSearchMode('buy')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.55rem 1.1rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  backgroundColor: searchMode === 'buy' ? 'var(--accent-primary)' : 'var(--bg-surface-subtle)',
-                  color: searchMode === 'buy' ? '#ffffff' : 'var(--text-muted)'
-                }}
-              >
-                <Home size={15} />
-                <span>Buy Properties</span>
-                <span style={{
-                  fontSize: '0.68rem',
-                  padding: '1px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: searchMode === 'buy' ? 'rgba(255, 255, 255, 0.25)' : 'var(--border-subtle)',
-                  color: searchMode === 'buy' ? '#ffffff' : 'var(--text-muted)'
-                }}>
-                  5,100
-                </span>
-              </button>
+            {/* Header / Instructions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className="badge badge-accent">
+                    <SlidersHorizontal size={12} /> Fast Search & Filter
+                  </span>
+                  <span className="badge badge-slate">Real-time Catalog Query</span>
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.4rem', letterSpacing: '-0.02em' }}>
+                  Filter & Search Mumbai Real Estate
+                </h3>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setSearchMode('rent')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.55rem 1.1rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  backgroundColor: searchMode === 'rent' ? '#059669' : 'var(--bg-surface-subtle)',
-                  color: searchMode === 'rent' ? '#ffffff' : 'var(--text-muted)'
-                }}
-              >
-                <KeyRound size={15} />
-                <span>Rent Residences</span>
-                <span style={{
-                  fontSize: '0.68rem',
-                  padding: '1px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: searchMode === 'rent' ? 'rgba(255, 255, 255, 0.25)' : 'var(--border-subtle)',
-                  color: searchMode === 'rent' ? '#ffffff' : 'var(--text-muted)'
-                }}>
-                  Curated
-                </span>
-              </button>
+              {/* Mode Switcher Tabs */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'var(--bg-surface-subtle)',
+                padding: '4px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-subtle)',
+                gap: '4px',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setSearchMode('buy')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.45rem 0.95rem',
+                    borderRadius: 'var(--radius-full)',
+                    border: 'none',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    backgroundColor: searchMode === 'buy' ? 'var(--accent-primary)' : 'transparent',
+                    color: searchMode === 'buy' ? '#ffffff' : 'var(--text-muted)'
+                  }}
+                >
+                  <Home size={14} />
+                  <span>Buy (5,100)</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setSearchMode('projects')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.55rem 1.1rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  backgroundColor: searchMode === 'projects' ? '#d97706' : 'var(--bg-surface-subtle)',
-                  color: searchMode === 'projects' ? '#ffffff' : 'var(--text-muted)'
-                }}
-              >
-                <FolderKanban size={15} />
-                <span>Builder Projects</span>
-                <span style={{
-                  fontSize: '0.68rem',
-                  padding: '1px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: searchMode === 'projects' ? 'rgba(255, 255, 255, 0.25)' : 'var(--border-subtle)',
-                  color: searchMode === 'projects' ? '#ffffff' : 'var(--text-muted)'
-                }}>
-                  RERA
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSearchMode('rent')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.45rem 0.95rem',
+                    borderRadius: 'var(--radius-full)',
+                    border: 'none',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    backgroundColor: searchMode === 'rent' ? '#059669' : 'transparent',
+                    color: searchMode === 'rent' ? '#ffffff' : 'var(--text-muted)'
+                  }}
+                >
+                  <KeyRound size={14} />
+                  <span>Rent (Curated)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSearchMode('projects')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.45rem 0.95rem',
+                    borderRadius: 'var(--radius-full)',
+                    border: 'none',
+                    fontSize: '0.825rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    backgroundColor: searchMode === 'projects' ? '#d97706' : 'transparent',
+                    color: searchMode === 'projects' ? '#ffffff' : 'var(--text-muted)'
+                  }}
+                >
+                  <FolderKanban size={14} />
+                  <span>Projects (RERA)</span>
+                </button>
+              </div>
             </div>
 
             {/* Form Fields Grid */}
             <form onSubmit={handleLaunchSearch} style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr)) 160px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr)) 160px',
               gap: '1rem',
               alignItems: 'flex-end'
             }}>
@@ -424,11 +774,20 @@ export default function LandingPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.45rem',
-                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)'
+                  boxShadow: searchMode === 'rent'
+                    ? '0 4px 14px rgba(5, 150, 105, 0.35)'
+                    : searchMode === 'projects'
+                    ? '0 4px 14px rgba(217, 119, 6, 0.35)'
+                    : '0 4px 14px rgba(79, 70, 229, 0.35)',
+                  backgroundColor: searchMode === 'rent'
+                    ? '#059669'
+                    : searchMode === 'projects'
+                    ? '#d97706'
+                    : 'var(--accent-primary)'
                 }}
               >
                 <Search size={16} />
-                <span>Search</span>
+                <span>Search {searchMode === 'buy' ? 'Sales' : searchMode === 'rent' ? 'Rentals' : 'Projects'}</span>
               </button>
             </form>
 
@@ -466,333 +825,7 @@ export default function LandingPage() {
       </section>
 
       {/* =====================================================================
-          2. THE 3 CORE PILLARS (UNBIASED DISCOVERY SHOWCASE)
-          ===================================================================== */}
-      <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <span className="badge badge-accent" style={{ marginBottom: '0.65rem' }}>
-            <Layers size={13} /> Multi-Asset Real Estate Portfolio
-          </span>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.03em' }}>
-            Three Ways to Experience Mumbai Real Estate
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '620px', margin: '0.4rem auto 0 auto' }}>
-            Whether buying an audited luxury residence, securing a premium corporate lease, or investing in RERA master developments.
-          </p>
-        </div>
-
-        {/* 3 Pillars Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '1.75rem'
-        }}>
-          {/* ==================== OPTION 1: BUY ==================== */}
-          <div className="ivy-card landing-card-hover" style={{
-            padding: '2rem',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
-          }}>
-            <div>
-              {/* Header Accent Pill */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(67, 56, 202, 0.3)'
-                }}>
-                  <Home size={24} />
-                </div>
-                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
-                  5,100 Verified Records
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
-                Properties for Sale
-              </h3>
-
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
-                Exclusive residences, penthouses, and gated sea-view complexes across Mumbai's elite corridors. Every property is audited for genuine pricing and physical dimensions.
-              </p>
-
-              {/* Pillar Micro-Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.75rem',
-                marginBottom: '1.5rem',
-                padding: '0.85rem',
-                backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Median Price</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>₹3.30 Cr</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Carpet Rate</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>₹32,528/sqft</div>
-                </div>
-              </div>
-
-              {/* Quick Preset Links */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
-                <NavLink to="/listings?locality=bandra+west" className="landing-quick-chip">
-                  Bandra West
-                </NavLink>
-                <NavLink to="/listings?locality=worli" className="landing-quick-chip">
-                  Worli
-                </NavLink>
-                <NavLink to="/listings?bhk=3" className="landing-quick-chip">
-                  3 BHK
-                </NavLink>
-                <NavLink to="/listings?max_price=20000000" className="landing-quick-chip">
-                  &lt; ₹2 Cr
-                </NavLink>
-              </div>
-            </div>
-
-            {/* Primary Action Button */}
-            <NavLink
-              to="/listings"
-              className="btn btn-primary"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.25rem',
-                fontWeight: 700,
-                textDecoration: 'none'
-              }}
-            >
-              <span>Explore Properties for Sale</span>
-              <ArrowRight size={16} />
-            </NavLink>
-          </div>
-
-          {/* ==================== OPTION 2: RENT ==================== */}
-          <div className="ivy-card landing-card-hover" style={{
-            padding: '2rem',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
-          }}>
-            <div>
-              {/* Header Accent Pill */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(5, 150, 105, 0.3)'
-                }}>
-                  <KeyRound size={24} />
-                </div>
-                <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
-                  Curated Executive Leases
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
-                Rental Residences
-              </h3>
-
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
-                Vetted rental homes for corporate executives, expatriates, and families. Transparent security deposits, accurate furnishing states, and zero fake pricing bait.
-              </p>
-
-              {/* Pillar Micro-Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.75rem',
-                marginBottom: '1.5rem',
-                padding: '0.85rem',
-                backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Move-In Speed</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Immediate</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Lease Clarity</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669' }}>100% Honest</div>
-                </div>
-              </div>
-
-              {/* Quick Preset Links */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
-                <NavLink to="/rentals?furnishing=fully-furnished" className="landing-quick-chip">
-                  Fully Furnished
-                </NavLink>
-                <NavLink to="/rentals?locality=powai" className="landing-quick-chip">
-                  Powai IT Hub
-                </NavLink>
-                <NavLink to="/rentals?bhk=2" className="landing-quick-chip">
-                  2 BHK Leases
-                </NavLink>
-                <NavLink to="/rentals?locality=andheri+west" className="landing-quick-chip">
-                  Andheri West
-                </NavLink>
-              </div>
-            </div>
-
-            {/* Primary Action Button */}
-            <NavLink
-              to="/rentals"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.25rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                backgroundColor: '#059669',
-                color: '#ffffff',
-                borderRadius: 'var(--radius-md)',
-                transition: 'background-color 0.15s ease',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
-              }}
-            >
-              <span>Browse Rental Homes</span>
-              <ArrowRight size={16} />
-            </NavLink>
-          </div>
-
-          {/* ==================== OPTION 3: PROJECTS ==================== */}
-          <div className="ivy-card landing-card-hover" style={{
-            padding: '2rem',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
-          }}>
-            <div>
-              {/* Header Accent Pill */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(217, 119, 6, 0.3)'
-                }}>
-                  <FolderKanban size={24} />
-                </div>
-                <span className="badge badge-amber" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
-                  50+ Master Projects
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
-                Builder Developments
-              </h3>
-
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.5rem' }}>
-                Direct-from-developer RERA-registered projects by tier-1 builders (Lodha, Godrej, Oberoi). Verified possession timelines and normalized ₹ Cr pricing.
-              </p>
-
-              {/* Pillar Micro-Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.75rem',
-                marginBottom: '1.5rem',
-                padding: '0.85rem',
-                backgroundColor: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Developer Tier</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)' }}>Tier-1 RERA</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Pricing Unit</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#d97706' }}>Correct ₹ Cr</div>
-                </div>
-              </div>
-
-              {/* Quick Preset Links */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.75rem' }}>
-                <NavLink to="/projects?search=Lodha" className="landing-quick-chip">
-                  Lodha
-                </NavLink>
-                <NavLink to="/projects?search=Godrej" className="landing-quick-chip">
-                  Godrej
-                </NavLink>
-                <NavLink to="/projects" className="landing-quick-chip">
-                  RERA Approved
-                </NavLink>
-                <NavLink to="/projects" className="landing-quick-chip">
-                  Pre-Launch
-                </NavLink>
-              </div>
-            </div>
-
-            {/* Primary Action Button */}
-            <NavLink
-              to="/projects"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.25rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                backgroundColor: '#d97706',
-                color: '#ffffff',
-                borderRadius: 'var(--radius-md)',
-                transition: 'background-color 0.15s ease',
-                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)'
-              }}
-            >
-              <span>Discover Builder Projects</span>
-              <ArrowRight size={16} />
-            </NavLink>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          3. LIVE MARKET TELEMETRY & AUDIT INTEGRITY BANNER
+          4. LIVE MARKET TELEMETRY & AUDIT INTEGRITY BANNER
           ===================================================================== */}
       <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
         <div className="ivy-card" style={{
@@ -891,7 +924,7 @@ export default function LandingPage() {
       </section>
 
       {/* =====================================================================
-          4. THE FORENSIC ADVANTAGE (WHY IVYHOMES IS BUILT DIFFERENT)
+          5. THE FORENSIC ADVANTAGE (WHY IVYHOMES IS BUILT DIFFERENT)
           ===================================================================== */}
       <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -1006,7 +1039,7 @@ export default function LandingPage() {
       </section>
 
       {/* =====================================================================
-          5. PRIME MUMBAI NEIGHBORHOODS SPOTLIGHT
+          6. PRIME MUMBAI NEIGHBORHOODS SPOTLIGHT
           ===================================================================== */}
       <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -1105,7 +1138,7 @@ export default function LandingPage() {
       </section>
 
       {/* =====================================================================
-          6. HIGH-CONVERSION CTA FOOTER BANNER
+          7. HIGH-CONVERSION CTA FOOTER BANNER
           ===================================================================== */}
       <section className="main-content" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{
