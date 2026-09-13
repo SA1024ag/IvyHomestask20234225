@@ -13,7 +13,20 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis
 } from 'recharts';
-import { Check, Award, Maximize2, TrendingUp } from 'lucide-react';
+import {
+  Check,
+  Award,
+  Maximize2,
+  TrendingUp,
+  Coins,
+  Building2,
+  BedDouble,
+  Bath,
+  Sliders,
+  ShieldCheck,
+  Sparkles,
+  RotateCcw
+} from 'lucide-react';
 
 const PROPERTY_PALETTE = [
   { stroke: '#6366f1', fill: '#4f46e5', name: 'Property 1' },
@@ -88,43 +101,99 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
     carpet: true,
     rate: true,
     bhk: true,
-    bath: true
+    bath: true,
+    deposit: true,
+    maxPrice: true,
+    units: true
   });
 
-  // Available parameters based on type
+  // Available parameters based on type with rich icons and metadata
   const availableParams = useMemo(() => {
     if (type === 'sale') {
       return [
-        { id: 'price', label: 'Price (₹ Lakhs)', unit: 'L' },
-        { id: 'carpet', label: 'Carpet Area (sqft)', unit: 'sqft' },
-        { id: 'rate', label: 'Rate (₹/sqft)', unit: '₹/sqft' },
-        { id: 'bhk', label: 'Bedrooms (BHK)', unit: 'BHK' },
-        { id: 'bath', label: 'Bathrooms', unit: 'Bath' }
+        { id: 'price', label: 'Price (₹L)', fullLabel: 'Price (₹ Lakhs)', unit: '₹L', icon: Coins },
+        { id: 'carpet', label: 'Carpet Area', fullLabel: 'Carpet Area (sqft)', unit: 'sqft', icon: Maximize2 },
+        { id: 'rate', label: 'Rate / sqft', fullLabel: 'Rate (₹/sqft)', unit: '₹/sqft', icon: TrendingUp },
+        { id: 'bhk', label: 'Bedrooms', fullLabel: 'Bedrooms (BHK)', unit: 'BHK', icon: BedDouble },
+        { id: 'bath', label: 'Bathrooms', fullLabel: 'Bathrooms', unit: 'Bath', icon: Bath }
       ];
     }
     if (type === 'rentals') {
       return [
-        { id: 'price', label: 'Monthly Rent (₹k)', unit: 'k' },
-        { id: 'carpet', label: 'Carpet Area (sqft)', unit: 'sqft' },
-        { id: 'rate', label: 'Rent/sqft (₹)', unit: '₹/sqft' },
-        { id: 'bhk', label: 'Bedrooms (BHK)', unit: 'BHK' },
-        { id: 'deposit', label: 'Deposit (₹k)', unit: 'k' }
+        { id: 'price', label: 'Rent (₹k)', fullLabel: 'Monthly Rent (₹k)', unit: '₹k', icon: Coins },
+        { id: 'carpet', label: 'Carpet Area', fullLabel: 'Carpet Area (sqft)', unit: 'sqft', icon: Maximize2 },
+        { id: 'rate', label: 'Rent / sqft', fullLabel: 'Rent / sqft (₹)', unit: '₹/sqft', icon: TrendingUp },
+        { id: 'bhk', label: 'Bedrooms', fullLabel: 'Bedrooms (BHK)', unit: 'BHK', icon: BedDouble },
+        { id: 'deposit', label: 'Deposit (₹k)', fullLabel: 'Security Deposit', unit: '₹k', icon: ShieldCheck }
       ];
     }
     return [
-      { id: 'price', label: 'Min Price (₹ Cr)', unit: 'Cr' },
-      { id: 'maxPrice', label: 'Max Price (₹ Cr)', unit: 'Cr' },
-      { id: 'carpet', label: 'Min Area (sqft)', unit: 'sqft' },
-      { id: 'units', label: 'Units Planned (tens)', unit: 'x10' }
+      { id: 'price', label: 'Min Price', fullLabel: 'Min Price (₹ Cr)', unit: '₹ Cr', icon: Coins },
+      { id: 'maxPrice', label: 'Max Price', fullLabel: 'Max Price (₹ Cr)', unit: '₹ Cr', icon: Coins },
+      { id: 'carpet', label: 'Min Area', fullLabel: 'Min Area (sqft)', unit: 'sqft', icon: Maximize2 },
+      { id: 'units', label: 'Planned Units', fullLabel: 'Total Units', unit: 'Units', icon: Building2 }
     ];
   }, [type]);
 
+  const activeCount = useMemo(() => {
+    return availableParams.filter(p => !!selectedParams[p.id]).length;
+  }, [availableParams, selectedParams]);
+
+  const allSelected = useMemo(() => {
+    return availableParams.every(p => !!selectedParams[p.id]);
+  }, [availableParams, selectedParams]);
+
+  const isCoreSelected = useMemo(() => {
+    const coreIds = type === 'projects'
+      ? ['price', 'maxPrice', 'carpet']
+      : ['price', 'carpet', 'rate'];
+    return availableParams.every(p => {
+      if (coreIds.includes(p.id)) return !!selectedParams[p.id];
+      return !selectedParams[p.id];
+    });
+  }, [availableParams, selectedParams, type]);
+
   const toggleParam = (id) => {
     setSelectedParams(prev => {
-      const activeCount = Object.values(prev).filter(Boolean).length;
-      if (prev[id] && activeCount <= 1) return prev; // Keep at least 1 param active
+      const active = availableParams.filter(p => !!prev[p.id]);
+      if (prev[id] && active.length <= 1) return prev; // Keep at least 1 param active
       return { ...prev, [id]: !prev[id] };
     });
+  };
+
+  const soloParam = (id) => {
+    const next = {};
+    availableParams.forEach(p => {
+      next[p.id] = p.id === id;
+    });
+    setSelectedParams(next);
+  };
+
+  const selectAllParams = () => {
+    const next = {};
+    availableParams.forEach(p => {
+      next[p.id] = true;
+    });
+    setSelectedParams(next);
+  };
+
+  const selectCoreParams = () => {
+    const coreIds = type === 'projects'
+      ? ['price', 'maxPrice', 'carpet']
+      : ['price', 'carpet', 'rate'];
+    const next = {};
+    availableParams.forEach(p => {
+      next[p.id] = coreIds.includes(p.id);
+    });
+    setSelectedParams(next);
+  };
+
+  const resetParams = () => {
+    const next = {};
+    availableParams.forEach(p => {
+      next[p.id] = true;
+    });
+    setSelectedParams(next);
   };
 
   // Compute Multi-Parameter data & normalized radar data
@@ -442,53 +511,224 @@ export default function CompareCharts({ items = [], type = 'sale' }) {
         </div>
       </div>
 
-      {/* Parameter Toggle Pills (for multi-parameter mode) */}
-      {viewMode === 'multi-param' && (
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: '0.25rem' }}>
-            Compare Parameters:
-          </span>
+      {/* Parameter Controls Bar */}
+      <div style={{
+        backgroundColor: 'var(--bg-surface-subtle)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-sm)',
+        padding: '0.85rem 1.15rem',
+        marginBottom: '1.25rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem'
+      }}>
+        {/* Top Header: Title, Active Count Badge, and Presets */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.65rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              color: 'var(--text-heading)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Sliders size={13} style={{ color: 'var(--accent-primary)' }} />
+              Graph Parameters
+            </span>
+            <span style={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: '9999px',
+              backgroundColor: activeCount === availableParams.length ? 'rgba(16, 185, 129, 0.12)' : 'var(--accent-subtle)',
+              color: activeCount === availableParams.length ? '#10b981' : 'var(--accent-text)',
+              border: activeCount === availableParams.length ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-subtle)'
+            }}>
+              {activeCount} of {availableParams.length} Active
+            </span>
+            {activeCount === 1 && (
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                (Single metric comparison mode)
+              </span>
+            )}
+          </div>
+
+          {/* Quick Presets */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={selectAllParams}
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: allSelected ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                color: allSelected ? '#ffffff' : 'var(--text-muted)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Select All
+            </button>
+            <button
+              type="button"
+              onClick={selectCoreParams}
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: isCoreSelected ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                color: isCoreSelected ? '#ffffff' : 'var(--text-muted)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Core Metrics
+            </button>
+            <button
+              type="button"
+              onClick={resetParams}
+              title="Reset parameters to default"
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                padding: '0.25rem 0.65rem',
+                borderRadius: '9999px',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: 'var(--bg-surface)',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <RotateCcw size={10} />
+              Reset
+            </button>
+          </div>
+        </div>
+
+        {/* Interactive Parameter Pills */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           {availableParams.map(param => {
             const isChecked = !!selectedParams[param.id];
+            const ParamIcon = param.icon || Sliders;
             return (
-              <button
+              <div
                 key={param.id}
-                type="button"
-                onClick={() => toggleParam(param.id)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '0.25rem 0.65rem',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  borderRadius: '9999px',
                   border: isChecked ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                   backgroundColor: isChecked ? 'var(--accent-subtle)' : 'var(--bg-surface)',
-                  color: isChecked ? 'var(--accent-text)' : 'var(--text-muted)',
-                  transition: 'all 0.15s ease'
+                  boxShadow: isChecked ? '0 2px 6px rgba(99, 102, 241, 0.12)' : 'none',
+                  transition: 'all 0.15s ease',
+                  overflow: 'hidden'
                 }}
               >
-                <span style={{
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '3px',
-                  border: isChecked ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  backgroundColor: isChecked ? 'var(--accent-primary)' : 'transparent',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff'
-                }}>
-                  {isChecked && <Check size={9} strokeWidth={3} />}
-                </span>
-                <span>{param.label}</span>
-              </button>
+                {/* Main Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => toggleParam(param.id)}
+                  title={`Click to toggle ${param.fullLabel || param.label}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '7px',
+                    padding: '0.35rem 0.75rem',
+                    border: 'none',
+                    background: 'none',
+                    fontSize: '0.78rem',
+                    fontWeight: isChecked ? 700 : 500,
+                    cursor: 'pointer',
+                    color: isChecked ? 'var(--accent-text)' : 'var(--text-muted)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '9999px',
+                    backgroundColor: isChecked ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    flexShrink: 0
+                  }}>
+                    {isChecked ? <Check size={10} strokeWidth={3} /> : <ParamIcon size={9} strokeWidth={2} style={{ color: 'var(--text-faint)' }} />}
+                  </span>
+                  <span>{param.label}</span>
+                  <span style={{
+                    fontSize: '0.66rem',
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: isChecked ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-surface-subtle)',
+                    color: isChecked ? 'var(--accent-text)' : 'var(--text-faint)',
+                    padding: '1px 6px',
+                    borderRadius: '9999px',
+                    border: isChecked ? '1px solid rgba(99, 102, 241, 0.25)' : '1px solid var(--border-subtle)'
+                  }}>
+                    {param.unit}
+                  </span>
+                </button>
+
+                {/* Quick "Only" button to isolate this parameter with 1 click */}
+                <button
+                  type="button"
+                  onClick={() => soloParam(param.id)}
+                  title={`Isolate and show ONLY ${param.fullLabel || param.label}`}
+                  style={{
+                    border: 'none',
+                    borderLeft: isChecked ? '1px solid rgba(99, 102, 241, 0.25)' : '1px solid var(--border-subtle)',
+                    background: 'none',
+                    padding: '0.35rem 0.55rem',
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    color: isChecked ? 'var(--accent-text)' : 'var(--text-faint)',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    opacity: 0.85,
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.12)';
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.opacity = '0.85';
+                  }}
+                >
+                  Only
+                </button>
+              </div>
             );
           })}
         </div>
-      )}
+
+        {/* User guidance helper hint */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-faint)', marginTop: '2px' }}>
+          <span>💡 Tap any pill to toggle on/off • Click <strong>Only</strong> to isolate a single metric</span>
+          <span style={{ fontStyle: 'italic' }}>At least 1 parameter is kept active</span>
+        </div>
+      </div>
 
       {/* Property Legend Chips with Color Indicators */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '1.5rem' }}>
