@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -76,43 +76,39 @@ export default function ListingsPage() {
 
   // Load complete verified listings catalog to enable accurate client-side filtering across all 5,100 records
   // Proactively masks the backend API's broken pagination and silently ignored filter query parameters
-  useEffect(() => {
-    let isMounted = true;
-    async function loadCatalog() {
-      setIsLoading(true);
-      setApiError(null);
-      try {
-        const res = await fetch('/listings.json');
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted && Array.isArray(data) && data.length > 0) {
-            setRawListings(data);
-            setTotalServerCount(data.length);
-            setIsLoading(false);
-            return;
-          }
+  const fetchCatalog = useCallback(async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const res = await fetch('/listings.json');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setRawListings(data);
+          setIsLoading(false);
+          return;
         }
+      }
+      const apiData = await apiClient.getListings({ limit: 50 });
+      const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
+      setRawListings(results);
+    } catch (err) {
+      console.warn('Listing load error, attempting API fallback:', err);
+      try {
         const apiData = await apiClient.getListings({ limit: 50 });
         const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
-        if (isMounted) {
-          setRawListings(results);
-        }
-      } catch (err) {
-        console.warn('Listing load error, attempting API fallback:', err);
-        try {
-          const apiData = await apiClient.getListings({ limit: 50 });
-          const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
-          if (isMounted) setRawListings(results);
-        } catch (_apiErr) {
-          if (isMounted) setApiError('Could not connect to live API server. Please ensure you are authenticated.');
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
+        setRawListings(results);
+      } catch (_apiErr) {
+        setApiError('Could not connect to live API server. Please ensure you are authenticated.');
       }
+    } finally {
+      setIsLoading(false);
     }
-    loadCatalog();
-    return () => { isMounted = false; };
   }, []);
+
+  useEffect(() => {
+    fetchCatalog();
+  }, [fetchCatalog]);
 
   // Reset to page 1 whenever any filter or sort option changes
   useEffect(() => {
@@ -129,14 +125,20 @@ export default function ListingsPage() {
         return false;
       }
 
-      // 2. Locality Filter
+      // 2. Data Integrity: Filter out corrupt / non-positive prices
+      const priceNum = Number(item.price);
+      if (!item.price || isNaN(priceNum) || priceNum <= 0) {
+        return false;
+      }
+
+      // 3. Locality Filter
       if (selectedLocality !== 'All Localities') {
         if (!item.locality || item.locality.toLowerCase() !== selectedLocality.toLowerCase()) {
           return false;
         }
       }
 
-      // 3. BHK / Bedroom Filter
+      // 4. BHK / Bedroom Filter
       if (selectedBhk) {
         if (selectedBhk === '5') {
           if (Number(item.bedroom) < 5) return false;
@@ -145,7 +147,7 @@ export default function ListingsPage() {
         }
       }
 
-      // 4. Price Range Filters (server silently ignores min_price & max_price)
+      // 5. Price Range Filters (server silently ignores min_price & max_price)
       // Supports flexible numeric input: <= 100 interpreted as Crores (e.g. 2.5 -> 25000000)
       const parsePriceInput = (val) => {
         if (!val || isNaN(val)) return null;
@@ -156,21 +158,21 @@ export default function ListingsPage() {
       const minVal = parsePriceInput(minPrice);
       const maxVal = parsePriceInput(maxPrice);
 
-      if (minVal !== null && Number(item.price) < minVal) {
+      if (minVal !== null && priceNum < minVal) {
         return false;
       }
-      if (maxVal !== null && Number(item.price) > maxVal) {
+      if (maxVal !== null && priceNum > maxVal) {
         return false;
       }
 
-      // 5. Furnishing Filter (server silently ignores furnishing parameter)
+      // 6. Furnishing Filter (server silently ignores furnishing parameter)
       if (selectedFurnishing) {
         if (!item.furnishing || item.furnishing.trim().toLowerCase() !== selectedFurnishing.trim().toLowerCase()) {
           return false;
         }
       }
 
-      // 6. Search Text Filter (Apartment name or description)
+      // 7. Search Text Filter (Apartment name or description)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const apt = (item.apartment_name || '').toLowerCase();
@@ -192,24 +194,22 @@ export default function ListingsPage() {
     const [field, order] = sortOption.split('_');
 
     list.sort((a, b) => {
-      let valA = 0;
-      let valB = 0;
-
       if (field === 'price') {
-        valA = Number(a.price) || 0;
-        valB = Number(b.price) || 0;
-      } else if (field === 'area') {
-        valA = Number(a.carpet_area) || 0;
-        valB = Number(b.carpet_area) || 0;
-      } else if (field === 'newest') {
-        valA = new Date(a.posted_at).getTime() || 0;
-        valB = new Date(b.posted_at).getTime() || 0;
+        const pA = Number(a.price) || 0;
+        const pB = Number(b.price) || 0;
+        return order === 'desc' ? pB - pA : pA - pB;
       }
-
-      if (order === 'desc') {
-        return valB > valA ? 1 : valB < valA ? -1 : 0;
+      if (field === 'area') {
+        const aA = Number(a.carpet_area) || 0;
+        const aB = Number(b.carpet_area) || 0;
+        return order === 'desc' ? aB - aA : aA - aB;
       }
-      return valA > valB ? 1 : valA < valB ? -1 : 0;
+      if (field === 'newest') {
+        const tA = new Date(a.posted_at).getTime() || 0;
+        const tB = new Date(b.posted_at).getTime() || 0;
+        return order === 'desc' ? tB - tA : tA - tB;
+      }
+      return 0;
     });
 
     return list;
@@ -568,7 +568,7 @@ export default function ListingsPage() {
           ) : apiError ? (
             <div className="ivy-card" style={{ padding: '2rem', textAlign: 'center', color: '#ef4444', backgroundColor: 'var(--bg-surface)' }}>
               <p style={{ fontWeight: 600 }}>{apiError}</p>
-              <button onClick={fetchListings} className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>
+              <button onClick={fetchCatalog} className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>
                 Retry Request
               </button>
             </div>
@@ -675,7 +675,7 @@ export default function ListingsPage() {
                       setPage((p) => p + 1);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    disabled={!hasMore || page >= totalPages}
+                    disabled={page >= totalPages}
                     className="btn btn-secondary btn-sm"
                   >
                     <span>Next</span>

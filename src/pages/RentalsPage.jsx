@@ -611,7 +611,7 @@ export default function RentalsPage() {
                       setPage((prev) => prev + 1);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    disabled={!hasMore || page >= totalPages}
+                    disabled={page >= totalPages}
                     className="btn btn-secondary btn-sm"
                   >
                     Next <ChevronRight size={16} />
