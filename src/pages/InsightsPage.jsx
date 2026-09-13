@@ -9,7 +9,24 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
+import {
+  Loader2,
+  AlertOctagon,
+  MapPin,
+  AlertTriangle,
+  Copy,
+  Coins,
+  Building2,
+  KeyRound,
+  Sparkles,
+  Layers,
+  Filter,
+  ArrowUpDown,
+  EyeOff,
+  Database,
+  BarChart3,
+  Activity
+} from 'lucide-react';
 import { apiClient } from '../api/client';
 
 function ExecutiveChartTooltip({ active, payload, label }) {
