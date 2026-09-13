@@ -60,6 +60,11 @@ export default function RentalsPage() {
 
   // Pagination States
   const [page, setPage] = useState(1);
+  const [jumpInput, setJumpInput] = useState('1');
+
+  useEffect(() => {
+    setJumpInput(String(page));
+  }, [page]);
 
   // Data States
   const [rawRentals, setRawRentals] = useState([]);
@@ -584,7 +589,7 @@ export default function RentalsPage() {
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => {
                       setPage((prev) => Math.max(1, prev - 1));
@@ -596,16 +601,66 @@ export default function RentalsPage() {
                     <ChevronLeft size={16} /> Previous
                   </button>
 
-                  <span style={{
-                    padding: '0.35rem 0.75rem',
-                    backgroundColor: 'var(--accent-subtle)',
-                    color: 'var(--accent-text)',
-                    borderRadius: 'var(--radius-sm)',
-                    fontWeight: 700,
-                    fontSize: '0.85rem'
-                  }}>
-                    {page}
-                  </span>
+                  {/* Interactive Page Jumper */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const p = parseInt(jumpInput, 10);
+                      if (!isNaN(p)) {
+                        const clamped = Math.min(totalPages, Math.max(1, p));
+                        setPage(clamped);
+                        setJumpInput(String(clamped));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Page</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={totalPages}
+                      value={jumpInput}
+                      onChange={(e) => setJumpInput(e.target.value)}
+                      onBlur={() => {
+                        const p = parseInt(jumpInput, 10);
+                        if (!isNaN(p)) {
+                          const clamped = Math.min(totalPages, Math.max(1, p));
+                          if (clamped !== page) {
+                            setPage(clamped);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }
+                          setJumpInput(String(clamped));
+                        } else {
+                          setJumpInput(String(page));
+                        }
+                      }}
+                      aria-label="Hop to page number"
+                      title="Type any page number and press Enter"
+                      style={{
+                        width: '54px',
+                        height: '32px',
+                        textAlign: 'center',
+                        fontWeight: 800,
+                        fontSize: '0.85rem',
+                        color: 'var(--accent-text)',
+                        backgroundColor: 'var(--accent-subtle)',
+                        border: '1px solid var(--accent-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        outline: 'none',
+                        MozAppearance: 'textfield'
+                      }}
+                    />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>of {totalPages}</span>
+                    <button
+                      type="submit"
+                      className="btn btn-secondary btn-sm"
+                      style={{ height: '32px', padding: '0 0.6rem', fontSize: '0.75rem', fontWeight: 600 }}
+                      title="Hop to page"
+                    >
+                      Go
+                    </button>
+                  </form>
 
                   <button
                     onClick={() => {
