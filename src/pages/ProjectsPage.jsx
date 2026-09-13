@@ -44,6 +44,9 @@ export default function ProjectsPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sorting States: server silently ignores order=desc, so client performs local sort
+  const [sortOption, setSortOption] = useState('default');
+
   // Pagination States
   const [page, setPage] = useState(1);
   const [jumpInput, setJumpInput] = useState('1');
@@ -61,15 +64,15 @@ export default function ProjectsPage() {
   const [apiError, setApiError] = useState(null);
   const [selectedProjectModal, setSelectedProjectModal] = useState(null);
 
-  // Fetch projects from GET /v1/projects with pagination
+  // Fetch projects from GET /v1/projects strictly using offset and limit (max 50)
   const fetchProjects = useCallback(async () => {
     setIsLoading(true);
     setApiError(null);
 
+    const safeLimit = Math.min(limit, 50);
     const queryParams = {
-      page: page,
-      limit: limit,
-      offset: (page - 1) * limit
+      offset: (page - 1) * safeLimit,
+      limit: safeLimit,
     };
 
     if (selectedLocality !== 'All Localities') {
@@ -81,7 +84,9 @@ export default function ProjectsPage() {
 
     try {
       const data = await apiClient.getProjects(queryParams);
+      // Parse envelope: { limit, offset, count, total, has_more, results }
       const results = Array.isArray(data) ? data : (data.results || []);
+
       // Convert project price_min & price_max from floating-point Crores/Lakhs to full Rupees
       // Values >= 20 represent Lakhs (e.g. 90.8 L = 9,080,000), values < 20 represent Crores (e.g. 2.94 Cr = 29,400,000)
       const normalizeProjectPrice = (val) => {
@@ -104,7 +109,7 @@ export default function ProjectsPage() {
       if (typeof data.has_more === 'boolean') {
         setHasMore(data.has_more);
       } else {
-        setHasMore(results.length >= limit);
+        setHasMore(results.length >= safeLimit);
       }
     } catch (err) {
       console.error('Projects fetch error:', err);
@@ -148,10 +153,30 @@ export default function ProjectsPage() {
     });
   }, [rawProjects, selectedLocality, selectedStatus, searchQuery]);
 
+  // Client-side sorting: Server silently ignores order=desc, so we locally sort/reverse
+  const sortedProjects = useMemo(() => {
+    const list = [...filteredProjects];
+    if (sortOption === 'price_asc') {
+      list.sort((a, b) => (Number(a.price_min) || 0) - (Number(b.price_min) || 0));
+    } else if (sortOption === 'price_desc') {
+      // Server ignores order=desc; apply local descending sort
+      list.sort((a, b) => (Number(b.price_min) || 0) - (Number(a.price_min) || 0));
+    } else if (sortOption === 'name_asc') {
+      list.sort((a, b) => (a.apartment_name || '').localeCompare(b.apartment_name || ''));
+    } else if (sortOption === 'name_desc') {
+      // Server ignores order=desc; apply local descending sort
+      list.sort((a, b) => (b.apartment_name || '').localeCompare(a.apartment_name || ''));
+    } else if (sortOption === 'inventory_desc') {
+      list.sort((a, b) => (Number(b.total_listings) || 0) - (Number(a.total_listings) || 0));
+    }
+    return list;
+  }, [filteredProjects, sortOption]);
+
   const handleResetFilters = () => {
     setSelectedLocality('All Localities');
     setSelectedStatus('');
     setSearchQuery('');
+    setSortOption('default');
     setPage(1);
   };
 
@@ -362,15 +387,42 @@ export default function ProjectsPage() {
             padding: '0.65rem 1.25rem',
             backgroundColor: 'var(--bg-surface)',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-subtle)'
+            border: '1px solid var(--border-subtle)',
+            flexWrap: 'wrap',
+            gap: '0.75rem'
           }}>
             {selectedLocality !== 'All Localities' && (
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                 <span>Projects in <strong style={{ color: 'var(--text-heading)', textTransform: 'capitalize' }}>{selectedLocality}</strong></span>
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>Page {page}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Sort:</span>
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="input-field"
+                  style={{
+                    fontSize: '0.8rem',
+                    padding: '0.3rem 0.6rem',
+                    borderRadius: 'var(--radius-sm)',
+                    minWidth: '150px'
+                  }}
+                  aria-label="Sort developer projects"
+                >
+                  <option value="default">Default Registry Order</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="name_asc">Name: A to Z</option>
+                  <option value="name_desc">Name: Z to A</option>
+                  <option value="inventory_desc">Available Units: High to Low</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span>Page {page} of {totalPages}</span>
+              </div>
             </div>
           </div>
 
@@ -404,7 +456,7 @@ export default function ProjectsPage() {
                 Fetching developer project registry...
               </p>
             </div>
-          ) : filteredProjects.length === 0 ? (
+          ) : sortedProjects.length === 0 ? (
             <div className="ivy-card" style={{
               padding: '4rem 2rem',
               textAlign: 'center',
@@ -446,7 +498,7 @@ export default function ProjectsPage() {
                 gap: '1.75rem'
               }}
             >
-              {filteredProjects.map((proj) => (
+              {sortedProjects.map((proj) => (
                 <ProjectCard
                   key={proj.project_id}
                   proj={proj}

@@ -158,7 +158,7 @@ If granted an additional 48 hours to extend the platform, we would implement:
 
 ## 5. Submission Manifest
 
-- **`submission.json`**: Root-level answers to Questions 1–10 and all 25 verified forensic findings with empirical evidence.
+- **`submission.json`**: Root-level answers to Questions 1–10 and all 30 verified forensic findings with empirical evidence.
 - **`src/`**: Modular React application adhering to all 6 core frontend requirements.
 - **`phase4_deep_api_sweep.js`**: Node.js automated verification probe auditing API routes, pagination bounds, timestamp formats, and schema consistency.
 - **`phase5_convention_sweep.js`**: Node.js automated verification probe auditing schema completeness, string casing, date formats, and error body conventions.

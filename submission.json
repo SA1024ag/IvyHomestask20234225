@@ -374,6 +374,55 @@
         "MAG-5005024",
         "MAG-5002602"
       ]
+    },
+    {
+      "endpoint": "/auth/login",
+      "category": "auth",
+      "documented": "Tokens are valid for 24 hours. There is no refresh flow.",
+      "actual": "Tokens expire in 15 minutes (900s) and a refresh flow exists via POST /auth/refresh",
+      "how_found": "Inspected POST /auth/login response payload and tested /auth/refresh",
+      "impact": "Frontend sessions expire prematurely without implementing the undocumented refresh flow",
+      "evidence": []
+    },
+    {
+      "endpoint": "/auth/logout",
+      "category": "auth",
+      "documented": "Invalidates the current token server side.",
+      "actual": "Tokens are stateless JWTs and are not invalidated server-side. Subsequent requests with the token still return 200.",
+      "how_found": "Sent authenticated request after calling POST /auth/logout",
+      "impact": "Requires strict client-side destruction of tokens to secure sessions",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "pagination",
+      "documented": "takes page and limit (default 20, max 200). Response: { total, page, page_size, results }",
+      "actual": "Ignores page, uses offset. Hard-caps limit at 50. Response envelope lacks page and page_size.",
+      "how_found": "Tested pagination limits and inspected response keys",
+      "impact": "Breaks standard page-based fetching logic",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/rentals",
+      "category": "completeness",
+      "documented": "Collection returns active rental listings",
+      "actual": "Returns inactive rentals. 340 out of 2100 records contain undocumented is_live: false",
+      "how_found": "Audited /v1/rentals payloads",
+      "impact": "Users shown off-market rentals without client-side filtering",
+      "evidence": [
+        "R5000017",
+        "R5000023",
+        "R5000028"
+      ]
+    },
+    {
+      "endpoint": "/v1/rentals",
+      "category": "sorting",
+      "documented": "Supports sort_by and order desc",
+      "actual": "order=desc is silently ignored; returns ascending",
+      "how_found": "Compared desc and asc query results",
+      "impact": "Sorting UI fails server-side",
+      "evidence": []
     }
   ]
 }

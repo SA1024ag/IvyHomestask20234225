@@ -116,9 +116,14 @@ export default function RentalsPage() {
   }, [selectedLocality, selectedBhk, selectedFurnishing, minPrice, maxPrice, searchQuery, sortOption]);
 
   // Client-Side Fallback Filtering:
-  // Strictly filters results in case API ignored query parameters (furnishing, min_price, max_price)
+  // Strictly filters results in case API leaked inactive records (is_live: false) or ignored query parameters (min_price, max_price, furnishing)
   const filteredRentals = useMemo(() => {
     return rawRentals.filter((item) => {
+      // Inactive rentals leakage check: strictly only render active rentals where is_live === true
+      if (item.is_live !== undefined && item.is_live !== null && item.is_live !== true) {
+        return false;
+      }
+
       // Locality fallback
       if (selectedLocality !== 'All Localities') {
         if (!item.locality || item.locality.toLowerCase() !== selectedLocality.toLowerCase()) {
@@ -137,12 +142,16 @@ export default function RentalsPage() {
           return false;
         }
       }
-      // Price range fallback (server silently ignores min_price & max_price)
-      if (minPrice && Number(item.price) < Number(minPrice)) {
-        return false;
+      // Price range fallback: price >= requested_min_price (server silently ignores min_price & max_price)
+      if (minPrice !== '' && minPrice !== null && minPrice !== undefined) {
+        if (Number(item.price) < Number(minPrice)) {
+          return false;
+        }
       }
-      if (maxPrice && Number(item.price) > Number(maxPrice)) {
-        return false;
+      if (maxPrice !== '' && maxPrice !== null && maxPrice !== undefined) {
+        if (Number(item.price) > Number(maxPrice)) {
+          return false;
+        }
       }
       // Search query fallback
       if (searchQuery.trim()) {

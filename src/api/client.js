@@ -1,37 +1,62 @@
-/**
- * Ivy Homes API Client Helper
- * Base URL: https://solve.ivy.homes
- * Attaches Bearer token & X-API-Key HTTP header. No api_key query parameter is passed in URL.
- * Includes automatic token refresh to ensure the session lasts beyond 30 minutes.
- */
+import {
+  BASE_URL,
+  API_KEY,
+  TOKEN_STORAGE_KEY,
+  REFRESH_TOKEN_STORAGE_KEY,
+  USER_STORAGE_KEY,
+  refreshAuthToken,
+  login as authLogin,
+  logout as authLogout,
+  hardClearAuthStorage,
+  subscribeTokenRefresh,
+  onRefreshed,
+} from './auth';
 
-export const BASE_URL = 'https://solve.ivy.homes';
-export const API_KEY = 'IVY26-A3B2763F67F9';
-
-export const TOKEN_STORAGE_KEY = 'ivy_token';
-export const REFRESH_TOKEN_STORAGE_KEY = 'ivy_refresh_token';
-export const USER_STORAGE_KEY = 'ivy_user';
+export {
+  BASE_URL,
+  API_KEY,
+  TOKEN_STORAGE_KEY,
+  REFRESH_TOKEN_STORAGE_KEY,
+  USER_STORAGE_KEY,
+  refreshAuthToken,
+};
 
 let isRefreshing = false;
-let refreshSubscribers = [];
 
-function subscribeTokenRefresh(cb) {
-  refreshSubscribers.push(cb);
-}
+/**
+ * Normalizes query parameters:
+ * 1. Converts any legacy 'page' parameter into 'offset' based on 'limit'.
+ * 2. Hard-caps 'limit' at 50 (server maximum).
+ * 3. Removes 'page' parameter completely.
+ */
+export function normalizePaginationParams(params = {}) {
+  const cleanParams = { ...params };
+  
+  const limit = Math.min(Number(cleanParams.limit || 20), 50);
+  cleanParams.limit = limit;
 
-function onRefreshed(token) {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
+  if (cleanParams.page !== undefined && cleanParams.offset === undefined) {
+    const pageNum = Math.max(Number(cleanParams.page || 1), 1);
+    cleanParams.offset = (pageNum - 1) * limit;
+  }
+  delete cleanParams.page;
+
+  if (cleanParams.offset !== undefined) {
+    cleanParams.offset = Math.max(Number(cleanParams.offset || 0), 0);
+  }
+
+  return cleanParams;
 }
 
 /**
  * Builds the full URL with endpoint and any query parameters (excluding api_key which is passed via header).
+ * Enforces offset/limit pagination and strips 'page'.
  */
 export function buildUrl(endpoint, params = {}) {
   const url = new URL(`${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`);
-  // api_key is strictly passed via X-API-Key HTTP header, not as a query parameter
+  const normalizedParams = normalizePaginationParams(params);
 
-  Object.entries(params).forEach(([key, value]) => {
+  Object.entries(normalizedParams).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, String(value));
     }
@@ -41,46 +66,33 @@ export function buildUrl(endpoint, params = {}) {
 }
 
 /**
- * Executes a token refresh against POST /auth/refresh
+ * Normalizes collection responses to standard envelope:
+ * { limit, offset, count, total, has_more, results }
  */
-export async function refreshAuthToken() {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
+export function normalizeEnvelope(data) {
+  if (!data || typeof data !== 'object') {
+    return { limit: 0, offset: 0, count: 0, total: 0, has_more: false, results: [] };
   }
-
-  const url = buildUrl('/auth/refresh');
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
-
-  if (!res.ok) {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-    throw new Error('Session expired, please log in again.');
+  if (Array.isArray(data)) {
+    return {
+      limit: data.length,
+      offset: 0,
+      count: data.length,
+      total: data.length,
+      has_more: false,
+      results: data,
+    };
   }
-
-  const data = await res.json();
-  const newAccessToken = data.access_token || data.token;
-  const newRefreshToken = data.refresh_token;
-
-  if (newAccessToken) {
-    localStorage.setItem(TOKEN_STORAGE_KEY, newAccessToken);
-  }
-  if (newRefreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, newRefreshToken);
-  }
-  if (data.user) {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
-  }
-
-  return newAccessToken;
+  const results = Array.isArray(data.results) ? data.results : [];
+  return {
+    limit: typeof data.limit === 'number' ? data.limit : results.length,
+    offset: typeof data.offset === 'number' ? data.offset : 0,
+    count: typeof data.count === 'number' ? data.count : results.length,
+    total: typeof data.total === 'number' ? data.total : results.length,
+    has_more: typeof data.has_more === 'boolean' ? data.has_more : false,
+    results,
+    ...data,
+  };
 }
 
 /**
@@ -133,7 +145,7 @@ export async function request(endpoint, options = {}) {
           onRefreshed(newToken);
         } catch (err) {
           isRefreshing = false;
-          refreshSubscribers = [];
+          hardClearAuthStorage();
           window.dispatchEvent(new CustomEvent('ivy-session-expired'));
           throw err;
         }
@@ -182,61 +194,13 @@ export const apiClient = {
   delete: (endpoint, params = {}) => request(endpoint, { method: 'DELETE', params }),
 
   // Authentication
-  login: async (email, password) => {
-    const url = buildUrl('/auth/login');
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': API_KEY,
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(formatErrorMessage(data, res.status));
-    }
-
-    const token = data.access_token || data.token;
-    if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    if (data.refresh_token) localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, data.refresh_token);
-    if (data.user) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
-
-    return {
-      token,
-      refreshToken: data.refresh_token,
-      user: data.user,
-      expiresIn: data.expires_in || 900,
-    };
-  },
-
-  logout: async () => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (token) {
-      try {
-        const url = buildUrl('/auth/logout');
-        await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': API_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      } catch (err) {
-        console.warn('Server logout error:', err);
-      }
-    }
-
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-  },
+  login: authLogin,
+  logout: authLogout,
 
   // Listings API
   getListings: async (params = {}) => {
-    return request('/v1/listings', { method: 'GET', params });
+    const res = await request('/v1/listings', { method: 'GET', params });
+    return normalizeEnvelope(res);
   },
 
   getListingDetail: async (id) => {
@@ -305,12 +269,14 @@ export const apiClient = {
 
   // Rentals API
   getRentals: async (params = {}) => {
-    return request('/v1/rentals', { method: 'GET', params });
+    const res = await request('/v1/rentals', { method: 'GET', params });
+    return normalizeEnvelope(res);
   },
 
   // Projects API
   getProjects: async (params = {}) => {
-    return request('/v1/projects', { method: 'GET', params });
+    const res = await request('/v1/projects', { method: 'GET', params });
+    return normalizeEnvelope(res);
   },
 
   // Analytics Summary API
