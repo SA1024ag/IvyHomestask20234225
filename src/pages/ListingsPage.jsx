@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Search,
   SlidersHorizontal,
@@ -12,6 +13,21 @@ import {
 import PropertyCard from '../components/PropertyCard';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
+
+// Animation variants
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04
+    }
+  }
+};
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+};
 
 // ─── Skeleton Loader ──────────────────────────────────────────────────────────
 function PropertyCardSkeleton() {
@@ -398,7 +414,13 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="main-content" style={{ paddingBottom: compareCount > 0 ? '7.5rem' : '2rem' }}>
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ paddingBottom: compareCount > 0 ? '7.5rem' : '2rem' }}
+    >
       {/* Top Header */}
       <div className="page-header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
@@ -757,15 +779,22 @@ export default function ListingsPage() {
           ) : (
             /* Listings Cards Grid */
             <>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                gap: '1.5rem'
-              }}>
+              <motion.div
+                variants={gridContainerVariants}
+                initial="hidden"
+                animate="show"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                  gap: '1.5rem'
+                }}
+              >
                 {paginatedListings.map((listing) => (
-                  <PropertyCard key={listing.listing_id} listing={listing} />
+                  <motion.div key={listing.listing_id} variants={cardItemVariants}>
+                    <PropertyCard listing={listing} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Pagination Controls */}
               <div style={{
@@ -907,6 +936,6 @@ export default function ListingsPage() {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

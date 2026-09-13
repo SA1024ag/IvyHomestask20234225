@@ -10,6 +10,7 @@ export const API_KEY = 'IVY26-A3B2763F67F9';
 export const TOKEN_STORAGE_KEY = 'ivy_token';
 export const REFRESH_TOKEN_STORAGE_KEY = 'ivy_refresh_token';
 export const USER_STORAGE_KEY = 'ivy_user';
+export const TOKEN_SAVED_AT_KEY = 'ivy_token_saved_at';
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -71,6 +72,7 @@ export async function refreshAuthToken() {
 
   if (newAccessToken) {
     localStorage.setItem(TOKEN_STORAGE_KEY, newAccessToken);
+    localStorage.setItem(TOKEN_SAVED_AT_KEY, String(Date.now()));
   }
   if (newRefreshToken) {
     localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, newRefreshToken);
@@ -90,6 +92,7 @@ export function hardClearAuthStorage() {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
+  localStorage.removeItem(TOKEN_SAVED_AT_KEY);
 }
 
 /**
@@ -112,7 +115,10 @@ export async function login(email, password) {
   }
 
   const token = data.access_token || data.token;
-  if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  if (token) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    localStorage.setItem(TOKEN_SAVED_AT_KEY, String(Date.now()));
+  }
   if (data.refresh_token) localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, data.refresh_token);
   if (data.user) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
 

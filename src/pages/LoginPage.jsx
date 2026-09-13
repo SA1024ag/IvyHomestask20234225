@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import IvyLogo from '../components/IvyLogo';
 import {
-  Building2,
   Lock,
   Mail,
   ArrowRight,
@@ -140,46 +140,23 @@ export default function LoginPage() {
 
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '56px',
-            height: '60px',
-            width: '60px',
-            margin: '0 auto 1.25rem',
-            borderRadius: '16px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
-            padding: '8px',
-            border: '1px solid var(--border-subtle)',
-            overflow: 'hidden'
-          }}>
-            <img
-              src="/logo.png"
-              alt="Ivy Logo"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                display: 'block'
-              }}
-            />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+            <IvyLogo variant="full" size="xl" />
           </div>
 
           <h1 style={{
-            fontSize: '1.875rem',
+            fontSize: '1.65rem',
             fontWeight: 800,
             color: 'var(--text-heading)',
             letterSpacing: '-0.03em',
             lineHeight: 1.2
           }}>
-            Ivy<span style={{ color: 'var(--accent-primary)' }}>Homes</span> Portal
+            Account Sign In
           </h1>
           <p style={{
             color: 'var(--text-muted)',
-            fontSize: '0.925rem',
-            marginTop: '0.5rem'
+            fontSize: '0.9rem',
+            marginTop: '0.35rem'
           }}>
             Real Estate Discovery & Analytics Platform — Mumbai Region
           </p>

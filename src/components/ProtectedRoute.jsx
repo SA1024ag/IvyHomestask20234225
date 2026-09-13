@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import IvyLogo from './IvyLogo';
 import {
   Loader2,
   Lock,
@@ -8,38 +9,44 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
+  Home,
+  KeyRound,
+  Heart,
+  ArrowLeftRight,
+  BarChart3,
+  Check
 } from 'lucide-react';
 
 const PAGE_CONTEXT = {
   '/listings': {
     title: 'Browse Mumbai Listings',
     description: 'Access 4,000+ verified sale listings with smart filters, price analytics, and comparison tools.',
-    icon: '🏠',
+    icon: Home,
   },
   '/rentals': {
     title: 'Explore Rental Homes',
     description: 'Discover 2,100 curated rentals with transparent pricing, security deposits, and zero-brokerage options.',
-    icon: '🔑',
+    icon: KeyRound,
   },
   '/projects': {
     title: 'View Builder Projects',
     description: 'Explore 590 residential projects by top Mumbai builders with live inventory and price tracking.',
-    icon: '🏗️',
+    icon: Building2,
   },
   '/saved': {
     title: 'Your Saved Properties',
     description: 'Access your bookmarked listings and rentals across sessions with persistent cloud sync.',
-    icon: '❤️',
+    icon: Heart,
   },
   '/compare': {
     title: 'Compare Properties',
     description: 'Side-by-side comparison of up to 4 properties with price, area, BHK, and amenity breakdowns.',
-    icon: '⚖️',
+    icon: ArrowLeftRight,
   },
   '/insights': {
     title: 'Market Intelligence & Analytics',
     description: 'Real-time city-wide valuation benchmarks, supply breakdowns, and full forensic audit disclosures.',
-    icon: '📊',
+    icon: BarChart3,
   },
 };
 
@@ -75,7 +82,7 @@ export default function ProtectedRoute({ children }) {
     const ctx = PAGE_CONTEXT[location.pathname] || {
       title: 'Sign In Required',
       description: 'Please sign in to your Ivy Homes account to continue.',
-      icon: '🔒',
+      icon: Lock,
     };
 
     return (
@@ -128,7 +135,7 @@ export default function ProtectedRoute({ children }) {
               fontSize: '2.2rem',
               boxShadow: '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.1)',
             }}>
-              {ctx.icon}
+              {React.createElement(ctx.icon, { size: 36, color: 'var(--accent-primary)', strokeWidth: 1.75 })}
             </div>
             <div style={{
               position: 'absolute',
@@ -158,42 +165,9 @@ export default function ProtectedRoute({ children }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.4rem',
               marginBottom: '1.25rem',
             }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '6px',
-                backgroundColor: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '2px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                border: '1px solid var(--border-subtle)',
-                overflow: 'hidden'
-              }}>
-                <img
-                  src="/logo.png"
-                  alt="Ivy Logo"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    display: 'block'
-                  }}
-                />
-              </div>
-              <span style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: 'var(--accent-primary)',
-              }}>
-                IvyHomes
-              </span>
+              <IvyLogo variant="full" size="sm" />
             </div>
 
             <h1 style={{
@@ -235,8 +209,12 @@ export default function ProtectedRoute({ children }) {
                   backgroundColor: 'var(--bg-surface-subtle)',
                   border: '1px solid var(--border-subtle)',
                   color: 'var(--text-muted)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px'
                 }}>
-                  ✓ {f}
+                  <Check size={13} color="var(--accent-primary)" strokeWidth={2.5} />
+                  <span>{f}</span>
                 </span>
               ))}
             </div>

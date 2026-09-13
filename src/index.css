@@ -11,7 +11,7 @@
   /* Hairline Borders */
   --border-subtle: #e2e8f0;
   --border-strong: #cbd5e1;
-  --border-focus: #4338ca;
+  --border-focus: #047857;
 
   /* Typography Colors */
   --text-heading: #0f172a;
@@ -20,13 +20,13 @@
   --text-faint: #94a3b8;
   --text-inverse: #ffffff;
 
-  /* Action / Accent Tokens */
-  --accent-primary: #4338ca;
-  --accent-hover: #3730a3;
-  --accent-active: #312e81;
-  --accent-subtle: #eef2ff;
-  --accent-text: #4338ca;
-  --accent-border: #c7d2fe;
+  /* Action / Accent Tokens (Lush Ivy Emerald) */
+  --accent-primary: #047857;
+  --accent-hover: #065f46;
+  --accent-active: #064e3b;
+  --accent-subtle: #ecfdf5;
+  --accent-text: #047857;
+  --accent-border: #a7f3d0;
 
   /* Status Colors */
   --status-green-bg: #ecfdf5;
@@ -70,61 +70,61 @@
 }
 
 [data-theme="dark"] {
-  /* Surface & Canvas Tokens (Midnight Slate, NOT pitch black) */
-  --bg-canvas: #0b0f19;
-  --bg-surface: #111827;
-  --bg-surface-subtle: #1a2234;
-  --bg-surface-hover: #242f46;
-  --bg-nav: rgba(17, 24, 39, 0.88);
-  --bg-modal: rgba(0, 0, 0, 0.75);
+  /* Surface & Canvas Tokens (Obsidian Luxury Charcoal, NO dark blue) */
+  --bg-canvas: #09090b;
+  --bg-surface: #121215;
+  --bg-surface-subtle: #18181c;
+  --bg-surface-hover: #222227;
+  --bg-nav: rgba(9, 9, 11, 0.85);
+  --bg-modal: rgba(0, 0, 0, 0.82);
 
   /* Hairline Borders */
-  --border-subtle: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --border-focus: #6366f1;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: #10b981;
 
   /* Typography Colors */
-  --text-heading: #f8fafc;
-  --text-body: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-faint: #64748b;
-  --text-inverse: #0f172a;
+  --text-heading: #f4f4f5;
+  --text-body: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
+  --text-inverse: #09090b;
 
-  /* Action / Accent Tokens */
-  --accent-primary: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-active: #3730a3;
-  --accent-subtle: rgba(79, 70, 229, 0.18);
-  --accent-text: #818cf8;
-  --accent-border: rgba(99, 102, 241, 0.35);
+  /* Action / Accent Tokens (Ivy Luxury Emerald) */
+  --accent-primary: #10b981;
+  --accent-hover: #059669;
+  --accent-active: #047857;
+  --accent-subtle: rgba(16, 185, 129, 0.14);
+  --accent-text: #34d399;
+  --accent-border: rgba(16, 185, 129, 0.28);
 
-  /* Status Colors (Subdued for Dark Mode) */
-  --status-green-bg: rgba(5, 150, 105, 0.15);
+  /* Status Colors */
+  --status-green-bg: rgba(16, 185, 129, 0.12);
   --status-green-text: #34d399;
-  --status-green-border: rgba(52, 211, 153, 0.3);
+  --status-green-border: rgba(52, 211, 153, 0.25);
 
-  --status-amber-bg: rgba(217, 119, 6, 0.15);
+  --status-amber-bg: rgba(245, 158, 11, 0.12);
   --status-amber-text: #fbbf24;
-  --status-amber-border: rgba(251, 191, 36, 0.3);
+  --status-amber-border: rgba(251, 191, 36, 0.25);
 
-  --status-blue-bg: rgba(37, 99, 235, 0.15);
+  --status-blue-bg: rgba(59, 130, 246, 0.12);
   --status-blue-text: #60a5fa;
-  --status-blue-border: rgba(96, 165, 250, 0.3);
+  --status-blue-border: rgba(96, 165, 250, 0.25);
 
-  --status-red-bg: rgba(239, 68, 68, 0.15);
+  --status-red-bg: rgba(239, 68, 68, 0.12);
   --status-red-text: #f87171;
-  --status-red-border: rgba(239, 68, 68, 0.3);
+  --status-red-border: rgba(239, 68, 68, 0.25);
 
   /* Subtle Badges */
-  --badge-bg: rgba(255, 255, 255, 0.07);
-  --badge-text: #cbd5e1;
-  --badge-border: rgba(255, 255, 255, 0.12);
+  --badge-bg: rgba(255, 255, 255, 0.05);
+  --badge-text: #d4d4d8;
+  --badge-border: rgba(255, 255, 255, 0.1);
 
-  /* Elevation (Soft shadows with subtle edge highlights) */
+  /* Elevation */
   --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-card: 0 2px 5px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --shadow-hover: 0 18px 34px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.12);
-  --shadow-float: 0 22px 42px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.14);
+  --shadow-card: 0 2px 8px 0 rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-hover: 0 18px 36px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(16, 185, 129, 0.2);
+  --shadow-float: 0 22px 42px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 *, *::before, *::after {
@@ -565,4 +565,20 @@ button, input, select, textarea {
   border-color: var(--accent-border);
   transform: translateY(-2px);
 }
+
+.ivy-brand-mark {
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  transition: filter 0.15s ease;
+}
+
+[data-theme="dark"] .ivy-brand-mark {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .ivy-brand-mark {
+  filter: none;
+}
+
 

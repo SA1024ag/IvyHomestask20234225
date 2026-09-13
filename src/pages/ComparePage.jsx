@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -11,7 +12,7 @@ import {
   Plus,
   ExternalLink,
   MapPin,
-  BedDouble,
+  Bed,
   Maximize2,
   Building,
   KeyRound,
@@ -113,7 +114,13 @@ export default function ComparePage() {
   const currentCount = currentList.length;
 
   return (
-    <div className="main-content" style={{ paddingBottom: '6rem' }}>
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ paddingBottom: '6rem' }}
+    >
       {/* Top Header & Breadcrumb */}
       <div style={{ marginBottom: '1.75rem' }}>
         <button
@@ -340,7 +347,7 @@ export default function ComparePage() {
                   {compareSales.map((item) => (
                     <td key={item.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-subtle)', fontWeight: 700, color: 'var(--text-heading)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <BedDouble size={16} color="var(--accent-primary)" />
+                        <Bed size={16} color="var(--accent-primary)" />
                         <span>{item.bedroom ? `${item.bedroom} BHK` : 'N/A'}</span>
                       </div>
                     </td>
@@ -560,7 +567,7 @@ export default function ComparePage() {
                   {compareRentals.map((r) => (
                     <td key={r.listing_id} style={{ padding: '1rem 1.25rem', borderLeft: '1px solid var(--border-subtle)', fontWeight: 700, color: 'var(--text-heading)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <BedDouble size={16} color="var(--accent-primary)" />
+                        <Bed size={16} color="var(--accent-primary)" />
                         <span>{r.bedroom ? `${r.bedroom} BHK` : 'N/A'}</span>
                       </div>
                     </td>
@@ -804,6 +811,6 @@ export default function ComparePage() {
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

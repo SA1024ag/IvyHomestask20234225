@@ -4,19 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { useFavourites } from '../context/FavouritesContext';
 import { useCompare } from '../context/CompareContext';
 import { useTheme } from '../context/ThemeContext';
+import IvyLogo from './IvyLogo';
 import {
-  Building2,
-  Home,
-  KeyRound,
-  FolderKanban,
-  Bookmark,
-  BarChart3,
   LogOut,
   User,
   Menu,
   X,
-  MapPin,
-  ArrowLeftRight,
   Sun,
   Moon
 } from 'lucide-react';
@@ -36,12 +29,12 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { label: 'Listings', path: '/listings', icon: Home },
-    { label: 'Rentals', path: '/rentals', icon: KeyRound },
-    { label: 'Projects', path: '/projects', icon: FolderKanban },
-    { label: 'Compare', path: '/compare', icon: ArrowLeftRight, badge: compareCount > 0 ? compareCount : null },
-    { label: 'Saved', path: '/saved', icon: Bookmark, badge: savedCount },
-    { label: 'Insights', path: '/insights', icon: BarChart3 },
+    { label: 'Listings', path: '/listings' },
+    { label: 'Rentals', path: '/rentals' },
+    { label: 'Projects', path: '/projects' },
+    { label: 'Compare', path: '/compare', badge: compareCount > 0 ? compareCount : null },
+    { label: 'Saved', path: '/saved', badge: savedCount },
+    { label: 'Insights', path: '/insights' },
   ];
 
   return (
@@ -58,56 +51,8 @@ export default function Navbar() {
       }}>
         {/* Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              backgroundColor: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '4px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              border: '1px solid var(--border-subtle)',
-              transition: 'transform 0.15s ease',
-              overflow: 'hidden'
-            }}>
-              <img
-                src="/logo.png"
-                alt="Ivy Logo"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block'
-                }}
-              />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', letterSpacing: '-0.025em' }}>
-                  Ivy<span style={{ color: 'var(--accent-primary)' }}>Homes</span>
-                </span>
-                <span style={{
-                  fontSize: '0.625rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  backgroundColor: 'var(--bg-surface-subtle)',
-                  color: 'var(--text-muted)',
-                  border: '1px solid var(--border-subtle)',
-                  letterSpacing: '0.04em'
-                }}>
-                  PRO
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--text-faint)', fontSize: '0.7rem', fontWeight: 500 }}>
-                <MapPin size={10} color="var(--accent-primary)" />
-                <span>Mumbai Region</span>
-              </div>
-            </div>
+          <NavLink to="/" style={{ textDecoration: 'none' }}>
+            <IvyLogo variant="full" size="md" />
           </NavLink>
         </div>
 
@@ -122,7 +67,6 @@ export default function Navbar() {
           border: '1px solid var(--border-subtle)'
         }} className="desktop-nav">
           {navItems.map((item) => {
-            const Icon = item.icon;
             const isActive =
               location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(`${item.path}/`));
@@ -135,18 +79,17 @@ export default function Navbar() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  padding: '0.4rem 0.85rem',
+                  padding: '0.4rem 0.9rem',
                   borderRadius: 'var(--radius-full)',
-                  fontSize: '0.825rem',
-                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '0.85rem',
+                  fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--text-heading)' : 'var(--text-muted)',
                   backgroundColor: isActive ? 'var(--bg-surface)' : 'transparent',
                   border: isActive ? '1px solid var(--border-subtle)' : '1px solid transparent',
                   boxShadow: isActive ? 'var(--shadow-subtle)' : 'none',
-                  transition: 'all 0.16s ease'
+                  transition: 'all 0.15s ease'
                 }}
               >
-                <Icon size={14} strokeWidth={isActive ? 2.3 : 1.8} color={isActive ? 'var(--accent-primary)' : 'currentColor'} />
                 <span>{item.label}</span>
                 {Boolean(item.badge) && (
                   <span style={{
@@ -275,7 +218,6 @@ export default function Navbar() {
           )}
 
           {navItems.map((item) => {
-            const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <NavLink
@@ -289,16 +231,13 @@ export default function Navbar() {
                   padding: '0.65rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.875rem',
-                  fontWeight: isActive ? 700 : 500,
+                  fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--text-heading)' : 'var(--text-muted)',
                   backgroundColor: isActive ? 'var(--bg-surface-subtle)' : 'transparent',
                   border: isActive ? '1px solid var(--border-subtle)' : '1px solid transparent'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <Icon size={16} color={isActive ? 'var(--accent-primary)' : 'currentColor'} />
-                  <span>{item.label}</span>
-                </div>
+                <span>{item.label}</span>
                 {Boolean(item.badge) && (
                   <span style={{
                     padding: '2px 7px',

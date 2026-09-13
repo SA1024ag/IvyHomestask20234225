@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import {
   FolderKanban,
   MapPin,
@@ -9,11 +10,27 @@ import {
   ChevronRight,
   Loader2,
   FilterX,
-  Building2
+  Building2,
+  X
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import ProjectCard, { formatProjectPrice, formatDate } from '../components/ProjectCard';
+
+// Animation variants
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04
+    }
+  }
+};
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+};
 
 const LOCALITIES = [
   'All Localities',
@@ -188,7 +205,13 @@ export default function ProjectsPage() {
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return (
-    <div className="main-content" style={{ paddingBottom: projectsCount > 0 ? '7.5rem' : '2rem' }}>
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ paddingBottom: projectsCount > 0 ? '7.5rem' : '2rem' }}
+    >
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
@@ -490,7 +513,10 @@ export default function ProjectsPage() {
             </div>
           ) : (
             /* Projects Grid (2 in a row as requested) */
-            <div
+            <motion.div
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
               className="catalog-two-col-grid"
               style={{
                 display: 'grid',
@@ -499,13 +525,14 @@ export default function ProjectsPage() {
               }}
             >
               {sortedProjects.map((proj) => (
-                <ProjectCard
-                  key={proj.project_id}
-                  proj={proj}
-                  onViewPlan={(project) => setSelectedProjectModal(project)}
-                />
+                <motion.div key={proj.project_id} variants={cardItemVariants}>
+                  <ProjectCard
+                    proj={proj}
+                    onViewPlan={(project) => setSelectedProjectModal(project)}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
 
           {/* Pagination Controls */}
@@ -659,8 +686,9 @@ export default function ProjectsPage() {
                 onClick={() => setSelectedProjectModal(null)}
                 className="btn btn-ghost"
                 style={{ padding: '0.4rem', borderRadius: '50%', minWidth: 'auto' }}
+                aria-label="Close modal"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -784,6 +812,6 @@ export default function ProjectsPage() {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

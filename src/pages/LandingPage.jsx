@@ -165,12 +165,12 @@ export default function LandingPage() {
                   width: '46px',
                   height: '46px',
                   borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
+                  background: 'linear-gradient(135deg, #047857 0%, #10b981 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(67, 56, 202, 0.3)'
+                  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.3)'
                 }}>
                   <Home size={24} />
                 </div>
@@ -326,6 +326,7 @@ export default function LandingPage() {
             {/* Action Button */}
             <NavLink
               to="/rentals"
+              className="btn btn-primary"
               style={{
                 width: '100%',
                 display: 'flex',
@@ -334,12 +335,7 @@ export default function LandingPage() {
                 gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
                 fontWeight: 700,
-                textDecoration: 'none',
-                backgroundColor: '#059669',
-                color: '#ffffff',
-                borderRadius: 'var(--radius-md)',
-                transition: 'background-color 0.15s ease',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
+                textDecoration: 'none'
               }}
             >
               <span>Browse Rental Homes</span>
@@ -365,16 +361,16 @@ export default function LandingPage() {
                   width: '46px',
                   height: '46px',
                   borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+                  background: 'linear-gradient(135deg, #047857 0%, #10b981 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
-                  boxShadow: '0 6px 16px rgba(217, 119, 6, 0.3)'
+                  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.3)'
                 }}>
                   <FolderKanban size={24} />
                 </div>
-                <span className="badge badge-amber" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
+                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '0.35rem 0.75rem' }}>
                   50+ Master Projects
                 </span>
               </div>
@@ -404,7 +400,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', fontWeight: 700 }}>Pricing Unit</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#d97706' }}>Correct ₹ Cr</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-primary)' }}>Correct ₹ Cr</div>
                 </div>
               </div>
 
@@ -428,6 +424,7 @@ export default function LandingPage() {
             {/* Action Button */}
             <NavLink
               to="/projects"
+              className="btn btn-primary"
               style={{
                 width: '100%',
                 display: 'flex',
@@ -436,12 +433,7 @@ export default function LandingPage() {
                 gap: '0.5rem',
                 padding: '0.75rem 1.25rem',
                 fontWeight: 700,
-                textDecoration: 'none',
-                backgroundColor: '#d97706',
-                color: '#ffffff',
-                borderRadius: 'var(--radius-md)',
-                transition: 'background-color 0.15s ease',
-                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)'
+                textDecoration: 'none'
               }}
             >
               <span>Discover Builder Projects</span>
@@ -767,10 +759,10 @@ export default function LandingPage() {
         <div style={{
           padding: '2.5rem 1.75rem',
           borderRadius: 'var(--radius-xl)',
-          background: 'linear-gradient(135deg, #312e81 0%, #4338ca 50%, #0369a1 100%)',
+          background: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #111827 100%)',
           color: '#ffffff',
           textAlign: 'center',
-          boxShadow: '0 20px 40px -12px rgba(67, 56, 202, 0.3)',
+          boxShadow: '0 20px 40px -12px rgba(4, 120, 87, 0.35)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -805,7 +797,7 @@ export default function LandingPage() {
                   padding: '0.75rem 1.4rem',
                   borderRadius: 'var(--radius-md)',
                   backgroundColor: '#ffffff',
-                  color: '#4338ca',
+                  color: '#064e3b',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   textDecoration: 'none',

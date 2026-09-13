@@ -8,6 +8,7 @@ import {
   Building2
 } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
+import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 
 // Helper: Format project price range using price_min and price_max
 export function formatProjectPrice(val) {
@@ -122,18 +123,10 @@ export default function ProjectCard({ proj, onViewPlan }) {
               }}
             />
           ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-faint)'
-              }}
-            >
-              <Building2 size={40} strokeWidth={1.5} />
-            </div>
+            <PropertyImagePlaceholder
+              type="project"
+              locality={project.locality}
+            />
           )}
 
           {/* Top Floating Badges */}

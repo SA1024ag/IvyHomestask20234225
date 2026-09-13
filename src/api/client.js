@@ -4,6 +4,7 @@ import {
   TOKEN_STORAGE_KEY,
   REFRESH_TOKEN_STORAGE_KEY,
   USER_STORAGE_KEY,
+  TOKEN_SAVED_AT_KEY,
   refreshAuthToken,
   login as authLogin,
   logout as authLogout,
@@ -18,6 +19,7 @@ export {
   TOKEN_STORAGE_KEY,
   REFRESH_TOKEN_STORAGE_KEY,
   USER_STORAGE_KEY,
+  TOKEN_SAVED_AT_KEY,
   refreshAuthToken,
 };
 

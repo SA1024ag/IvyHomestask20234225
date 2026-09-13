@@ -4,16 +4,16 @@ import { motion } from 'framer-motion';
 import {
   Heart,
   MapPin,
-  BedDouble,
+  Bed,
   Bath,
   Maximize2,
   ShieldCheck,
-  Building2,
   ArrowLeftRight,
   ArrowUpRight
 } from 'lucide-react';
 import { useFavourites } from '../context/FavouritesContext';
 import { useCompare } from '../context/CompareContext';
+import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 
 export function formatINR(price) {
   if (!price && price !== 0) return '₹--';
@@ -119,16 +119,11 @@ export default function PropertyCard({ listing }) {
               }}
             />
           ) : (
-            <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-faint)'
-            }}>
-              <Building2 size={40} strokeWidth={1.5} />
-            </div>
+            <PropertyImagePlaceholder
+              type="sale"
+              locality={listing.locality}
+              bedroom={listing.bedroom}
+            />
           )}
 
           {/* Top Floating Badges */}
@@ -319,7 +314,7 @@ export default function PropertyCard({ listing }) {
             fontSize: '0.78rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-body)' }}>
-              <BedDouble size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+              <Bed size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
               <span style={{ fontWeight: 600 }}>{listing.bedroom ?? 2} BHK</span>
             </div>
 

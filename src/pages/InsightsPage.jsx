@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Cell
@@ -34,6 +34,47 @@ import {
   Sparkles
 } from 'lucide-react';
 import { apiClient } from '../api/client';
+
+function ExecutiveChartTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(15, 23, 42, 0.96)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '12px',
+        padding: '0.85rem 1.1rem',
+        boxShadow: '0 14px 35px -4px rgba(0, 0, 0, 0.45)',
+        minWidth: '220px',
+        color: '#ffffff'
+      }}>
+        <div style={{
+          fontSize: '0.85rem',
+          fontWeight: 800,
+          marginBottom: '0.5rem',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          paddingBottom: '0.35rem',
+          color: '#f8fafc'
+        }}>
+          {label}
+        </div>
+        {payload.map((entry, index) => (
+          <div key={`entry-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '0.35rem', fontSize: '0.78rem' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.75)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
+              {entry.name === 'documented' ? 'Documented Claimed' : 'Actual Active Verified'}:
+            </span>
+            <span style={{ fontWeight: 700, color: '#ffffff', fontFamily: 'monospace' }}>
+              {entry.value.toLocaleString('en-IN')}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
 
 function formatCr(val) {
   if (!val) return '—';
@@ -644,7 +685,13 @@ export default function InsightsPage() {
   };
 
   return (
-    <div className="main-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}
+    >
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
@@ -1137,11 +1184,6 @@ export default function InsightsPage() {
                 barCategoryGap="32%"
                 barGap={4}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border-subtle)"
-                  vertical={false}
-                />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 12, fontWeight: 700, fill: 'var(--text-muted)' }}
@@ -1155,24 +1197,12 @@ export default function InsightsPage() {
                   tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '10px',
-                    fontSize: '0.8rem',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                    padding: '10px 14px'
-                  }}
-                  labelStyle={{ fontWeight: 800, color: 'var(--text-heading)', marginBottom: '4px' }}
-                  cursor={{ fill: 'var(--accent-subtle)', radius: 4 }}
-                  formatter={(value, name) => [
-                    value.toLocaleString('en-IN'),
-                    name === 'documented' ? 'Documented (claimed)' : 'Actual Active (verified)'
-                  ]}
+                  content={<ExecutiveChartTooltip />}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
                 />
                 <Bar dataKey="documented" name="documented" radius={[6, 6, 0, 0]} maxBarSize={56}>
                   {[0, 1, 2].map(i => (
-                    <Cell key={i} fill="#ef4444" fillOpacity={0.75} />
+                    <Cell key={i} fill="#ef4444" fillOpacity={0.8} />
                   ))}
                 </Bar>
                 <Bar dataKey="actual" name="actual" radius={[6, 6, 0, 0]} maxBarSize={56}>
@@ -1759,6 +1789,6 @@ export default function InsightsPage() {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

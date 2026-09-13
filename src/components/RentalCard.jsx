@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   MapPin,
-  BedDouble,
+  Bed,
   Bath,
   ShieldCheck,
-  Building2,
   ArrowLeftRight,
   Phone,
   UserCheck
 } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
+import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 
 export function formatINR(val) {
   if (val === null || val === undefined || isNaN(val)) return '—';
@@ -92,18 +92,11 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
               }}
             />
           ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-faint)'
-              }}
-            >
-              <Building2 size={40} strokeWidth={1.5} />
-            </div>
+            <PropertyImagePlaceholder
+              type="rental"
+              locality={rental.locality}
+              bedroom={rental.bedroom}
+            />
           )}
 
           {/* Top Floating Badges */}
@@ -329,7 +322,7 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <BedDouble size={14} color="var(--text-muted)" />
+              <Bed size={14} color="var(--text-muted)" />
               <span style={{ fontWeight: 600 }}>{rental.bedroom} BHK</span>
             </div>
 

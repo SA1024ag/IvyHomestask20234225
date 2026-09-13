@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   KeyRound,
   Search,
@@ -12,6 +13,21 @@ import {
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import RentalCard from '../components/RentalCard';
+
+// Animation variants
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04
+    }
+  }
+};
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+};
 
 // ─── Rental Skeleton Card ────────────────────────────────────────────────────
 function RentalCardSkeleton() {
@@ -275,7 +291,13 @@ export default function RentalsPage() {
     (searchQuery.trim() ? 1 : 0);
 
   return (
-    <div className="main-content" style={{ paddingBottom: rentalsCount > 0 ? '7.5rem' : '2rem' }}>
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ paddingBottom: rentalsCount > 0 ? '7.5rem' : '2rem' }}
+    >
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
         <div>
@@ -601,7 +623,10 @@ export default function RentalsPage() {
           ) : (
             /* Rentals Grid (2 in a row as requested) */
             <>
-              <div
+              <motion.div
+                variants={gridContainerVariants}
+                initial="hidden"
+                animate="show"
                 className="catalog-two-col-grid"
                 style={{
                   display: 'grid',
@@ -610,18 +635,19 @@ export default function RentalsPage() {
                 }}
               >
                 {paginatedRentals.map((rental) => (
-                  <RentalCard
-                    key={rental.listing_id}
-                    rental={rental}
-                    isRevealed={contactRevealedId === rental.listing_id}
-                    onToggleReveal={() =>
-                      setContactRevealedId((prev) =>
-                        prev === rental.listing_id ? null : rental.listing_id
-                      )
-                    }
-                  />
+                  <motion.div key={rental.listing_id} variants={cardItemVariants}>
+                    <RentalCard
+                      rental={rental}
+                      isRevealed={contactRevealedId === rental.listing_id}
+                      onToggleReveal={() =>
+                        setContactRevealedId((prev) =>
+                          prev === rental.listing_id ? null : rental.listing_id
+                        )
+                      }
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Pagination Controls */}
               <div style={{
@@ -762,6 +788,6 @@ export default function RentalsPage() {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

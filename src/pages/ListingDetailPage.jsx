@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, NavLink, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Heart,
   MapPin,
-  BedDouble,
+  Bed,
   Bath,
   Maximize2,
   Building,
@@ -121,7 +122,12 @@ export default function ListingDetailPage() {
     : null;
 
   return (
-    <div className="main-content">
+    <motion.div
+      className="main-content"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+    >
       {/* Top Action Bar */}
       <div style={{
         display: 'flex',
@@ -250,7 +256,7 @@ export default function ListingDetailPage() {
           <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>BEDROOMS</div>
             <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-heading)' }}>
-              <BedDouble size={18} color="var(--accent-primary)" />
+              <Bed size={18} color="var(--accent-primary)" />
               <span>{listing.bedroom || '--'} BHK</span>
             </div>
           </div>
@@ -446,6 +452,6 @@ export default function ListingDetailPage() {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }
