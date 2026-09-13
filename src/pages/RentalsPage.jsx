@@ -136,7 +136,7 @@ export default function RentalsPage() {
       setIsLoading(true);
       setApiError(null);
       try {
-        const res = await fetch('/rentals.json');
+        const res = await fetch(`${import.meta.env.BASE_URL}rentals.json`);
         if (res.ok) {
           const data = await res.json();
           if (isMounted && Array.isArray(data) && data.length > 0) {

@@ -226,7 +226,7 @@ export default function ListingsPage() {
     setIsLoading(true);
     setApiError(null);
     try {
-      const res = await fetch('/listings.json');
+      const res = await fetch(`${import.meta.env.BASE_URL}listings.json`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {

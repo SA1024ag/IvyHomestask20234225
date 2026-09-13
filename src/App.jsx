@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { FavouritesProvider } from './context/FavouritesContext';
 import { CompareProvider } from './context/CompareContext';
@@ -20,7 +20,7 @@ import LandingPage from './pages/LandingPage';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ThemeProvider>
         <AuthProvider>
           <FavouritesProvider>
@@ -101,6 +101,6 @@ export default function App() {
         </FavouritesProvider>
       </AuthProvider>
     </ThemeProvider>
-  </BrowserRouter>
+  </HashRouter>
 );
 }
