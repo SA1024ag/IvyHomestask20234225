@@ -62,7 +62,7 @@ export default function Navbar() {
       }}>
         {/* Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <NavLink to="/listings" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+          <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
             <div style={{
               width: '36px',
               height: '36px',

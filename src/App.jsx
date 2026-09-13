@@ -16,6 +16,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import FavouritesPage from './pages/FavouritesPage';
 import InsightsPage from './pages/InsightsPage';
 import ComparePage from './pages/ComparePage';
+import LandingPage from './pages/LandingPage';
 
 export default function App() {
   return (
@@ -88,9 +89,9 @@ export default function App() {
                   }
                 />
 
-                {/* Default Redirection */}
-                <Route path="/" element={<Navigate to="/listings" replace />} />
-                <Route path="*" element={<Navigate to="/listings" replace />} />
+                {/* Unbiased Landing Gateway for Buy, Rent, and Builder Projects */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
 
               {/* Global Floating Compare Banner (shown when >= 1 property selected) */}
