@@ -111,6 +111,65 @@ export function CompareProvider({ children }) {
     }
   };
 
+  const addToCompare = (item, category = 'sale') => {
+    if (!item) return false;
+    const id = getItemId(item, category);
+    if (!id) return false;
+    const list = getCategoryList(category);
+    if (list.some((it) => getItemId(it, category) === id)) return true;
+    if (list.length >= MAX_COMPARE_LIMIT) return false;
+    if (category === 'rentals') {
+      setCompareRentals((prev) => [...prev, item]);
+    } else if (category === 'projects') {
+      setCompareProjects((prev) => [...prev, item]);
+    } else {
+      setCompareSales((prev) => [...prev, item]);
+    }
+    return true;
+  };
+
+  const compareWithCurrent = (currentItem, targetItem, category = 'sale') => {
+    if (!currentItem || !targetItem) return false;
+    const currId = getItemId(currentItem, category);
+    const targetId = getItemId(targetItem, category);
+    if (!currId || !targetId) return false;
+
+    const list = getCategoryList(category);
+    const hasTarget = list.some((it) => getItemId(it, category) === targetId);
+
+    if (hasTarget) {
+      if (category === 'rentals') {
+        setCompareRentals((prev) => prev.filter((it) => getItemId(it, category) !== targetId));
+      } else if (category === 'projects') {
+        setCompareProjects((prev) => prev.filter((it) => getItemId(it, category) !== targetId));
+      } else {
+        setCompareSales((prev) => prev.filter((it) => getItemId(it, category) !== targetId));
+      }
+      return true;
+    }
+
+    const hasCurr = list.some((it) => getItemId(it, category) === currId);
+    let nextList = [...list];
+    if (!hasCurr) {
+      nextList.push(currentItem);
+    }
+    nextList.push(targetItem);
+
+    if (nextList.length > MAX_COMPARE_LIMIT) {
+      nextList = [currentItem, targetItem];
+    }
+
+    if (category === 'rentals') {
+      setCompareRentals(nextList);
+    } else if (category === 'projects') {
+      setCompareProjects(nextList);
+    } else {
+      setCompareSales(nextList);
+    }
+    setWarningMessage(null);
+    return true;
+  };
+
   const removeFromCompare = (id, category = 'sale') => {
     if (category === 'rentals') {
       setCompareRentals((prev) => prev.filter((it) => getItemId(it, category) !== id));
@@ -149,6 +208,8 @@ export function CompareProvider({ children }) {
     // Methods
     isCompared,
     toggleCompare,
+    addToCompare,
+    compareWithCurrent,
     removeFromCompare,
     clearCompare,
 

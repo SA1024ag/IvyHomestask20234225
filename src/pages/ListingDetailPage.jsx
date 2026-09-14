@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Navigation2 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useFavourites } from '../context/FavouritesContext';
+import { useCompare } from '../context/CompareContext';
 import PropertyCard, { formatINR } from '../components/PropertyCard';
+import { getGoogleMapsUrl } from '../utils/dataUtils';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isFavourite, toggleFavourite } = useFavourites();
+  const { isCompared, toggleCompare } = useCompare();
 
   const [listing, setListing] = useState(null);
   const [similarListings, setSimilarListings] = useState([]);
@@ -124,7 +127,24 @@ export default function ListingDetailPage() {
           Back
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Direct Google Maps Action Button */}
+          {listing.latitude && listing.longitude && (
+            <a
+              href={getGoogleMapsUrl(listing.latitude, listing.longitude, (listing.apartment_name || '') + ', ' + (listing.locality || '') + ', Mumbai')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary btn-sm"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                backgroundColor: 'rgba(16,185,129,0.1)', color: '#059669',
+                borderColor: 'rgba(16,185,129,0.3)', fontWeight: 700
+              }}
+            >
+              <Navigation2 size={14} /> View on Google Maps
+            </a>
+          )}
+
           <button
             type="button"
             onClick={handleShare}
@@ -132,6 +152,19 @@ export default function ListingDetailPage() {
             title="Copy property link"
           >
             {copiedLink ? 'Link Copied!' : 'Share'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleCompare(listing, 'sale')}
+            className="btn btn-secondary btn-sm"
+            style={{
+              color: isCompared(listing.listing_id, 'sale') ? 'var(--accent-text)' : 'var(--text-heading)',
+              borderColor: isCompared(listing.listing_id, 'sale') ? 'var(--accent-border)' : 'var(--border-subtle)',
+              backgroundColor: isCompared(listing.listing_id, 'sale') ? 'var(--accent-subtle)' : 'var(--bg-surface)'
+            }}
+          >
+            {isCompared(listing.listing_id, 'sale') ? 'Comparing ✓' : 'Add to Compare'}
           </button>
 
           <button
@@ -189,13 +222,31 @@ export default function ListingDetailPage() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '10px',
               color: 'var(--text-muted)',
               fontSize: '0.95rem',
               marginTop: '0.35rem',
-              textTransform: 'capitalize'
+              flexWrap: 'wrap'
             }}>
-              <span>{listing.locality}, Mumbai (City ID: {listing.city_id || 5})</span>
+              <span style={{ textTransform: 'capitalize' }}>{listing.locality}, Mumbai (City ID: {listing.city_id || 5})</span>
+              {listing.latitude && listing.longitude && (
+                <a
+                  href={getGoogleMapsUrl(listing.latitude, listing.longitude, (listing.apartment_name || '') + ', ' + (listing.locality || '') + ', Mumbai')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: '#059669',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Navigation2 size={13} /> Maps Location
+                </a>
+              )}
             </div>
           </div>
 
@@ -364,13 +415,25 @@ export default function ListingDetailPage() {
                 </a>
               </div>
 
+              <div style={{ marginTop: '0.75rem' }}>
+                <a
+                  href={getGoogleMapsUrl(listing.latitude, listing.longitude, (listing.apartment_name || '') + ', ' + (listing.locality || '') + ', Mumbai')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Navigation2 size={13} color="#059669" /> Open in Google Maps
+                </a>
+              </div>
+
               {listing.listing_url && (
                 <a
                   href={listing.listing_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-secondary btn-sm"
-                  style={{ width: '100%', marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: '100%', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <span>View Original Listing</span>
                 </a>
@@ -380,7 +443,7 @@ export default function ListingDetailPage() {
         </div>
       </div>
 
-      {/* "You May Also Like" Similar Properties Section */}
+      {/* "More Properties You'll Like" Similar Properties Section */}
       {similarListings.length > 0 && (
         <section style={{ marginTop: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -389,7 +452,7 @@ export default function ListingDetailPage() {
                 <span>Comparable Properties</span>
               </div>
               <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.25rem' }}>
-                You May Also Like
+                More Properties You'll Like
               </h2>
             </div>
             <NavLink to={`/listings?locality=${listing.locality}`} className="btn btn-secondary btn-sm">
@@ -403,7 +466,7 @@ export default function ListingDetailPage() {
             gap: '1.5rem'
           }}>
             {similarListings.map((item) => (
-              <PropertyCard key={item.listing_id} listing={item} />
+              <PropertyCard key={item.listing_id} listing={item} currentListing={listing} />
             ))}
           </div>
         </section>

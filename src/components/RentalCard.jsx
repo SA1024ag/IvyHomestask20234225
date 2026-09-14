@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Navigation2, ExternalLink } from 'lucide-react';
+import { Navigation2, ExternalLink, ChevronRight } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
 import { getGoogleMapsUrl } from '../utils/dataUtils';
@@ -24,11 +25,17 @@ const RENTAL_PHOTOS = [
 ];
 
 export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
+  const navigate = useNavigate();
   const { isCompared, toggleCompare } = useCompare();
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const compared = isCompared(rental.listing_id, 'rentals');
+
+  const handleCardClick = (e) => {
+    if (e.target.closest('button, a, input, label')) return;
+    navigate(`/rentals/${rental.listing_id}`);
+  };
 
   const photoIndex = Math.abs(
     String(rental.listing_id || '0')
@@ -46,10 +53,15 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
     <motion.div
       whileHover={{ y: -5, boxShadow: '0 20px 40px -8px rgba(15,23,42,0.13)' }}
       transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+      onClick={handleCardClick}
+      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/rentals/${rental.listing_id}`); }}
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="ivy-card"
       style={{
+        cursor: 'pointer',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -381,42 +393,55 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           <span>{compared ? 'Comparing' : 'Compare'}</span>
         </label>
 
+        {/* View Details Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/rentals/${rental.listing_id}`);
+          }}
+          className="btn btn-secondary btn-sm"
+          style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+        >
+          View Details <ChevronRight size={14} />
+        </button>
+
         {isRevealed ? (
           <div
+            onClick={(e) => e.stopPropagation()}
             style={{
-              flex: 1,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              gap: '6px',
               backgroundColor: 'var(--accent-subtle)',
               border: '1px solid var(--accent-border)',
               borderRadius: 'var(--radius-xs)',
-              padding: '0.45rem 0.75rem'
+              padding: '0.45rem 0.65rem'
             }}
           >
-            <div style={{ overflow: 'hidden', marginRight: '6px' }}>
-              <div style={{ fontSize: '0.68rem', color: 'var(--accent-text)', fontWeight: 600, truncate: 'true' }}>
-                {rental.posted_by_name || 'Lister'}
-              </div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                {rental.posted_by_contact || '+91 98200 12345'}
-              </div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+              {rental.posted_by_contact || '+91 98200 12345'}
             </div>
             <a
               href={`tel:${rental.posted_by_contact || '+919820012345'}`}
+              onClick={(e) => e.stopPropagation()}
               className="btn btn-primary btn-sm"
-              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', flexShrink: 0 }}
+              style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}
             >
               Call
             </a>
           </div>
         ) : (
           <button
-            onClick={onToggleReveal}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleReveal && onToggleReveal();
+            }}
             className="btn btn-secondary btn-sm"
-            style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem' }}
+            style={{ fontSize: '0.78rem', padding: '0.55rem 0.75rem', whiteSpace: 'nowrap' }}
           >
-            Contact Lister
+            Contact
           </button>
         )}
 

@@ -14,11 +14,11 @@ import ListingDetailPage from './pages/ListingDetailPage';
 import RentalsPage from './pages/RentalsPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import RentalDetailPage from './pages/RentalDetailPage';
 import FavouritesPage from './pages/FavouritesPage';
 import InsightsPage from './pages/InsightsPage';
 import ComparePage from './pages/ComparePage';
 import LandingPage from './pages/LandingPage';
-import MapPage from './pages/MapPage';
 
 export default function App() {
   return (
@@ -67,6 +67,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/rentals/:id"
+                  element={
+                    <ProtectedRoute>
+                      <RentalDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/projects"
                   element={
                     <ProtectedRoute>
@@ -79,14 +87,6 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <ProjectDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/map"
-                  element={
-                    <ProtectedRoute>
-                      <MapPage />
                     </ProtectedRoute>
                   }
                 />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Heart,
@@ -43,9 +43,10 @@ const ARCHITECTURAL_PHOTOS = [
   'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
 ];
 
-export default function PropertyCard({ listing }) {
+export default function PropertyCard({ listing, currentListing }) {
+  const navigate = useNavigate();
   const { isFavourite, toggleFavourite } = useFavourites();
-  const { isCompared, toggleCompare } = useCompare();
+  const { isCompared, toggleCompare, compareWithCurrent } = useCompare();
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -60,7 +61,16 @@ export default function PropertyCard({ listing }) {
 
   const handleCompareClick = (e) => {
     e.stopPropagation();
-    toggleCompare(listing);
+    if (currentListing && compareWithCurrent) {
+      compareWithCurrent(currentListing, listing, 'sale');
+    } else {
+      toggleCompare(listing);
+    }
+  };
+
+  const handleCardClick = (e) => {
+    if (e.target.closest('button, a, input, label')) return;
+    navigate(`/listings/${listing.listing_id}`);
   };
 
   // Handle units discrepancy: magichomes reports carpet_area in square meters (< 300)
@@ -85,10 +95,15 @@ export default function PropertyCard({ listing }) {
     <motion.div
       whileHover={{ y: -5, boxShadow: '0 20px 40px -8px rgba(15,23,42,0.13)' }}
       transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+      onClick={handleCardClick}
+      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/listings/${listing.listing_id}`); }}
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="ivy-card"
       style={{
+        cursor: 'pointer',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -376,11 +391,15 @@ export default function PropertyCard({ listing }) {
             onChange={() => {}}
             style={{ width: '14px', height: '14px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
           />
-          <span>{compared ? 'Comparing' : 'Compare'}</span>
+          <span>{compared ? (currentListing ? 'Comparing with it' : 'Comparing') : (currentListing ? 'Compare with it' : 'Compare')}</span>
         </label>
 
-        <NavLink
-          to={`/listings/${listing.listing_id}`}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/listings/${listing.listing_id}`);
+          }}
           className="btn btn-secondary btn-sm"
           style={{
             flex: 1,
@@ -390,7 +409,7 @@ export default function PropertyCard({ listing }) {
           }}
         >
           <span>View Details</span>
-        </NavLink>
+        </button>
 
         {/* External listing URL */}
         {listing.listing_url && (

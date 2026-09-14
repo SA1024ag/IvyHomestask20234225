@@ -80,10 +80,20 @@ export default function ProjectCard({ proj, onViewPlan }) {
 
   return (
     <div
+      onClick={(e) => {
+        if (e.target.closest('button, a, input, label')) return;
+        navigate(`/projects/${proj.project_id}`);
+      }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') navigate(`/projects/${proj.project_id}`);
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="ivy-card"
       style={{
+        cursor: 'pointer',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -121,7 +131,7 @@ export default function ProjectCard({ proj, onViewPlan }) {
           ) : (
             <PropertyImagePlaceholder
               type="project"
-              locality={project.locality}
+              locality={proj.locality}
             />
           )}
 
@@ -469,7 +479,10 @@ export default function ProjectCard({ proj, onViewPlan }) {
 
         {/* View Details → navigates to /projects/:id */}
         <button
-          onClick={() => navigate(`/projects/${proj.project_id}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/projects/${proj.project_id}`);
+          }}
           className="btn btn-secondary btn-sm"
           style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem', display: 'flex', alignItems: 'center', gap: '4px' }}
         >
