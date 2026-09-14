@@ -13,10 +13,12 @@ import ListingsPage from './pages/ListingsPage';
 import ListingDetailPage from './pages/ListingDetailPage';
 import RentalsPage from './pages/RentalsPage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import FavouritesPage from './pages/FavouritesPage';
 import InsightsPage from './pages/InsightsPage';
 import ComparePage from './pages/ComparePage';
 import LandingPage from './pages/LandingPage';
+import MapPage from './pages/MapPage';
 
 export default function App() {
   return (
@@ -69,6 +71,22 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <ProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/map"
+                  element={
+                    <ProtectedRoute>
+                      <MapPage />
                     </ProtectedRoute>
                   }
                 />

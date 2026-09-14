@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
+import { Navigation2, ExternalLink, ChevronRight } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
+import { getGoogleMapsUrl } from '../utils/dataUtils';
 
 // Helper: Format project price range using price_min and price_max
 export function formatProjectPrice(val) {
@@ -54,6 +56,7 @@ const PROJECT_PHOTOS = [
 
 export default function ProjectCard({ proj, onViewPlan }) {
   const { isCompared, toggleCompare } = useCompare();
+  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -410,9 +413,32 @@ export default function ProjectCard({ proj, onViewPlan }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '0.75rem'
+          gap: '0.5rem',
+          flexWrap: 'wrap'
         }}
       >
+        {/* Google Maps button */}
+        {proj.latitude && proj.longitude && (
+          <a
+            href={getGoogleMapsUrl(proj.latitude, proj.longitude, (proj.apartment_name || '') + ', ' + (proj.locality || '') + ', Mumbai')}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="View on Google Maps"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 10px', borderRadius: 'var(--radius-xs)',
+              fontSize: '0.75rem', fontWeight: 700,
+              backgroundColor: 'rgba(16,185,129,0.1)',
+              color: '#059669',
+              border: '1px solid rgba(16,185,129,0.25)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <Navigation2 size={12} /> Maps
+          </a>
+        )}
+
         <label
           onClick={(e) => e.stopPropagation()}
           style={{
@@ -441,13 +467,36 @@ export default function ProjectCard({ proj, onViewPlan }) {
           <span>{compared ? 'Comparing' : 'Compare'}</span>
         </label>
 
+        {/* View Details → navigates to /projects/:id */}
         <button
-          onClick={() => onViewPlan(proj)}
+          onClick={() => navigate(`/projects/${proj.project_id}`)}
           className="btn btn-secondary btn-sm"
-          style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem' }}
+          style={{ flex: 1, justifyContent: 'center', fontSize: '0.825rem', padding: '0.55rem', display: 'flex', alignItems: 'center', gap: '4px' }}
         >
-          View Development Plan
+          View Details <ChevronRight size={14} />
         </button>
+
+        {/* External Ivy Homes link */}
+        {proj.project_url && (
+          <a
+            href={proj.project_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="View on Ivy Homes"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 10px', borderRadius: 'var(--radius-xs)',
+              fontSize: '0.72rem', fontWeight: 700,
+              backgroundColor: 'var(--bg-surface-subtle)',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border-subtle)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <ExternalLink size={11} /> Ivy Homes
+          </a>
+        )}
       </div>
     </div>
   );

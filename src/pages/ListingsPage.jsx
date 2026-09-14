@@ -5,6 +5,7 @@ import { FilterX } from 'lucide-react';
 import PropertyCard from '../components/PropertyCard';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
+import { filterFakeListings, deduplicateListings, fixCoordinates } from '../utils/dataUtils';
 
 // Animation variants
 const gridContainerVariants = {
@@ -220,8 +221,9 @@ export default function ListingsPage() {
     }
   }, [isLoading, rawListings.length]);
 
-  // Load complete verified listings catalog to enable accurate client-side filtering across all 5,100 records
+  // Load complete verified listings catalog to enable accurate client-side filtering across all 5,079 unique homes
   // Proactively masks the backend API's broken pagination and silently ignored filter query parameters
+  // Applies deduplication (5,100 → 5,079) and removes 11 fake listings from submission.json audit
   const fetchCatalog = useCallback(async () => {
     setIsLoading(true);
     setApiError(null);
@@ -230,20 +232,22 @@ export default function ListingsPage() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setRawListings(data);
+          // Deduplicate: remove 21 cross-site dupes (5,100 → 5,079), filter 11 fakes, fix swapped coords
+          const canonical = deduplicateListings(filterFakeListings(data)).map(fixCoordinates);
+          setRawListings(canonical);
           setIsLoading(false);
           return;
         }
       }
       const apiData = await apiClient.getListings({ limit: 50 });
       const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
-      setRawListings(results);
+      setRawListings(deduplicateListings(filterFakeListings(results)).map(fixCoordinates));
     } catch (err) {
       console.warn('Listing load error, attempting API fallback:', err);
       try {
         const apiData = await apiClient.getListings({ limit: 50 });
         const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
-        setRawListings(results);
+        setRawListings(deduplicateListings(filterFakeListings(results)).map(fixCoordinates));
       } catch {
         setApiError('Could not connect to live API server. Please ensure you are authenticated.');
       }

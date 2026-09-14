@@ -4,6 +4,7 @@ import { FilterX } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useCompare } from '../context/CompareContext';
 import RentalCard from '../components/RentalCard';
+import { fixCoordinates } from '../utils/dataUtils';
 
 // Animation variants
 const gridContainerVariants = {
@@ -129,7 +130,7 @@ export default function RentalsPage() {
   const [apiError, setApiError] = useState(null);
   const [contactRevealedId, setContactRevealedId] = useState(null);
 
-  // Load complete verified rentals dataset
+  // Load complete verified rentals dataset with coordinate correction
   useEffect(() => {
     let isMounted = true;
     async function loadRentalCatalog() {
@@ -140,7 +141,8 @@ export default function RentalsPage() {
         if (res.ok) {
           const data = await res.json();
           if (isMounted && Array.isArray(data) && data.length > 0) {
-            setRawRentals(data);
+            // Fix swapped lat/lon on 11 affected rental records
+            setRawRentals(data.map(fixCoordinates));
             setIsLoading(false);
             return;
           }
@@ -148,14 +150,14 @@ export default function RentalsPage() {
         const apiData = await apiClient.getRentals({ limit: 50 });
         const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
         if (isMounted) {
-          setRawRentals(results);
+          setRawRentals(results.map(fixCoordinates));
         }
       } catch (err) {
         console.warn('Rentals load error, attempting API fallback:', err);
         try {
           const apiData = await apiClient.getRentals({ limit: 50 });
           const results = Array.isArray(apiData) ? apiData : (apiData.results || []);
-          if (isMounted) setRawRentals(results);
+          if (isMounted) setRawRentals(results.map(fixCoordinates));
         } catch {
           if (isMounted) setApiError('Could not load rentals from server.');
         }

@@ -32,6 +32,7 @@ export default function Navbar() {
     { label: 'Listings', path: '/listings' },
     { label: 'Rentals', path: '/rentals' },
     { label: 'Projects', path: '/projects' },
+    { label: '🗺 Map', path: '/map' },
     { label: 'Compare', path: '/compare', badge: compareCount > 0 ? compareCount : null },
     { label: 'Saved', path: '/saved', badge: savedCount },
     { label: 'Insights', path: '/insights' },

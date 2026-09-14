@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-
+import { Navigation2, ExternalLink } from 'lucide-react';
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
+import { getGoogleMapsUrl } from '../utils/dataUtils';
 
 export function formatINR(val) {
   if (val === null || val === undefined || isNaN(val)) return '—';
@@ -326,9 +327,32 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '0.75rem'
+          gap: '0.5rem',
+          flexWrap: 'wrap'
         }}
       >
+        {/* Google Maps link */}
+        {rental.latitude && rental.longitude && (
+          <a
+            href={getGoogleMapsUrl(rental.latitude, rental.longitude, (rental.apartment_name || '') + ', ' + (rental.locality || '') + ', Mumbai')}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="View on Google Maps"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 10px', borderRadius: 'var(--radius-xs)',
+              fontSize: '0.75rem', fontWeight: 700,
+              backgroundColor: 'rgba(16,185,129,0.1)',
+              color: '#059669',
+              border: '1px solid rgba(16,185,129,0.25)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <Navigation2 size={12} /> Maps
+          </a>
+        )}
+
         <label
           onClick={(e) => e.stopPropagation()}
           style={{
@@ -394,6 +418,28 @@ export default function RentalCard({ rental, isRevealed, onToggleReveal }) {
           >
             Contact Lister
           </button>
+        )}
+
+        {/* External listing URL */}
+        {rental.listing_url && (
+          <a
+            href={rental.listing_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title={`View on ${rental.website || 'portal'}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '6px 10px', borderRadius: 'var(--radius-xs)',
+              fontSize: '0.72rem', fontWeight: 700,
+              backgroundColor: 'var(--bg-surface-subtle)',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border-subtle)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <ExternalLink size={11} /> {rental.website || 'View'}
+          </a>
         )}
       </div>
     </motion.div>

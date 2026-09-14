@@ -9,11 +9,14 @@ import {
   Maximize2,
   ShieldCheck,
   ArrowLeftRight,
-  ArrowUpRight
+  ArrowUpRight,
+  Navigation2,
+  ExternalLink
 } from 'lucide-react';
 import { useFavourites } from '../context/FavouritesContext';
 import { useCompare } from '../context/CompareContext';
 import PropertyImagePlaceholder from './PropertyImagePlaceholder';
+import { getGoogleMapsUrl } from '../utils/dataUtils';
 
 export function formatINR(price) {
   if (!price && price !== 0) return '₹--';
@@ -327,6 +330,28 @@ export default function PropertyCard({ listing }) {
         justifyContent: 'space-between',
         gap: '0.65rem'
       }}>
+        {/* Google Maps link */}
+        {listing.latitude && listing.longitude && (
+          <a
+            href={getGoogleMapsUrl(listing.latitude, listing.longitude, (listing.apartment_name || '') + ', ' + (listing.locality || '') + ', Mumbai')}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="View on Google Maps"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '5px 9px', borderRadius: 'var(--radius-sm)',
+              fontSize: '0.73rem', fontWeight: 700,
+              backgroundColor: 'rgba(16,185,129,0.1)',
+              color: '#059669',
+              border: '1px solid rgba(16,185,129,0.25)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <Navigation2 size={12} /> Maps
+          </a>
+        )}
+
         <label
           onClick={handleCompareClick}
           style={{
@@ -366,6 +391,28 @@ export default function PropertyCard({ listing }) {
         >
           <span>View Details</span>
         </NavLink>
+
+        {/* External listing URL */}
+        {listing.listing_url && (
+          <a
+            href={listing.listing_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title={`View on ${listing.website || 'portal'}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '5px 9px', borderRadius: 'var(--radius-sm)',
+              fontSize: '0.7rem', fontWeight: 700,
+              backgroundColor: 'var(--bg-surface-subtle)',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border-subtle)',
+              textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s',
+            }}
+          >
+            <ExternalLink size={11} /> {listing.website || 'View'}
+          </a>
+        )}
       </div>
     </motion.div>
   );
