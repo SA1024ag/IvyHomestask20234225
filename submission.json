@@ -335,8 +335,8 @@
       "endpoint": "/v1/projects",
       "category": "consistency",
       "documented": "total_listings is the number of listings currently available in the project. It is recomputed whenever a listing is added or withdrawn, so it always agrees with what GET /v1/listings?project_id=... returns.",
-      "actual": "total_listings disagrees with the actual number of active listings for 446 out of 590 projects.",
-      "how_found": "Counted active listings grouped by project_id and compared against project total_listings across all 590 projects.",
+      "actual": "total_listings disagrees with the actual number of retrievable listings for 446 out of 590 projects (and diverges from active live listings for 166 projects).",
+      "how_found": "Aggregated retrievable listings by project_id and compared the counts against total_listings across all 590 projects.",
       "impact": "Users see conflicting inventory numbers on project details versus listing search results.",
       "evidence": [
         "P50001",

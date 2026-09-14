@@ -1,6 +1,6 @@
 # Ivy Homes — Property Intelligence & Discovery Platform
 
-**Candidate:** Sarthak Agrawal · [20234225@mnnit.ac.in](mailto:20234225@mnnit.ac.in)  
+**Candidate:** Sarthak Agrawal · [sarthak.20234225@mnnit.ac.in](mailto:sarthak.20234225@mnnit.ac.in) · Roll: 20234225  
 **City:** Mumbai (City ID: 5) · **Assigned Locality:** Mulund West  
 **Repository:** [SA1024ag/IvyHomestask20234225](https://github.com/SA1024ag/IvyHomestask20234225)  
 **Live Production Demo:** [Ivy Homes Discovery Platform](https://sa1024ag.github.io/IvyHomestask20234225/)
@@ -108,7 +108,7 @@ The login portal includes one-click autofill buttons for each account:
 
 ---
 
-## Forensic API Audit & Discrepancy Mitigations
+## How We Worked Out Which Parts of Documentation to Distrust (And What We Did)
 
 The backend API was audited through systematic live network probes and full dataset forensic analysis across all 5,100 listings, 2,100 rentals, and 590 projects.
 
@@ -147,16 +147,43 @@ Below is the complete register of all 28 identified discrepancies alongside the 
 
 ---
 
-## Architectural Verification of Tested Hypotheses
+## What We Checked That Turned Out to Be Fine (Hypotheses Disproved)
 
-During the forensic audit, several plausible hypotheses were investigated and disproved by the data, ensuring no erroneous assumptions were made:
+During the forensic audit, several plausible hypotheses were investigated and disproved by the data, demonstrating that the API remains consistent and honest in many subtle operational areas:
 
 1. **Rental Price Scaling**: Investigated whether rental values were shorthand thousands (e.g. `85` = ₹85,000). Data confirmed values represent exact market rupee figures (₹22,000 to ₹1,80,000).
 2. **Rental Duplicate Pairs**: Investigated whether cross-broker syndication generated duplicate rental postings. Composite fingerprinting across all 2,100 rentals confirmed zero duplicate pairs.
-3. **UTC Timestamp Integrity**: Verified that `posted_at` in all 5,100 listings strictly carries the `Z` UTC designator, confirming timestamp parser integrity.
-4. **MahaRERA Registration Conformance**: Verified that all 590 project RERA IDs strictly conform to Maharashtra real estate authority naming formats.
+3. **UTC Timestamp Integrity on Listings**: Verified that `posted_at` in all 5,100 listings strictly carries the `Z` UTC designator, confirming timestamp parser integrity.
+4. **MahaRERA Registration Conformance**: Verified that all 590 project RERA IDs strictly conform to Maharashtra real estate authority naming formats (`PRM/KA/RERA/...` or `P518...`).
 5. **Collection vs Detail Schema Parity**: Verified that `/v1/listings/{id}` schema matches the collection schema key-for-key across all 28 payload attributes.
-6. **Locality String Normalization**: Verified all locality names conform to standard lower-case Mumbai zoning strings across all 7,769 records.
+6. **Locality String Normalization**: Verified all locality names conform to standard lower-case Mumbai zoning strings across all 7,769 records without misspellings.
+
+---
+
+## What We Would Do With Another Two Days
+
+If granted an additional 48 hours for production hardening and feature expansion, the engineering roadmap prioritizes:
+
+1. **Automated End-to-End Test Suite**:
+   - Build a comprehensive Playwright / Cypress test matrix covering all 6 core workflows: auth refresh lifecycle across 30+ minutes, deep-linked detail views, client-side filter combinations, and real-time favourites persistence.
+2. **Automated Valuation Model (AVM) & Deal Scoring**:
+   - Train a lightweight client-side regression model on historical $/sqft across micro-markets to assign each listing a "Deal Score" (e.g., Fair Value, Undervalued, Premium), giving buyers actionable market intelligence.
+3. **Interactive Polygonal & Radius Geospatial Filtering**:
+   - Implement Canvas/WebGL-powered custom map boundaries allowing buyers to draw polygonal search areas around specific transit hubs (e.g., Eastern Express Highway, Metro Line 4 corridor).
+4. **Server-Side Rendering (SSR) & Sub-50ms Edge Caching**:
+   - Migrate catalog routing to Next.js / Remix with ISR (Incremental Static Regeneration), generating pre-rendered static HTML for all 5,079 canonical residences for instant SEO indexing.
+5. **Real-Time Inventory Streaming via SSE / WebSockets**:
+   - Implement real-time push events for price changes, new units added to builder projects, and instantaneous favourites state syncing across multiple devices.
+6. **Broader Comparative Analytics Visualizations**:
+   - Expand the comparison matrix with interactive visual radar charts and mortgage amortization calculators factoring in Mumbai stamp duty and registration costs.
+
+---
+
+## AI & LLM Usage Disclosure
+
+In strict adherence to the assignment guidelines (*"Use any LLM, any framework, any library. Say so in your README; it costs you nothing and lying about it costs you the internship."*):
+- **LLM Assistance**: Google Antigravity / Gemini & Claude were utilized as intelligent pair-programming co-pilots for code drafting, exploratory API probing scripts, forensic statistical sanity-checking, and layout structuring.
+- **Engineering Authorship**: All hypotheses, data validation checks, forensic deductions, architectural bug mitigations, and final answers were personally audited, verified against ground truth, and executed by the candidate.
 
 ---
 
