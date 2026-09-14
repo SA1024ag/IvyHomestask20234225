@@ -505,24 +505,24 @@ export const AUDIT_FINDINGS = [
     "group": "catalog",
     "category": "Physical Integrity",
     "endpoint": "/v1/listings",
-    "title": "Physically Impossible Dimensions & Negative Prices",
+    "title": "Physically Impossible Dimensions, Prices & Bedroom Counts",
     "icon": "AlertOctagon",
     "badgeClass": "badge-red",
     "severity": "critical",
     "status": "Physical Sanity Bounds Sanitizer Active",
     "documented": "Every listing corresponds to exactly one physical property and is safe to show to a user.",
-    "actual": "Contains 33 physically impossible records across three categories: (a) carpet_area exceeding super_built_up_area, (b) floor number exceeding total_floors, and (c) negative or zero prices.",
+    "actual": "Contains 44 physically impossible records across four categories: (a) carpet_area exceeding super_built_up_area (11 records), (b) floor number exceeding total_floors (11 records), (c) negative or zero prices (11 records), and (d) residential properties (apartment/villa/house) with bedroom count of 0 (11 records).",
     "how_found": "Ran comprehensive integrity validation on physical constraints across all 5,100 listings.",
     "impact": "Displays corrupted or physically impossible real estate records to users and corrupts statistical models.",
-    "evidenceCount": "20 Evidence Records",
+    "evidenceCount": "44 Records (20 shown)",
     "sampleEvidence": [
       "100-5000050",
       "100-5000339",
-      "100-5002758",
-      "100-5003364",
-      "100-5003914"
+      "100-5000610",
+      "100-5000883",
+      "100-5002758"
     ],
-    "mitigation": "Client-side defensive validation sanitizes bounds (floor <= total_floors) and purges non-positive prices before rendering."
+    "mitigation": "Client-side defensive validation sanitizes bounds (floor <= total_floors), purges non-positive prices, and filters zero-bedroom non-plot residences before rendering."
   },
   {
     "id": "finding_24",
