@@ -66,18 +66,18 @@ function createClusterIcon(count, color) {
 
 // ─── Simple grid clustering ───────────────────────────────────────────────────
 function clusterPoints(items, zoom) {
-  const grid = zoom >= 14 ? 0.003 : zoom >= 12 ? 0.012 : zoom >= 10 ? 0.04 : 0.1;
-  const map = new Map();
+  const gridSize = zoom >= 14 ? 0.003 : zoom >= 12 ? 0.012 : zoom >= 10 ? 0.04 : 0.1;
+  const buckets = {};
   for (const item of items) {
     const lat = Number(item._lat), lng = Number(item._lng);
     if (isNaN(lat) || isNaN(lng) || !lat || !lng) continue;
-    const ky = Math.round(lat / grid) * grid;
-    const kx = Math.round(lng / grid) * grid;
+    const ky = Math.round(lat / gridSize) * gridSize;
+    const kx = Math.round(lng / gridSize) * gridSize;
     const key = `${ky.toFixed(5)}_${kx.toFixed(5)}`;
-    if (!map.has(key)) map.set(key, { lat: ky, lng: kx, items: [] });
-    map.get(key).items.push(item);
+    if (!buckets[key]) buckets[key] = { lat: ky, lng: kx, items: [] };
+    buckets[key].items.push(item);
   }
-  return [...map.values()];
+  return Object.values(buckets);
 }
 
 // ─── Zoom tracker (must be child of MapContainer) ────────────────────────────
