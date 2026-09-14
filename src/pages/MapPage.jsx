@@ -1,12 +1,15 @@
-// ─── CRITICAL: import Leaflet CSS from the npm package (NOT from CDN) ─────────
+// CSS from npm — the ONLY correct way with Vite
 import 'leaflet/dist/leaflet.css';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Map, ExternalLink, Navigation2, ChevronRight, Loader2 } from 'lucide-react';
+import {
+  Map, Navigation2, ExternalLink, ChevronRight,
+  Loader2, Home, Building2, Tag,
+} from 'lucide-react';
 
 import {
   filterFakeListings,
@@ -16,161 +19,104 @@ import {
   MUMBAI_CENTER,
 } from '../utils/dataUtils';
 
-// ─── Fix Leaflet marker icons broken by Vite's asset pipeline ─────────────────
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
-  iconUrl:       new URL('leaflet/dist/images/marker-icon.png',    import.meta.url).href,
-  shadowUrl:     new URL('leaflet/dist/images/marker-shadow.png',  import.meta.url).href,
-});
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const cap = s => (s || '').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-// ─── Coloured SVG pin icon ────────────────────────────────────────────────────
-function createPinIcon(fillColor) {
-  const svg = encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 46" width="30" height="46">
-      <path d="M15 0C6.716 0 0 6.716 0 15c0 10.493 15 31 15 31S30 25.493 30 15C30 6.716 23.284 0 15 0z"
-        fill="${fillColor}" stroke="white" stroke-width="2"/>
-      <circle cx="15" cy="15" r="6" fill="white" opacity="0.9"/>
-    </svg>
-  `);
-  return L.icon({
-    iconUrl: `data:image/svg+xml,${svg}`,
-    iconSize: [30, 46],
-    iconAnchor: [15, 46],
-    popupAnchor: [0, -48],
-  });
+function fmtPrice(p, isRent = false) {
+  const n = Number(p);
+  if (!n || isNaN(n)) return null;
+  if (isRent) return `₹${n.toLocaleString('en-IN')}/mo`;
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)} Cr`;
+  if (n >= 100000)   return `₹${(n / 100000).toFixed(1)} L`;
+  return `₹${n.toLocaleString('en-IN')}`;
 }
 
-// Pre-build the three icons
-const ICON_LISTING  = createPinIcon('#3b82f6');
-const ICON_RENTAL   = createPinIcon('#10b981');
-const ICON_PROJECT  = createPinIcon('#f59e0b');
-
-// ─── Cluster circle icon ──────────────────────────────────────────────────────
-function createClusterIcon(count, color) {
-  const size = count < 10 ? 34 : count < 100 ? 42 : 50;
-  const svg = encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-      <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" stroke="white" stroke-width="2.5" opacity="0.92"/>
-      <text x="${size/2}" y="${size/2}" font-family="Inter,Arial,sans-serif" font-size="${count > 99 ? 13 : 14}"
-        font-weight="800" fill="white" text-anchor="middle" dominant-baseline="central">${count > 999 ? '999+' : count}</text>
-    </svg>
-  `);
-  return L.icon({
-    iconUrl: `data:image/svg+xml,${svg}`,
-    iconSize: [size, size],
-    iconAnchor: [size/2, size/2],
-    popupAnchor: [0, -size/2],
-  });
-}
-
-// ─── Simple grid clustering ───────────────────────────────────────────────────
-function clusterPoints(items, zoom) {
-  const gridSize = zoom >= 14 ? 0.003 : zoom >= 12 ? 0.012 : zoom >= 10 ? 0.04 : 0.1;
-  const buckets = {};
-  for (const item of items) {
-    const lat = Number(item._lat), lng = Number(item._lng);
-    if (isNaN(lat) || isNaN(lng) || !lat || !lng) continue;
-    const ky = Math.round(lat / gridSize) * gridSize;
-    const kx = Math.round(lng / gridSize) * gridSize;
-    const key = `${ky.toFixed(5)}_${kx.toFixed(5)}`;
-    if (!buckets[key]) buckets[key] = { lat: ky, lng: kx, items: [] };
-    buckets[key].items.push(item);
-  }
-  return Object.values(buckets);
-}
-
-// ─── Zoom tracker (must be child of MapContainer) ────────────────────────────
+// ─── Zoom watcher (must be a MapContainer child) ──────────────────────────────
 function ZoomWatcher({ onZoom }) {
   const map = useMap();
   useEffect(() => {
     const fn = () => onZoom(map.getZoom());
     map.on('zoomend', fn);
-    return () => map.off('zoomend', fn);
+    return () => { map.off('zoomend', fn); };
   }, [map, onZoom]);
   return null;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function fmtSale(p) {
-  const n = Number(p);
-  if (!n || isNaN(n)) return '—';
-  if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)} Cr`;
-  if (n >= 100000)   return `₹${(n / 100000).toFixed(1)} L`;
-  return `₹${n.toLocaleString('en-IN')}`;
-}
-function fmtRent(p) {
-  const n = Number(p);
-  if (!n || isNaN(n)) return '—';
-  return `₹${n.toLocaleString('en-IN')}/mo`;
-}
-function cap(s) {
-  return (s || '').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+// ─── FlyTo (flies map to lat/lng when locality changes) ───────────────────────
+function FlyTo({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.flyTo(center, zoom, { duration: 0.9, easeLinearity: 0.5 });
+  }, [center, zoom, map]);
+  return null;
 }
 
-// ─── Popup components ─────────────────────────────────────────────────────────
+// ─── Locality colors ──────────────────────────────────────────────────────────
+const LOCALITY_COLORS = [
+  '#3b82f6','#8b5cf6','#06b6d4','#10b981','#f59e0b',
+  '#ef4444','#ec4899','#6366f1','#14b8a6','#f97316',
+  '#84cc16','#a855f7','#0ea5e9','#d946ef','#22c55e',
+  '#eab308','#2563eb','#7c3aed','#059669','#dc2626',
+];
+
+// ─── Popup: individual listing ────────────────────────────────────────────────
 function ListingPopup({ item, navigate }) {
-  const mapsUrl = getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai');
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: 270, lineHeight: 1.4 }}>
-      <div style={{ background: 'linear-gradient(135deg,#1e3a5f,#2563eb)', padding: '10px 12px', color: '#fff' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', minWidth: 220, lineHeight: 1.5 }}>
+      <div style={{ background: 'linear-gradient(135deg,#1e40af,#3b82f6)', padding: '10px 12px', color: '#fff' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           Sale · {cap(item.locality)}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 800, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 13, fontWeight: 800, marginTop: 2, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {cap(item.apartment_name)}
         </div>
-        <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>
-          {item.bedroom} BHK · {item.carpet_area} sqft
-        </div>
+        <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>{item.bedroom} BHK · {item.carpet_area} sqft</div>
       </div>
-      <div style={{ padding: '10px 12px', background: '#fff' }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#2563eb', marginBottom: 8 }}>{fmtSale(item.price)}</div>
+      <div style={{ padding: '10px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {fmtPrice(item.price) && (
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#1d4ed8' }}>{fmtPrice(item.price)}</div>
+        )}
         <div style={{ display: 'flex', gap: 6 }}>
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              padding: '6px 0', background: '#f0fdf4', border: '1px solid #86efac',
-              borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
+          <a href={getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai')}
+            target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+              padding: '6px 4px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 7,
+              fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
             <Navigation2 size={11} /> Maps
           </a>
           <button onClick={() => navigate(`/listings/${item.listing_id}`)}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              padding: '6px 0', background: '#eff6ff', border: '1px solid #93c5fd',
-              borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#2563eb', cursor: 'pointer' }}>
-            Details <ChevronRight size={11} />
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+              padding: '6px 4px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 7,
+              fontSize: 11, fontWeight: 700, color: '#1d4ed8', cursor: 'pointer' }}>
+            View <ChevronRight size={11} />
           </button>
         </div>
-        {item.listing_url && (
-          <a href={item.listing_url} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginTop: 6,
-              fontSize: 10, color: '#94a3b8', textDecoration: 'none' }}>
-            <ExternalLink size={9} /> {item.website || 'View on portal'}
-          </a>
-        )}
       </div>
     </div>
   );
 }
 
 function RentalPopup({ item }) {
-  const mapsUrl = getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai');
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: 250, lineHeight: 1.4 }}>
-      <div style={{ background: 'linear-gradient(135deg,#064e3b,#059669)', padding: '10px 12px', color: '#fff' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', minWidth: 200, lineHeight: 1.5 }}>
+      <div style={{ background: 'linear-gradient(135deg,#065f46,#10b981)', padding: '10px 12px', color: '#fff' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           Rental · {cap(item.locality)}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 800, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 13, fontWeight: 800, marginTop: 2, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {cap(item.apartment_name)}
         </div>
-        <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{item.bedroom} BHK · {item.carpet_area} sqft</div>
+        <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>{item.bedroom} BHK · {item.carpet_area} sqft</div>
       </div>
-      <div style={{ padding: '10px 12px', background: '#fff' }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#059669', marginBottom: 8 }}>{fmtRent(item.price)}</div>
-        <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-            padding: '6px 0', background: '#f0fdf4', border: '1px solid #86efac',
-            borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
+      <div style={{ padding: '10px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {fmtPrice(item.price, true) && (
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#059669' }}>{fmtPrice(item.price, true)}</div>
+        )}
+        <a href={getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai')}
+          target="_blank" rel="noopener noreferrer"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+            padding: '6px 4px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 7,
+            fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
           <Navigation2 size={11} /> Open in Google Maps
         </a>
       </div>
@@ -179,108 +125,181 @@ function RentalPopup({ item }) {
 }
 
 function ProjectPopup({ item, navigate }) {
-  const mapsUrl = getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai');
-  const price = item.price_min
-    ? (Number(item.price_min) >= 10000000
-        ? `₹${(item.price_min / 10000000).toFixed(2)} Cr`
-        : `₹${(item.price_min / 100000).toFixed(1)} L`)
-    : null;
+  const normP = v => { if (!v || isNaN(v)) return null; const n = Number(v); return n >= 100000 ? n : n >= 20 ? Math.round(n*100000) : Math.round(n*10000000); };
+  const price = fmtPrice(normP(item.price_min));
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: 280, lineHeight: 1.4 }}>
-      <div style={{ background: 'linear-gradient(135deg,#78350f,#d97706)', padding: '10px 12px', color: '#fff' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', minWidth: 220, lineHeight: 1.5 }}>
+      <div style={{ background: 'linear-gradient(135deg,#78350f,#f59e0b)', padding: '10px 12px', color: '#fff' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           Builder · {cap(item.locality)}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 800, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 13, fontWeight: 800, marginTop: 2, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {cap(item.apartment_name)}
         </div>
-        <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>by {item.developer_name}</div>
+        <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>by {item.developer_name}</div>
       </div>
-      <div style={{ padding: '10px 12px', background: '#fff' }}>
-        {price && <div style={{ fontSize: 15, fontWeight: 800, color: '#d97706', marginBottom: 8 }}>from {price}</div>}
-        <div style={{ display: 'flex', gap: 6, marginBottom: price ? 0 : 0 }}>
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              padding: '6px 0', background: '#f0fdf4', border: '1px solid #86efac',
-              borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
+      <div style={{ padding: '10px 12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {price && <div style={{ fontSize: 15, fontWeight: 800, color: '#d97706' }}>from {price}</div>}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <a href={getGoogleMapsUrl(item._lat, item._lng, cap(item.apartment_name) + ', Mumbai')}
+            target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+              padding: '6px 4px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 7,
+              fontSize: 11, fontWeight: 700, color: '#15803d', textDecoration: 'none' }}>
             <Navigation2 size={11} /> Maps
           </a>
           <button onClick={() => navigate(`/projects/${item.project_id}`)}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              padding: '6px 0', background: '#fffbeb', border: '1px solid #fcd34d',
-              borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#92400e', cursor: 'pointer' }}>
-            Details <ChevronRight size={11} />
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+              padding: '6px 4px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 7,
+              fontSize: 11, fontWeight: 700, color: '#92400e', cursor: 'pointer' }}>
+            View <ChevronRight size={11} />
           </button>
         </div>
-        {item.project_url && (
-          <a href={item.project_url} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginTop: 6,
-              fontSize: 10, color: '#94a3b8', textDecoration: 'none' }}>
-            <ExternalLink size={9} /> View on Ivy Homes
-          </a>
-        )}
       </div>
     </div>
   );
 }
 
-// ─── Layer toggle panel ───────────────────────────────────────────────────────
-function LayerPanel({ showL, setShowL, showR, setShowR, showP, setShowP }) {
-  const layers = [
-    { label: 'Listings', on: showL, toggle: () => setShowL(v => !v), color: '#3b82f6', dot: '●' },
-    { label: 'Rentals',  on: showR, toggle: () => setShowR(v => !v), color: '#10b981', dot: '●' },
-    { label: 'Projects', on: showP, toggle: () => setShowP(v => !v), color: '#f59e0b', dot: '●' },
-  ];
+// ─── Locality cluster popup ───────────────────────────────────────────────────
+function LocalityPopup({ cluster, onSelect }) {
   return (
-    <div style={{
-      position: 'absolute', top: 16, right: 16, zIndex: 1000,
-      background: 'rgba(15,20,35,0.94)', backdropFilter: 'blur(12px)',
-      borderRadius: 12, padding: '10px 10px 8px',
-      border: '1px solid rgba(255,255,255,0.1)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-      minWidth: 130,
-    }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, paddingLeft: 2 }}>Map Layers</div>
-      {layers.map(({ label, on, toggle, color }) => (
-        <button key={label} onClick={toggle} style={{
-          display: 'flex', alignItems: 'center', gap: 7, width: '100%',
-          padding: '5px 7px', marginBottom: 3, borderRadius: 7,
-          border: on ? `1px solid ${color}55` : '1px solid rgba(255,255,255,0.05)',
-          background: on ? `${color}22` : 'transparent',
-          cursor: 'pointer', transition: 'all 0.15s',
-          fontSize: 12, fontWeight: 600,
-          color: on ? color : 'rgba(255,255,255,0.35)',
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', minWidth: 190, padding: '12px 14px', background: '#fff', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{cap(cluster.loc)}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
+        {cluster.listings > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#1d4ed8', fontWeight: 600 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', display: 'inline-block' }} />
+            {cluster.listings.toLocaleString('en-IN')} sale listings
+          </div>
+        )}
+        {cluster.rentals > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#059669', fontWeight: 600 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+            {cluster.rentals.toLocaleString('en-IN')} rentals
+          </div>
+        )}
+        {cluster.projects > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#d97706', fontWeight: 600 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
+            {cluster.projects.toLocaleString('en-IN')} projects
+          </div>
+        )}
+      </div>
+      <button
+        onClick={() => onSelect(cluster.loc)}
+        style={{
+          width: '100%', padding: '7px', background: '#1d4ed8', color: '#fff',
+          border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
         }}>
-          <span style={{
-            width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-            background: on ? color : 'rgba(255,255,255,0.2)',
-            boxShadow: on ? `0 0 6px ${color}` : 'none',
-          }} />
-          {label}
-        </button>
-      ))}
+        Explore {cap(cluster.loc)} <ChevronRight size={12} />
+      </button>
     </div>
   );
 }
 
-// ─── Stats bar ────────────────────────────────────────────────────────────────
-function StatsBar({ lCount, rCount, pCount, showL, showR, showP }) {
-  const total = (showL ? lCount : 0) + (showR ? rCount : 0) + (showP ? pCount : 0);
+// ─── Sidebar: property list for selected locality ─────────────────────────────
+function LocalitySidebar({ locality, listings, rentals, projects, onClose, navigate, showL, showR, showP }) {
+  const items = [
+    ...(showL ? listings.map(l => ({ ...l, _t: 'listing' })) : []),
+    ...(showR ? rentals.map(r  => ({ ...r, _t: 'rental' }))  : []),
+    ...(showP ? projects.map(p => ({ ...p, _t: 'project' })) : []),
+  ].slice(0, 50); // cap at 50 in sidebar for readability
+
+  const colorMap = { listing: '#3b82f6', rental: '#10b981', project: '#f59e0b' };
+  const labelMap = { listing: 'Sale', rental: 'Rent', project: 'Project' };
+
   return (
     <div style={{
-      position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 1000, display: 'flex', alignItems: 'center', gap: 8,
-      background: 'rgba(15,20,35,0.92)', backdropFilter: 'blur(12px)',
-      borderRadius: 999, padding: '6px 14px',
-      border: '1px solid rgba(255,255,255,0.08)',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-      fontSize: 11, fontWeight: 700, color: '#fff',
-      pointerEvents: 'none', whiteSpace: 'nowrap',
+      position: 'absolute', top: 0, right: 0, bottom: 0, zIndex: 900,
+      width: 300, background: 'var(--bg-surface)',
+      borderLeft: '1px solid var(--border-subtle)',
+      boxShadow: '-8px 0 32px rgba(0,0,0,0.15)',
+      display: 'flex', flexDirection: 'column',
+      overflow: 'hidden',
     }}>
-      {showL && <><span style={{ color: '#60a5fa' }}>{lCount.toLocaleString('en-IN')} listings</span><span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span></>}
-      {showR && <><span style={{ color: '#34d399' }}>{rCount.toLocaleString('en-IN')} rentals</span><span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span></>}
-      {showP && <><span style={{ color: '#fbbf24' }}>{pCount.toLocaleString('en-IN')} projects</span><span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span></>}
-      <span style={{ color: 'rgba(255,255,255,0.6)' }}>{total.toLocaleString('en-IN')} total</span>
+      {/* Header */}
+      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-heading)' }}>{cap(locality)}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+              {listings.length} listings · {rentals.length} rentals · {projects.length} projects
+            </div>
+          </div>
+          <button onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, lineHeight: 1, padding: 4 }}>
+            ×
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable list */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
+        {items.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: 13 }}>
+            No properties to show.<br/>Check the layer toggles above.
+          </div>
+        )}
+        {items.map((item, i) => {
+          const color = colorMap[item._t];
+          const label = labelMap[item._t];
+          const price = item._t === 'rental'
+            ? fmtPrice(item.price, true)
+            : fmtPrice(item.price || item.price_min);
+          const mapsUrl = getGoogleMapsUrl(item._lat || item.latitude, item._lng || item.longitude, cap(item.apartment_name) + ', Mumbai');
+
+          return (
+            <div key={`${item._t}-${i}`} style={{
+              marginBottom: 8, padding: '10px 10px', borderRadius: 10,
+              background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)',
+              transition: 'box-shadow 0.15s',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+                {item.bedroom && <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>· {item.bedroom} BHK</span>}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-heading)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {cap(item.apartment_name)}
+              </div>
+              {item.developer_name && (
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>by {item.developer_name}</div>
+              )}
+              {price && <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent-text)', marginBottom: 6 }}>{price}</div>}
+              <div style={{ display: 'flex', gap: 5 }}>
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 6, fontSize: 10, fontWeight: 700, color: '#059669', textDecoration: 'none' }}>
+                  <Navigation2 size={9} /> Maps
+                </a>
+                {item._t === 'listing' && item.listing_id && (
+                  <button onClick={() => navigate(`/listings/${item.listing_id}`)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', background: 'var(--accent-subtle)', border: '1px solid var(--accent-border)', borderRadius: 6, fontSize: 10, fontWeight: 700, color: 'var(--accent-text)', cursor: 'pointer' }}>
+                    Details
+                  </button>
+                )}
+                {item._t === 'project' && item.project_id && (
+                  <button onClick={() => navigate(`/projects/${item.project_id}`)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 6, fontSize: 10, fontWeight: 700, color: '#d97706', cursor: 'pointer' }}>
+                    Details
+                  </button>
+                )}
+                {item.listing_url && (
+                  <a href={item.listing_url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 6, fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'none' }}>
+                    <ExternalLink size={9} />
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {items.length >= 50 && (
+          <div style={{ textAlign: 'center', padding: '8px', fontSize: 11, color: 'var(--text-muted)' }}>
+            Showing top 50. Use filters to refine.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -294,66 +313,54 @@ export default function MapPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
-  const [zoom, setZoom]         = useState(12);
-  const [showL, setShowL]       = useState(true);
-  const [showR, setShowR]       = useState(true);
-  const [showP, setShowP]       = useState(true);
-  const [locality, setLocality] = useState('');
+
+  const [showL, setShowL] = useState(true);
+  const [showR, setShowR] = useState(true);
+  const [showP, setShowP] = useState(true);
+
+  // Selected locality — '' means city-level view (only ~20 locality clusters)
+  const [selectedLocality, setSelectedLocality] = useState('');
+  const [flyTarget, setFlyTarget] = useState(null);
+  const [zoom, setZoom] = useState(11);
 
   const handleZoom = useCallback(z => setZoom(z), []);
+  const navigate_ = navigate;
 
-  const LOCALITIES = [
-    '', 'andheri west', 'bandra east', 'borivali west', 'chembur',
-    'goregaon east', 'kandivali east', 'malad west', 'mulund west', 'powai', 'thane west',
-  ];
-
-  // ─── Load data ─────────────────────────────────────────────────────────
+  // ─── Load all data once ──────────────────────────────────────────────────
   useEffect(() => {
     let alive = true;
     async function load() {
       setLoading(true);
-      setError(null);
       try {
         const [lr, rr, pr] = await Promise.all([
-          fetch(`${import.meta.env.BASE_URL}listings.json`).then(r => { if (!r.ok) throw new Error('listings'); return r.json(); }),
-          fetch(`${import.meta.env.BASE_URL}rentals.json`).then(r  => { if (!r.ok) throw new Error('rentals');  return r.json(); }),
-          fetch(`${import.meta.env.BASE_URL}projects.json`).then(r => { if (!r.ok) throw new Error('projects'); return r.json(); }),
+          fetch(`${import.meta.env.BASE_URL}listings.json`).then(r => r.json()),
+          fetch(`${import.meta.env.BASE_URL}rentals.json`).then(r  => r.json()),
+          fetch(`${import.meta.env.BASE_URL}projects.json`).then(r => r.json()),
         ]);
         if (!alive) return;
 
-        const normPrice = v => {
-          if (!v || isNaN(v)) return null;
-          const n = Number(v);
-          return n >= 100000 ? n : n >= 20 ? Math.round(n * 100000) : Math.round(n * 10000000);
-        };
+        const normP = v => { if (!v || isNaN(v)) return null; const n = Number(v); return n >= 100000 ? n : n >= 20 ? Math.round(n*100000) : Math.round(n*10000000); };
 
         const rawL = Array.isArray(lr) ? lr : (lr.results || []);
         const rawR = Array.isArray(rr) ? rr : (rr.results || []);
         const rawP = Array.isArray(pr) ? pr : (pr.results || []);
 
-        const processL = deduplicateListings(filterFakeListings(rawL))
-          .filter(l => l.is_live === true && l.latitude && l.longitude)
-          .map(l => { const f = fixCoordinates(l); return { ...f, _lat: Number(f.latitude), _lng: Number(f.longitude) }; });
-
-        const processR = rawR
-          .filter(r => r.is_live !== false && r.latitude && r.longitude)
-          .map(r => { const f = fixCoordinates(r); return { ...f, _lat: Number(f.latitude), _lng: Number(f.longitude) }; });
-
-        const processP = rawP
-          .filter(p => p.latitude && p.longitude)
-          .map(p => {
-            const f = fixCoordinates(p);
-            return { ...f, price_min: normPrice(p.price_min), _lat: Number(f.latitude), _lng: Number(f.longitude) };
-          });
-
-        if (alive) {
-          setListings(processL);
-          setRentals(processR);
-          setProjects(processP);
-        }
+        setListings(
+          deduplicateListings(filterFakeListings(rawL))
+            .filter(l => l.is_live === true && l.latitude && l.longitude)
+            .map(l => { const f = fixCoordinates(l); return { ...f, _lat: Number(f.latitude), _lng: Number(f.longitude) }; })
+        );
+        setRentals(
+          rawR.filter(r => r.is_live !== false && r.latitude && r.longitude)
+            .map(r => { const f = fixCoordinates(r); return { ...f, _lat: Number(f.latitude), _lng: Number(f.longitude) }; })
+        );
+        setProjects(
+          rawP.filter(p => p.latitude && p.longitude)
+            .map(p => { const f = fixCoordinates(p); return { ...f, price_min: normP(p.price_min), _lat: Number(f.latitude), _lng: Number(f.longitude) }; })
+        );
       } catch (e) {
-        console.error('Map data load error:', e);
-        if (alive) setError(`Failed to load map data: ${e.message}`);
+        console.error(e);
+        if (alive) setError('Failed to load map data. Please refresh.');
       } finally {
         if (alive) setLoading(false);
       }
@@ -362,212 +369,293 @@ export default function MapPage() {
     return () => { alive = false; };
   }, []);
 
-  // ─── Locality filter ───────────────────────────────────────────────────
-  const filtL = useMemo(() => locality ? listings.filter(x => x.locality?.toLowerCase() === locality) : listings, [listings, locality]);
-  const filtR = useMemo(() => locality ? rentals.filter(x  => x.locality?.toLowerCase() === locality)  : rentals,  [rentals, locality]);
-  const filtP = useMemo(() => locality ? projects.filter(x => x.locality?.toLowerCase() === locality)  : projects, [projects, locality]);
+  // ─── Locality-level aggregation (city view: ~20 circles only) ────────────
+  const localityClusters = useMemo(() => {
+    const buckets = {};
+    const addItem = (item, type) => {
+      const loc = (item.locality || '').toLowerCase().trim();
+      if (!loc || !item._lat || !item._lng || isNaN(item._lat)) return;
+      if (!buckets[loc]) buckets[loc] = { loc, listings: 0, rentals: 0, projects: 0, latSum: 0, lngSum: 0, n: 0 };
+      buckets[loc][type]++;
+      buckets[loc].latSum += item._lat;
+      buckets[loc].lngSum += item._lng;
+      buckets[loc].n++;
+    };
+    if (showL) listings.forEach(l => addItem(l, 'listings'));
+    if (showR) rentals.forEach(r  => addItem(r, 'rentals'));
+    if (showP) projects.forEach(p => addItem(p, 'projects'));
 
-  // ─── Clustering ────────────────────────────────────────────────────────
-  const clL = useMemo(() => clusterPoints(filtL, zoom), [filtL, zoom]);
-  const clR = useMemo(() => clusterPoints(filtR, zoom), [filtR, zoom]);
-  const clP = useMemo(() => clusterPoints(filtP, zoom), [filtP, zoom]);
+    return Object.values(buckets).map(b => ({
+      ...b,
+      lat: b.latSum / b.n,
+      lng: b.lngSum / b.n,
+      total: b.listings + b.rentals + b.projects,
+    })).sort((a, b) => b.total - a.total);
+  }, [listings, rentals, projects, showL, showR, showP]);
 
+  // ─── Filtered items for selected locality (detail view) ──────────────────
+  const localL = useMemo(() => listings.filter(l => l.locality?.toLowerCase() === selectedLocality), [listings, selectedLocality]);
+  const localR = useMemo(() => rentals.filter(r  => r.locality?.toLowerCase()  === selectedLocality), [rentals,  selectedLocality]);
+  const localP = useMemo(() => projects.filter(p => p.locality?.toLowerCase()  === selectedLocality), [projects, selectedLocality]);
+
+  // Get unique locality list for dropdown
+  const localityList = useMemo(() => {
+    const set = new Set();
+    listings.forEach(l => l.locality && set.add(l.locality.toLowerCase()));
+    rentals.forEach(r  => r.locality  && set.add(r.locality.toLowerCase()));
+    projects.forEach(p => p.locality  && set.add(p.locality.toLowerCase()));
+    return ['', ...Array.from(set).sort()];
+  }, [listings, rentals, projects]);
+
+  // Handle locality selection (from dropdown or cluster click)
+  const handleSelectLocality = useCallback((loc) => {
+    setSelectedLocality(loc);
+    if (loc) {
+      // Find the cluster for this locality to fly there
+      const cluster = localityClusters.find(c => c.loc === loc);
+      if (cluster) setFlyTarget({ lat: cluster.lat, lng: cluster.lng });
+    } else {
+      setFlyTarget({ lat: MUMBAI_CENTER.lat, lng: MUMBAI_CENTER.lng });
+    }
+  }, [localityClusters]);
+
+  // ─── Loading / Error ──────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="main-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', gap: 20 }}>
         <Loader2 size={44} color="var(--accent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
         <div style={{ textAlign: 'center' }}>
           <p style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-heading)' }}>Loading Mumbai Map…</p>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 4 }}>Fetching listings, rentals &amp; projects</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 4 }}>Fetching listings, rentals &amp; projects</p>
         </div>
-        <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+        <style>{`@keyframes spin { from { transform:rotate(0) } to { transform:rotate(360deg) } }`}</style>
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="main-content" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
         <Map size={48} color="var(--text-muted)" style={{ marginBottom: 16 }} />
-        <h2 style={{ color: 'var(--text-heading)', fontWeight: 700, marginBottom: 8 }}>Map failed to load</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>{error}</p>
-        <button onClick={() => window.location.reload()} className="btn btn-primary">Reload Page</button>
+        <h2 style={{ color: 'var(--text-heading)', fontWeight: 700 }}>Map failed to load</h2>
+        <p style={{ color: 'var(--text-muted)', margin: '8px 0 24px' }}>{error}</p>
+        <button onClick={() => window.location.reload()} className="btn btn-primary">Reload</button>
       </div>
     );
   }
+
+  const inDetailView = Boolean(selectedLocality);
+  const totalVisible = (showL ? (inDetailView ? localL.length : listings.length) : 0)
+    + (showR ? (inDetailView ? localR.length : rentals.length) : 0)
+    + (showP ? (inDetailView ? localP.length : projects.length) : 0);
 
   return (
     <motion.div
       className="main-content"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.35 }}
+      transition={{ duration: 0.3 }}
       style={{ paddingBottom: '1rem' }}
     >
-      {/* Header */}
-      <div style={{ marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span className="badge badge-blue">Interactive Map</span>
-          <span className="badge badge-slate">No API Key · 100% Free</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* ─── Header ─────────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Map size={24} strokeWidth={1.5} /> Mumbai Property Map
+            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <Map size={22} strokeWidth={1.5} /> Mumbai Property Map
             </h1>
-            <p className="page-subtitle">
-              {listings.length.toLocaleString('en-IN')} unique homes · {rentals.length.toLocaleString('en-IN')} rentals · {projects.length.toLocaleString('en-IN')} projects
+            <p className="page-subtitle" style={{ margin: 0 }}>
+              {inDetailView
+                ? `${cap(selectedLocality)} — ${totalVisible} properties`
+                : `${localityClusters.length} localities · ${listings.length.toLocaleString('en-IN')} sale · ${rentals.length.toLocaleString('en-IN')} rental · ${projects.length.toLocaleString('en-IN')} projects`
+              }
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <label style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Locality:</label>
+
+          {/* Controls row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {/* Layer toggles */}
+            {[
+              { label: 'Sale', on: showL, toggle: () => setShowL(v => !v), color: '#3b82f6' },
+              { label: 'Rental', on: showR, toggle: () => setShowR(v => !v), color: '#10b981' },
+              { label: 'Projects', on: showP, toggle: () => setShowP(v => !v), color: '#f59e0b' },
+            ].map(({ label, on, toggle, color }) => (
+              <button key={label} onClick={toggle} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 12px', borderRadius: 999,
+                border: on ? `1.5px solid ${color}` : '1.5px solid var(--border-subtle)',
+                background: on ? `${color}18` : 'transparent',
+                color: on ? color : 'var(--text-muted)',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: on ? color : 'var(--border-subtle)', display: 'inline-block' }} />
+                {label}
+              </button>
+            ))}
+
+            {/* Locality selector */}
             <select
-              value={locality}
-              onChange={e => setLocality(e.target.value)}
+              value={selectedLocality}
+              onChange={e => handleSelectLocality(e.target.value)}
               className="input-field"
-              style={{ fontSize: 13, padding: '6px 10px', minWidth: 150, textTransform: 'capitalize' }}
+              style={{ fontSize: 12, padding: '5px 10px', minWidth: 160 }}
             >
-              {LOCALITIES.map(loc => (
-                <option key={loc} value={loc}>{loc === '' ? 'All Mumbai' : cap(loc)}</option>
+              <option value="">All Mumbai (city view)</option>
+              {localityList.filter(Boolean).map(loc => (
+                <option key={loc} value={loc}>{cap(loc)}</option>
               ))}
             </select>
+
+            {/* Clear locality button */}
+            {inDetailView && (
+              <button
+                onClick={() => handleSelectLocality('')}
+                className="btn btn-secondary btn-sm"
+                style={{ borderRadius: 999, fontSize: 12 }}
+              >
+                ← All Mumbai
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Map wrapper */}
+      {/* ─── Map area ───────────────────────────────────────────────────── */}
       <div style={{
         position: 'relative',
         borderRadius: 16,
         overflow: 'hidden',
-        height: 'calc(100vh - 230px)',
-        minHeight: 500,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px var(--border-subtle)',
+        height: 'calc(100vh - 210px)',
+        minHeight: 480,
+        boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 0 0 1px var(--border-subtle)',
+        display: 'flex',
       }}>
-        {/* Overlays — rendered as absolute children INSIDE this wrapper */}
-        <StatsBar lCount={filtL.length} rCount={filtR.length} pCount={filtP.length} showL={showL} showR={showR} showP={showP} />
-        <LayerPanel showL={showL} setShowL={setShowL} showR={showR} setShowR={setShowR} showP={showP} setShowP={setShowP} />
+        {/* Map */}
+        <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+          <MapContainer
+            center={[MUMBAI_CENTER.lat, MUMBAI_CENTER.lng]}
+            zoom={11}
+            style={{ width: '100%', height: '100%' }}
+            scrollWheelZoom
+            zoomSnap={0.5}
+          >
+            <ZoomWatcher onZoom={handleZoom} />
+            {flyTarget && (
+              <FlyTo
+                center={[flyTarget.lat, flyTarget.lng]}
+                zoom={inDetailView ? 14 : 11}
+              />
+            )}
 
-        {/* Legend */}
-        <div style={{
-          position: 'absolute', bottom: 40, left: 12, zIndex: 1000,
-          background: 'rgba(15,20,35,0.9)', backdropFilter: 'blur(10px)',
-          borderRadius: 10, padding: '8px 12px',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-        }}>
-          {[['#3b82f6','Sale Listing'],['#10b981','Rental'],['#f59e0b','Builder Project']].map(([color, label]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: color, display: 'inline-block', boxShadow: `0 0 5px ${color}` }} />
-              {label}
-            </div>
-          ))}
+            {/* ── FREE OpenStreetMap tiles — no API key, no watermark ── */}
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+            />
+
+            {/* ── CITY VIEW: locality circles (~20 markers, very fast) ── */}
+            {!inDetailView && localityClusters.map((cluster, i) => {
+              const color = LOCALITY_COLORS[i % LOCALITY_COLORS.length];
+              // Scale radius by count (log scale so big clusters don't overwhelm)
+              const r = Math.min(34, Math.max(16, 12 + Math.log10(cluster.total + 1) * 10));
+              return (
+                <CircleMarker
+                  key={cluster.loc}
+                  center={[cluster.lat, cluster.lng]}
+                  radius={r}
+                  pathOptions={{
+                    fillColor: color,
+                    fillOpacity: 0.82,
+                    color: '#fff',
+                    weight: 2.5,
+                  }}
+                >
+                  <Popup maxWidth={220} minWidth={180} closeButton>
+                    <LocalityPopup cluster={cluster} onSelect={(loc) => {
+                      handleSelectLocality(loc);
+                    }} />
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
+
+            {/* ── DETAIL VIEW: individual small dots for selected locality ── */}
+            {inDetailView && showL && localL.map((item, i) => (
+              <CircleMarker key={`dl${i}`} center={[item._lat, item._lng]} radius={6}
+                pathOptions={{ fillColor: '#3b82f6', fillOpacity: 0.85, color: '#fff', weight: 1.5 }}>
+                <Popup maxWidth={250} minWidth={200}><ListingPopup item={item} navigate={navigate_} /></Popup>
+              </CircleMarker>
+            ))}
+
+            {inDetailView && showR && localR.map((item, i) => (
+              <CircleMarker key={`dr${i}`} center={[item._lat, item._lng]} radius={6}
+                pathOptions={{ fillColor: '#10b981', fillOpacity: 0.85, color: '#fff', weight: 1.5 }}>
+                <Popup maxWidth={230} minWidth={190}><RentalPopup item={item} /></Popup>
+              </CircleMarker>
+            ))}
+
+            {inDetailView && showP && localP.map((item, i) => (
+              <CircleMarker key={`dp${i}`} center={[item._lat, item._lng]} radius={8}
+                pathOptions={{ fillColor: '#f59e0b', fillOpacity: 0.9, color: '#fff', weight: 1.5 }}>
+                <Popup maxWidth={260} minWidth={200}><ProjectPopup item={item} navigate={navigate_} /></Popup>
+              </CircleMarker>
+            ))}
+          </MapContainer>
+
+          {/* ── Map legend (bottom-left) ── */}
+          <div style={{
+            position: 'absolute', bottom: 32, left: 12, zIndex: 1000,
+            background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(8px)',
+            borderRadius: 10, padding: '8px 12px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(0,0,0,0.07)',
+          }}>
+            {inDetailView
+              ? [['#3b82f6','Sale Listings'],['#10b981','Rentals'],['#f59e0b','Projects']].map(([c,l]) => (
+                  <div key={l} style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, fontWeight:600, color:'#334155', marginBottom:3 }}>
+                    <span style={{ width:9, height:9, borderRadius:'50%', background:c, display:'inline-block' }} />{l}
+                  </div>
+                ))
+              : <div style={{ fontSize:11, fontWeight:600, color:'#334155' }}>
+                  <div style={{ marginBottom:3 }}>🔵 Circle = locality cluster</div>
+                  <div>Size ∝ number of properties</div>
+                </div>
+            }
+          </div>
         </div>
 
-        {/* THE MAP */}
-        <MapContainer
-          center={[MUMBAI_CENTER.lat, MUMBAI_CENTER.lng]}
-          zoom={12}
-          style={{ width: '100%', height: '100%' }}
-          scrollWheelZoom={true}
-        >
-          <ZoomWatcher onZoom={handleZoom} />
-
-          {/* Free dark tile — CARTO Dark Matter, no API key */}
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            maxZoom={19}
+        {/* ── Sidebar: property list for selected locality ── */}
+        {inDetailView && (
+          <LocalitySidebar
+            locality={selectedLocality}
+            listings={localL}
+            rentals={localR}
+            projects={localP}
+            onClose={() => handleSelectLocality('')}
+            navigate={navigate_}
+            showL={showL}
+            showR={showR}
+            showP={showP}
           />
-
-          {/* LISTINGS */}
-          {showL && clL.map((cl, i) => (
-            <Marker
-              key={`l${i}`}
-              position={[cl.lat, cl.lng]}
-              icon={cl.items.length === 1 ? ICON_LISTING : createClusterIcon(cl.items.length, '#3b82f6')}
-            >
-              <Popup maxWidth={290} minWidth={200}>
-                {cl.items.length === 1
-                  ? <ListingPopup item={cl.items[0]} navigate={navigate} />
-                  : <div style={{ padding: '8px 10px', fontFamily: 'Inter,sans-serif' }}>
-                      <b style={{ color: '#3b82f6' }}>🔵 {cl.items.length} listings here</b>
-                      <br /><small style={{ color: '#64748b' }}>Zoom in to see each one</small>
-                    </div>
-                }
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* RENTALS */}
-          {showR && clR.map((cl, i) => (
-            <Marker
-              key={`r${i}`}
-              position={[cl.lat, cl.lng]}
-              icon={cl.items.length === 1 ? ICON_RENTAL : createClusterIcon(cl.items.length, '#10b981')}
-            >
-              <Popup maxWidth={270} minWidth={190}>
-                {cl.items.length === 1
-                  ? <RentalPopup item={cl.items[0]} />
-                  : <div style={{ padding: '8px 10px', fontFamily: 'Inter,sans-serif' }}>
-                      <b style={{ color: '#10b981' }}>🟢 {cl.items.length} rentals here</b>
-                      <br /><small style={{ color: '#64748b' }}>Zoom in to see each one</small>
-                    </div>
-                }
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* PROJECTS */}
-          {showP && clP.map((cl, i) => (
-            <Marker
-              key={`p${i}`}
-              position={[cl.lat, cl.lng]}
-              icon={cl.items.length === 1 ? ICON_PROJECT : createClusterIcon(cl.items.length, '#f59e0b')}
-            >
-              <Popup maxWidth={300} minWidth={200}>
-                {cl.items.length === 1
-                  ? <ProjectPopup item={cl.items[0]} navigate={navigate} />
-                  : <div style={{ padding: '8px 10px', fontFamily: 'Inter,sans-serif' }}>
-                      <b style={{ color: '#f59e0b' }}>🟡 {cl.items.length} projects here</b>
-                      <br /><small style={{ color: '#64748b' }}>Zoom in to see each one</small>
-                    </div>
-                }
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        )}
       </div>
 
-      {/* Global style overrides for Leaflet popup */}
+      {/* Leaflet popup overrides */}
       <style>{`
         .leaflet-popup-content-wrapper {
-          border-radius: 12px !important;
-          padding: 0 !important;
+          border-radius: 12px !important; padding: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 16px 48px rgba(0,0,0,0.22) !important;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.18) !important;
           border: 1px solid rgba(0,0,0,0.08) !important;
         }
         .leaflet-popup-content { margin: 0 !important; width: auto !important; }
         .leaflet-popup-tip-container { display: none !important; }
-        .leaflet-control-attribution {
-          background: rgba(15,20,35,0.7) !important;
-          color: rgba(255,255,255,0.4) !important;
-          font-size: 10px !important;
-          border-radius: 4px 0 0 0 !important;
-        }
-        .leaflet-control-attribution a { color: rgba(255,255,255,0.45) !important; }
-        .leaflet-control-zoom { box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important; border: none !important; }
-        .leaflet-control-zoom a {
-          background: rgba(15,20,35,0.92) !important;
-          color: #fff !important;
-          border: 1px solid rgba(255,255,255,0.12) !important;
-          font-size: 16px !important;
-        }
-        .leaflet-control-zoom a:hover { background: #2563eb !important; }
-        /* Remove Leaflet logo */
-        .leaflet-control-attribution .leaflet-attr-logo { display: none !important; }
+        .leaflet-control-zoom { box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important; border: none !important; }
+        .leaflet-control-zoom a { background: #fff !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; }
+        .leaflet-control-zoom a:hover { background: #f1f5f9 !important; }
+        .leaflet-control-attribution { font-size: 10px !important; }
         a[href="https://leafletjs.com"] { display: none !important; }
+        .leaflet-attribution-flag { display: none !important; }
       `}</style>
     </motion.div>
   );
